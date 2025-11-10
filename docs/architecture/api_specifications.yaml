@@ -1,0 +1,1140 @@
+openapi: 3.0.3
+info:
+  title: NumerAI API
+  description: |
+    AI-Powered Numerology Platform API
+    
+    ## Authentication
+    Most endpoints require JWT authentication. Include the access token in the Authorization header:
+    ```
+    Authorization: Bearer <access_token>
+    ```
+    
+    ## Rate Limiting
+    - Free tier: 20 requests/minute
+    - Premium tier: 100 requests/minute
+    
+    Rate limit information is included in response headers:
+    - `X-RateLimit-Limit`: Maximum requests allowed
+    - `X-RateLimit-Remaining`: Requests remaining in current window
+    - `X-RateLimit-Reset`: Unix timestamp when limit resets
+    
+    ## Error Handling
+    All errors follow a consistent format:
+    ```json
+    {
+      "success": false,
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Human-readable error message",
+        "details": {}
+      }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: NumerAI API Support
+    email: api@numerai.app
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.numerai.app/api/v1
+    description: Production server
+  - url: https://staging-api.numerai.app/api/v1
+    description: Staging server
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: User Profile
+    description: User profile management
+  - name: Numerology
+    description: Numerology calculations and readings
+  - name: AI Chat
+    description: AI-powered numerology chatbot
+  - name: Notifications
+    description: Push notification management
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account with email or phone number
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - full_name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                phone:
+                  type: string
+                  pattern: '^\+?1?\d{9,15}$'
+                  example: '+919876543210'
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123
+                full_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: John Doe
+              oneOf:
+                - required: [email]
+                - required: [phone]
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user_id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                      message:
+                        type: string
+                        example: Registration successful. Please verify your email/phone.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email or phone already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/verify-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Verify OTP code
+      description: Verify email or phone number with OTP code
+      operationId: verifyOTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                otp:
+                  type: string
+                  pattern: '^\d{6}$'
+                  example: '123456'
+              oneOf:
+                - required: [email]
+                - required: [phone]
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      access_token:
+                        type: string
+                      refresh_token:
+                        type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid or expired OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/resend-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Resend OTP code
+      description: Resend OTP to email or phone (max 3 times per hour)
+      operationId: resendOTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+              oneOf:
+                - required: [email]
+                - required: [phone]
+      responses:
+        '200':
+          description: OTP resent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: OTP sent successfully
+        '429':
+          description: Too many OTP requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive JWT tokens
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                remember_me:
+                  type: boolean
+                  default: false
+              oneOf:
+                - required: [email]
+                - required: [phone]
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      refresh_token:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '423':
+          description: Account locked due to too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh-token:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get a new access token using refresh token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      refresh_token:
+                        type: string
+                        description: New refresh token (if rotation enabled)
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current refresh token
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Logged out successfully
+
+  /users/profile:
+    get:
+      tags:
+        - User Profile
+      summary: Get user profile
+      description: Retrieve current user's profile information
+      operationId: getUserProfile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - User Profile
+      summary: Update user profile
+      description: Update user profile information (full update)
+      operationId: updateUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - full_name
+                - date_of_birth
+              properties:
+                full_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                date_of_birth:
+                  type: string
+                  format: date
+                  example: '1990-05-15'
+                gender:
+                  type: string
+                  enum: [male, female, other, prefer_not_to_say]
+                timezone:
+                  type: string
+                  example: Asia/Kolkata
+                location:
+                  type: string
+                  example: Mumbai, India
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags:
+        - User Profile
+      summary: Partially update user profile
+      description: Update specific fields of user profile
+      operationId: patchUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                date_of_birth:
+                  type: string
+                  format: date
+                gender:
+                  type: string
+                  enum: [male, female, other, prefer_not_to_say]
+                timezone:
+                  type: string
+                location:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+
+  /numerology/calculate:
+    post:
+      tags:
+        - Numerology
+      summary: Calculate numerology profile
+      description: Calculate all numerology numbers for current user
+      operationId: calculateNumerology
+      responses:
+        '200':
+          description: Calculation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NumerologyProfile'
+        '400':
+          description: Profile incomplete (missing DOB or name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /numerology/profile:
+    get:
+      tags:
+        - Numerology
+      summary: Get numerology profile
+      description: Retrieve user's numerology profile
+      operationId: getNumerologyProfile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NumerologyProfile'
+        '404':
+          description: Profile not calculated yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /numerology/birth-chart:
+    get:
+      tags:
+        - Numerology
+      summary: Get birth chart
+      description: Retrieve user's birth chart with interpretations
+      operationId: getBirthChart
+      responses:
+        '200':
+          description: Birth chart retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BirthChart'
+
+  /numerology/birth-chart/pdf:
+    get:
+      tags:
+        - Numerology
+      summary: Export birth chart as PDF
+      description: Generate and download birth chart PDF report
+      operationId: exportBirthChartPDF
+      responses:
+        '200':
+          description: PDF generated successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '402':
+          description: Premium feature required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /numerology/daily-reading:
+    get:
+      tags:
+        - Numerology
+      summary: Get daily reading
+      description: Retrieve today's numerology reading
+      operationId: getDailyReading
+      parameters:
+        - name: date
+          in: query
+          description: Specific date (defaults to today)
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Daily reading retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/DailyReading'
+
+  /numerology/daily-reading/history:
+    get:
+      tags:
+        - Numerology
+      summary: Get reading history
+      description: Retrieve past daily readings
+      operationId: getDailyReadingHistory
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Reading history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DailyReading'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /ai/chat:
+    post:
+      tags:
+        - AI Chat
+      summary: Send chat message
+      description: Send a message to AI numerology chatbot
+      operationId: sendChatMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  maxLength: 500
+                  example: What does my Life Path Number 7 mean for my career?
+                conversation_id:
+                  type: string
+                  format: uuid
+                  description: Existing conversation ID (optional, creates new if not provided)
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      conversation_id:
+                        type: string
+                        format: uuid
+                      message:
+                        $ref: '#/components/schemas/ChatMessage'
+                      suggested_followups:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - What are the best career paths for Life Path 7?
+                          - How can I improve my career prospects?
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/conversations:
+    get:
+      tags:
+        - AI Chat
+      summary: Get conversation history
+      description: Retrieve list of user's conversations
+      operationId: getConversations
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Conversations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conversation'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /ai/conversations/{conversation_id}:
+    get:
+      tags:
+        - AI Chat
+      summary: Get conversation messages
+      description: Retrieve all messages in a conversation
+      operationId: getConversationMessages
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      conversation_id:
+                        type: string
+                        format: uuid
+                      messages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChatMessage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai/conversations/{conversation_id}/export:
+    get:
+      tags:
+        - AI Chat
+      summary: Export conversation as PDF
+      description: Download conversation transcript as PDF
+      operationId: exportConversation
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: PDF generated successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /notifications/devices:
+    post:
+      tags:
+        - Notifications
+      summary: Register device token
+      description: Register FCM device token for push notifications
+      operationId: registerDeviceToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fcm_token
+                - device_type
+              properties:
+                fcm_token:
+                  type: string
+                  example: fGcI7rTxQR2...
+                device_type:
+                  type: string
+                  enum: [ios, android, web]
+      responses:
+        '201':
+          description: Device registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      device_id:
+                        type: string
+                        format: uuid
+                      message:
+                        type: string
+
+  /notifications/settings:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification settings
+      description: Retrieve user's notification preferences
+      operationId: getNotificationSettings
+      responses:
+        '200':
+          description: Settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NotificationSettings'
+
+    put:
+      tags:
+        - Notifications
+      summary: Update notification settings
+      description: Update user's notification preferences
+      operationId: updateNotificationSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationSettings'
+      responses:
+        '200':
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NotificationSettings'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        full_name:
+          type: string
+        is_verified:
+          type: boolean
+        is_premium:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        full_name:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other, prefer_not_to_say]
+        timezone:
+          type: string
+        location:
+          type: string
+        profile_completed:
+          type: boolean
+        is_premium:
+          type: boolean
+
+    NumerologyProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        life_path_number:
+          type: integer
+          minimum: 1
+          maximum: 33
+        destiny_number:
+          type: integer
+        soul_urge_number:
+          type: integer
+        personality_number:
+          type: integer
+        attitude_number:
+          type: integer
+        maturity_number:
+          type: integer
+        balance_number:
+          type: integer
+        personal_year_number:
+          type: integer
+        personal_month_number:
+          type: integer
+        calculation_system:
+          type: string
+          enum: [pythagorean, chaldean]
+          default: pythagorean
+        calculated_at:
+          type: string
+          format: date-time
+
+    BirthChart:
+      type: object
+      properties:
+        user_name:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        numbers:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [life_path, destiny, soul_urge, personality, attitude, maturity, balance, personal_year, personal_month]
+              value:
+                type: integer
+              interpretation:
+                type: string
+              category:
+                type: string
+                enum: [life, compatibility, challenge]
+        calculated_at:
+          type: string
+          format: date-time
+
+    DailyReading:
+      type: object
+      properties:
+        reading_id:
+          type: string
+          format: uuid
+        reading_date:
+          type: string
+          format: date
+        personal_day_number:
+          type: integer
+          minimum: 1
+          maximum: 9
+        lucky_number:
+          type: integer
+        lucky_color:
+          type: string
+          example: Yellow
+        auspicious_time:
+          type: string
+          example: 10:00 AM - 12:00 PM
+        activity_recommendation:
+          type: string
+        warning:
+          type: string
+        affirmation:
+          type: string
+        actionable_tip:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+
+    ChatMessage:
+      type: object
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        tokens_used:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    Conversation:
+      type: object
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        last_message_at:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+
+    NotificationSettings:
+      type: object
+      properties:
+        daily_reading_enabled:
+          type: boolean
+          default: true
+        time_preference:
+          type: string
+          format: time
+          example: '07:00'
+        timezone:
+          type: string
+          example: Asia/Kolkata
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid input data
+            details:
+              type: object
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer

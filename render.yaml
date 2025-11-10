@@ -1,0 +1,128 @@
+# Render.com Blueprint for NumerAI Sprint 1
+# This file defines all services needed for staging deployment
+
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: numerai-postgres
+    env: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./Dockerfile.postgres
+    envVars:
+      - key: POSTGRES_DB
+        value: numerai
+      - key: POSTGRES_USER
+        value: numerai
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # Redis Cache
+  - type: redis
+    name: numerai-redis
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  # Django Backend
+  - type: web
+    name: numerai-backend
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 numerai.wsgi:application"
+    healthCheckPath: /api/v1/health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DJANGO_SETTINGS_MODULE
+        value: numerai.settings.production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: numerai-backend.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: numerai-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: numerai-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: numerai-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: numerai-redis
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://numerai-frontend.onrender.com
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.console.EmailBackend
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@numerai.app
+
+  # Celery Worker
+  - type: worker
+    name: numerai-celery-worker
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A numerai worker -l info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DJANGO_SETTINGS_MODULE
+        value: numerai.settings.production
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: numerai-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: numerai-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: numerai-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: numerai-redis
+          property: connectionString
+
+  # Next.js Frontend
+  - type: web
+    name: numerai-frontend
+    env: node
+    plan: starter
+    region: oregon
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: NEXT_PUBLIC_API_URL
+        value: https://numerai-backend.onrender.com/api/v1
+
+databases:
+  - name: numerai-postgres
+    databaseName: numerai
+    user: numerai
+    plan: starter
+    region: oregon

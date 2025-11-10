@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: numerai-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-numerai}
+      POSTGRES_USER: ${DB_USER:-numerai}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-numerai}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-numerai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - numerai-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: numerai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - numerai-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: numerai-backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 120 numerai.wsgi:application"
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this}
+      - DB_NAME=${DB_NAME:-numerai}
+      - DB_USER=${DB_USER:-numerai}
+      - DB_PASSWORD=${DB_PASSWORD:-numerai}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DJANGO_SETTINGS_MODULE=numerai.settings.development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - numerai-network
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: numerai-celery-worker
+    command: celery -A numerai worker -l info
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this}
+      - DB_NAME=${DB_NAME:-numerai}
+      - DB_USER=${DB_USER:-numerai}
+      - DB_PASSWORD=${DB_PASSWORD:-numerai}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DJANGO_SETTINGS_MODULE=numerai.settings.development
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    networks:
+      - numerai-network
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: numerai-celery-beat
+    command: celery -A numerai beat -l info
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this}
+      - DB_NAME=${DB_NAME:-numerai}
+      - DB_USER=${DB_USER:-numerai}
+      - DB_PASSWORD=${DB_PASSWORD:-numerai}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DJANGO_SETTINGS_MODULE=numerai.settings.development
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    networks:
+      - numerai-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: numerai-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - backend
+    networks:
+      - numerai-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  numerai-network:
+    driver: bridge
