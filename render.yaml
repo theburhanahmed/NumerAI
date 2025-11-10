@@ -6,7 +6,7 @@ services:
   - type: pserv
     name: numerai-postgres
     env: docker
-    plan: starter
+    plan: Basic-1gb
     region: oregon
     dockerfilePath: ./Dockerfile.postgres
     envVars:
@@ -20,7 +20,7 @@ services:
   # Redis Cache
   - type: redis
     name: numerai-redis
-    plan: starter
+    plan: Basic-1gb
     region: oregon
     maxmemoryPolicy: allkeys-lru
     ipAllowList: []
@@ -29,7 +29,7 @@ services:
   - type: web
     name: numerai-backend
     env: python
-    plan: starter
+    plan: Basic-1gb
     region: oregon
     buildCommand: "./build.sh"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 numerai.wsgi:application"
@@ -75,7 +75,7 @@ services:
   - type: worker
     name: numerai-celery-worker
     env: python
-    plan: starter
+    plan: Basic-1gb
     region: oregon
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A numerai worker -l info"
@@ -110,7 +110,7 @@ services:
   - type: web
     name: numerai-frontend
     env: node
-    plan: starter
+    plan: Basic-1gb
     region: oregon
     buildCommand: "npm install && npm run build"
     startCommand: "npm start"
@@ -124,5 +124,5 @@ databases:
   - name: numerai-postgres
     databaseName: numerai
     user: numerai
-    plan: starter
+    plan: Basic-1gb
     region: oregon
