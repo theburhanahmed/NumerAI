@@ -14,9 +14,9 @@ services:
   - type: web
     name: numerai-backend
     env: python
-    plan: basic-750  # Updated from starter to basic-750 (flexible plan)
+    plan: standard-256  # Updated to a valid plan for web services
     region: oregon
-    buildCommand: "./backend/build.sh"  # Updated path to include backend directory
+    buildCommand: "./backend/build.sh"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 numerai.wsgi:application"
     healthCheckPath: /api/v1/health/
     envVars:
@@ -60,10 +60,10 @@ services:
   - type: worker
     name: numerai-celery-worker
     env: python
-    plan: basic-750  # Updated from starter to basic-750 (flexible plan)
+    plan: standard-256  # Updated to a valid plan for worker services
     region: oregon
-    buildCommand: "cd backend && pip install -r requirements.txt"  # Updated to cd into backend first
-    startCommand: "cd backend && celery -A numerai worker -l info"  # Updated to cd into backend first
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && celery -A numerai worker -l info"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -95,10 +95,10 @@ services:
   - type: web
     name: numerai-frontend
     env: node
-    plan: basic-750  # Updated from starter to basic-750 (flexible plan)
+    plan: standard-256  # Updated to a valid plan for web services
     region: oregon
-    buildCommand: "cd frontend && npm install && npm run build"  # Updated to cd into frontend first
-    startCommand: "cd frontend && npm start"  # Updated to cd into frontend first
+    buildCommand: "cd frontend && npm install && npm run build"
+    startCommand: "cd frontend && npm start"
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
@@ -109,5 +109,5 @@ databases:
   - name: numerai-postgres
     databaseName: numerai
     user: numerai
-    plan: basic-750  # Updated from free to basic-750 (flexible plan)
+    plan: standard-256  # Updated to a valid plan for databases
     region: oregon
