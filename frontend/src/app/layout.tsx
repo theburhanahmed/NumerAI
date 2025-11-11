@@ -3,12 +3,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster";
+import { Navigation } from "@/components/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NumerAI - AI-Powered Numerology Platform",
-  description: "Discover your life path through AI-powered numerology insights",
+  title: "NumerAI - Your Personal Numerology Guide",
+  description: "Discover your life path through the ancient wisdom of numerology",
 };
 
 export default function RootLayout({
@@ -20,7 +21,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <Navigation />
+          <main>{children}</main>
           <Toaster />
         </AuthProvider>
       </body>
