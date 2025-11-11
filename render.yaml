@@ -14,7 +14,7 @@ services:
   - type: web
     name: numerai-backend
     env: python
-    plan: starter
+    plan: basic-1gb  # Updated to a valid flexible plan
     region: oregon
     buildCommand: "cd backend && ./build.sh"
     startCommand: "cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 numerai.wsgi:application"
@@ -60,7 +60,7 @@ services:
   - type: worker
     name: numerai-celery-worker
     env: python
-    plan: starter
+    plan: basic-1gb  # Updated to a valid flexible plan
     region: oregon
     buildCommand: "cd backend && pip install -r requirements.txt"
     startCommand: "cd backend && celery -A numerai worker -l info"
@@ -95,7 +95,7 @@ services:
   - type: web
     name: numerai-frontend
     env: node
-    plan: starter
+    plan: basic-1gb  # Updated to a valid flexible plan
     region: oregon
     buildCommand: "cd frontend && npm install && npm run build"
     startCommand: "cd frontend && npm start"
