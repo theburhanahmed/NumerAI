@@ -6,7 +6,9 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'numerai.settings.development')
+    # Use production settings in Render environment, otherwise use development
+    default_settings = 'numerai.settings.production' if os.environ.get('RENDER') else 'numerai.settings.development'
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', default_settings)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

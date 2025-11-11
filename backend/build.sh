@@ -7,6 +7,9 @@ echo "Installing Python dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+echo "Creating migrations for all apps..."
+python manage.py makemigrations --no-input
+
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
