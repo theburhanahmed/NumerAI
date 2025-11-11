@@ -1,7 +1,7 @@
 /**
  * Numerology API client for NumerAI frontend.
  */
-import { apiClient } from './api-client';
+import apiClient from './api-client';
 
 // Type definitions
 export interface NumerologyProfile {
