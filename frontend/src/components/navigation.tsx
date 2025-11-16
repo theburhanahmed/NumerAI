@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
-import { Home, User, Calendar, Sparkles, LogOut } from 'lucide-react';
+import { Home, User, Calendar, Sparkles, LogOut, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Navigation() {
@@ -20,6 +20,7 @@ export function Navigation() {
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/birth-chart', label: 'Birth Chart', icon: Sparkles },
     { href: '/daily-reading', label: 'Daily Reading', icon: Calendar },
+    { href: '/ai-chat', label: 'AI Chat', icon: MessageCircle },
   ];
 
   return (

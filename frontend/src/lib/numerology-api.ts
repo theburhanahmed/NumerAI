@@ -67,6 +67,35 @@ export interface ReadingHistory {
   results: DailyReading[];
 }
 
+export interface AIChatResponse {
+  conversation_id: string;
+  message: {
+    id: string;
+    role: 'assistant';
+    content: string;
+    created_at: string;
+  };
+  suggested_followups: string[];
+}
+
+export interface AIConversation {
+  id: string;
+  user: string;
+  started_at: string;
+  last_message_at: string | null;
+  message_count: number;
+  is_active: boolean;
+}
+
+export interface AIMessage {
+  id: string;
+  conversation: string;
+  role: 'user' | 'assistant';
+  content: string;
+  tokens_used: number | null;
+  created_at: string;
+}
+
 // API methods
 export const numerologyAPI = {
   /**
@@ -112,6 +141,30 @@ export const numerologyAPI = {
     const response = await apiClient.get('/numerology/reading-history/', {
       params: { page, page_size: pageSize }
     });
+    return response.data;
+  },
+
+  /**
+   * Chat with AI numerologist.
+   */
+  async aiChat(message: string): Promise<AIChatResponse> {
+    const response = await apiClient.post('/ai/chat/', { message });
+    return response.data;
+  },
+
+  /**
+   * Get user's AI conversations.
+   */
+  async getConversations(): Promise<AIConversation[]> {
+    const response = await apiClient.get('/ai/conversations/');
+    return response.data;
+  },
+
+  /**
+   * Get messages for a specific conversation.
+   */
+  async getConversationMessages(conversationId: string): Promise<AIMessage[]> {
+    const response = await apiClient.get(`/ai/conversations/${conversationId}/messages/`);
     return response.data;
   }
 };

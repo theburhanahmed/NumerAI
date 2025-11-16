@@ -27,8 +27,14 @@ urlpatterns = [
     path('numerology/calculate/', views.calculate_numerology_profile, name='calculate-numerology'),
     path('numerology/profile/', views.get_numerology_profile, name='numerology-profile'),
     path('numerology/birth-chart/', views.get_birth_chart, name='birth-chart'),
+    path('numerology/birth-chart/pdf/', views.export_birth_chart_pdf, name='birth-chart-pdf'),
     path('numerology/daily-reading/', views.get_daily_reading, name='daily-reading'),
     path('numerology/reading-history/', views.get_reading_history, name='reading-history'),
+    
+    # AI Chat endpoints
+    path('ai/chat/', views.ai_chat, name='ai-chat'),
+    path('ai/conversations/', views.get_conversations, name='ai-conversations'),
+    path('ai/conversations/<uuid:conversation_id>/messages/', views.get_conversation_messages, name='ai-conversation-messages'),
     
     # Health check
     path('health/', views.health_check, name='health-check'),

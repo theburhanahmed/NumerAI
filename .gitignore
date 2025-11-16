@@ -32,3 +32,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# next.js
+.next
+out
+.cache
+
+# eslint
+.eslintcache
+
+venv
+__pycache__
+.pytest_cache
+.coverage
+.coverage.*
+backend/venv/
+frontend/node_modules/

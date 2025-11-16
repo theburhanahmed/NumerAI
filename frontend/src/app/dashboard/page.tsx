@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sparkles, Calendar, MessageCircle, User } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -62,46 +64,61 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Birth Chart</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Birth Chart
+              </CardTitle>
               <CardDescription>View your numerology profile</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Complete your profile to generate your birth chart
+              <p className="text-sm text-muted-foreground mb-4">
+                Explore your complete numerology profile with all 9 core numbers.
               </p>
-              <Button className="mt-4" variant="outline" disabled>
-                Coming in Sprint 2
-              </Button>
+              <Link href="/birth-chart">
+                <Button className="w-full">
+                  View Birth Chart
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Daily Reading</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Daily Reading
+              </CardTitle>
               <CardDescription>Your personalized guidance</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Get your daily numerology reading
+              <p className="text-sm text-muted-foreground mb-4">
+                Get your daily numerology reading with personalized insights.
               </p>
-              <Button className="mt-4" variant="outline" disabled>
-                Coming in Sprint 2
-              </Button>
+              <Link href="/daily-reading">
+                <Button className="w-full">
+                  View Daily Reading
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>AI Numerologist</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                AI Numerologist
+              </CardTitle>
               <CardDescription>Chat with our AI expert</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Ask questions about your numerology
+              <p className="text-sm text-muted-foreground mb-4">
+                Ask questions about your numerology for personalized guidance.
               </p>
-              <Button className="mt-4" variant="outline" disabled>
-                Coming in Sprint 2
-              </Button>
+              <Link href="/ai-chat">
+                <Button className="w-full">
+                  Chat with AI
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

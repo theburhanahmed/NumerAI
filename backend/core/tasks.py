@@ -7,6 +7,7 @@ from datetime import date
 from .models import OTPCode, RefreshToken, User, DailyReading
 from .numerology import NumerologyCalculator
 from .reading_generator import DailyReadingGenerator
+from .utils import send_push_notification
 import logging
 
 logger = logging.getLogger(__name__)
@@ -85,5 +86,48 @@ def generate_daily_readings():
             logger.error(f'Error creating daily reading for user {user.id}: {str(e)}')
     
     result = f'Generated {created_count} daily readings, {error_count} errors'
+    logger.info(result)
+    return result
+
+
+@shared_task
+def send_daily_reading_notifications():
+    """
+    Send push notifications for daily readings.
+    Runs after generate_daily_readings task.
+    """
+    today = date.today()
+    sent_count = 0
+    error_count = 0
+    
+    # Get users who have readings for today
+    readings = DailyReading.objects.filter(reading_date=today).select_related('user')
+    
+    for reading in readings:
+        try:
+            user = reading.user
+            # Send push notification
+            success = send_push_notification(
+                user=user,
+                title="Your Daily Numerology Reading is Ready 🔮",
+                body=f"Today is a {reading.personal_day_number} day. Tap to see your lucky number and guidance.",
+                data={
+                    "type": "daily_reading",
+                    "reading_id": str(reading.id)
+                }
+            )
+            
+            if success:
+                sent_count += 1
+                logger.info(f'Sent daily reading notification to user {user.id}')
+            else:
+                error_count += 1
+                logger.error(f'Failed to send daily reading notification to user {user.id}')
+                
+        except Exception as e:
+            error_count += 1
+            logger.error(f'Error sending daily reading notification to user {reading.user.id}: {str(e)}')
+    
+    result = f'Sent {sent_count} daily reading notifications, {error_count} errors'
     logger.info(result)
     return result

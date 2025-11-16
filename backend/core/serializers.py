@@ -5,7 +5,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken, NumerologyProfile, DailyReading
+from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken, NumerologyProfile, DailyReading, AIConversation, AIMessage
 from .utils import generate_otp, send_otp_email
 
 
@@ -264,6 +264,43 @@ class DailyReadingSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'generated_at']
 
 
+class AIConversationSerializer(serializers.ModelSerializer):
+    """Serializer for AI conversation."""
+    
+    class Meta:
+        model = AIConversation
+        fields = [
+            'id',
+            'user',
+            'started_at',
+            'last_message_at',
+            'message_count',
+            'is_active'
+        ]
+        read_only_fields = ['id', 'started_at', 'last_message_at', 'message_count']
+
+
+class AIMessageSerializer(serializers.ModelSerializer):
+    """Serializer for AI message."""
+    
+    class Meta:
+        model = AIMessage
+        fields = [
+            'id',
+            'conversation',
+            'role',
+            'content',
+            'tokens_used',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'tokens_used']
+
+
+class ChatMessageSerializer(serializers.Serializer):
+    """Serializer for chat message request."""
+    message = serializers.CharField(max_length=1000)
+    
+    
 class BirthChartSerializer(serializers.Serializer):
     """Serializer for birth chart with interpretations."""
     profile = NumerologyProfileSerializer()

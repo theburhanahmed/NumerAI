@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { Calculator, Sparkles } from 'lucide-react';
+import { Calculator, Sparkles, Download } from 'lucide-react';
 
 const numberNames: Record<NumberType, string> = {
   life_path_number: 'Life Path Number',
@@ -59,6 +59,7 @@ export default function BirthChartPage() {
   const [birthChart, setBirthChart] = useState<BirthChart | null>(null);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState<{
     type: NumberType;
     interpretation: NumberInterpretation;
@@ -112,6 +113,49 @@ export default function BirthChartPage() {
       });
     } finally {
       setCalculating(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setExporting(true);
+      // Create a link to the PDF endpoint
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/numerology/birth-chart/pdf/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to export PDF');
+      }
+      
+      // Create a blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `birth_chart_${user?.full_name.replace(/\s+/g, '_') || 'numerai'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Birth chart exported successfully!',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to export PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -195,11 +239,26 @@ export default function BirthChartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Your Birth Chart</h1>
-        <p className="text-muted-foreground text-lg">
-          Explore the numerology numbers that define your unique path
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Your Birth Chart</h1>
+          <p className="text-muted-foreground text-lg">
+            Explore the numerology numbers that define your unique path
+          </p>
+        </div>
+        <Button onClick={handleExportPDF} disabled={exporting} variant="outline">
+          {exporting ? (
+            <>
+              <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              Export PDF
+            </>
+          )}
+        </Button>
       </div>
 
       <BirthChartGrid numbers={numbers} onNumberClick={handleNumberClick} />
