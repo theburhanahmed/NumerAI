@@ -38,6 +38,7 @@ export interface RegisterData {
   email?: string;
   phone?: string;
   password: string;
+  confirm_password: string;
   full_name: string;
 }
 

@@ -59,6 +59,7 @@ export default function RegisterPage() {
         email: formData.email,
         full_name: formData.full_name,
         password: formData.password,
+        confirm_password: formData.confirmPassword,
       });
       
       toast({
