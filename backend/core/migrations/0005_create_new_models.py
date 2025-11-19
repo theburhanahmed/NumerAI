@@ -38,6 +38,7 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='people', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'verbose_name': 'Person',
@@ -104,11 +105,7 @@ class Migration(migrations.Migration):
             name='person',
             field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='numerology_profile', to='core.person'),
         ),
-        migrations.AddField(
-            model_name='person',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='people', to=settings.AUTH_USER_MODEL),
-        ),
+
         migrations.AddField(
             model_name='generatedreport',
             name='person',
