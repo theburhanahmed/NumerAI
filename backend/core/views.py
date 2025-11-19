@@ -19,6 +19,7 @@ from .serializers import (
     UserRegistrationSerializer, OTPVerificationSerializer, ResendOTPSerializer,
     LoginSerializer, LogoutSerializer, RefreshTokenSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
+    PasswordResetTokenRequestSerializer, PasswordResetTokenConfirmSerializer,
     UserProfileSerializer, DeviceTokenSerializer,
     NumerologyProfileSerializer, DailyReadingSerializer, BirthChartSerializer,
     AIConversationSerializer, AIMessageSerializer, ChatMessageSerializer,
@@ -28,7 +29,7 @@ from .serializers import (
     NumerologyReportSerializer, PersonSerializer, PersonNumerologyProfileSerializer,
     ReportTemplateSerializer, GeneratedReportSerializer
 )
-from .utils import generate_otp, send_otp_email
+from .utils import generate_otp, send_otp_email, generate_secure_token, send_password_reset_email
 from .numerology import NumerologyCalculator, validate_name, validate_birth_date
 from .compatibility import CompatibilityAnalyzer
 from .interpretations import get_interpretation, get_all_interpretations
@@ -302,6 +303,90 @@ def password_reset_confirm(request):
         
         return Response({
             'message': 'Password reset successful'
+        }, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_token_request(request):
+    """Request password reset with token-based link."""
+    from .models import PasswordResetToken
+    from datetime import timedelta
+    
+    serializer = PasswordResetTokenRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        user = User.objects.filter(email=email, is_active=True).first()
+        
+        if not user:
+            # Return success even if user doesn't exist to prevent email enumeration
+            return Response({
+                'message': 'If an account exists with this email, password reset instructions have been sent.'
+            }, status=status.HTTP_200_OK)
+        
+        # Invalidate existing tokens for this user
+        PasswordResetToken.objects.filter(user=user).update(is_used=True)
+        
+        # Generate new token
+        token = generate_secure_token()
+        expires_at = timezone.now() + timedelta(hours=24)
+        
+        # Save token
+        reset_token = PasswordResetToken.objects.create(
+            user=user,
+            token=token,
+            expires_at=expires_at
+        )
+        
+        # Send email with reset link
+        if send_password_reset_email(user, token):
+            return Response({
+                'message': 'Password reset instructions have been sent to your email.'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': 'Failed to send password reset email. Please try again later.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_token_confirm(request):
+    """Confirm password reset with token."""
+    from .models import PasswordResetToken
+    
+    serializer = PasswordResetTokenConfirmSerializer(data=request.data)
+    if serializer.is_valid():
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+        
+        # Find valid token
+        reset_token = PasswordResetToken.objects.filter(
+            token=token,
+            is_used=False
+        ).select_related('user').first()
+        
+        if not reset_token:
+            return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not reset_token.is_valid():
+            return Response({'error': 'Token has expired'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update password
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+        
+        # Mark token as used
+        reset_token.is_used = True
+        reset_token.save()
+        
+        return Response({
+            'message': 'Password reset successful. You can now login with your new password.'
         }, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1816,8 +1901,8 @@ def bulk_generate_reports(request):
 # Helper function to generate report content
 def _generate_report_content(person, numerology_profile, template):
     """Generate report content based on template type."""
-    # This is a simplified implementation
-    # In a real application, this would be much more complex
+    from .interpretations import get_interpretation
+    
     content = {
         'person_name': person.name,
         'birth_date': person.birth_date.isoformat(),
@@ -1836,13 +1921,74 @@ def _generate_report_content(person, numerology_profile, template):
         }
     }
     
+    # Add interpretations for each number
+    interpretations = {}
+    number_fields = ['life_path', 'destiny', 'soul_urge', 'personality', 
+                     'attitude', 'maturity', 'balance', 'personal_year', 'personal_month']
+    
+    for field in number_fields:
+        number_value = getattr(numerology_profile, f'{field}_number')
+        try:
+            interpretations[field] = get_interpretation(number_value)
+        except ValueError:
+            interpretations[field] = {
+                'number': number_value,
+                'title': 'Unknown',
+                'description': 'Interpretation not available',
+                'strengths': [],
+                'challenges': [],
+                'career': [],
+                'relationships': '',
+                'life_purpose': ''
+            }
+    
+    content['interpretations'] = interpretations
+    
     # Add template-specific content
     if template.report_type == 'basic':
         content['summary'] = f"This is a basic birth chart for {person.name}"
+        content['sections'] = {
+            'overview': f"Welcome to your numerology report, {person.name}. This basic report provides an overview of your core numbers.",
+            'life_path': f"Your Life Path number {numerology_profile.life_path_number} reveals your purpose and direction in life.",
+            'destiny': f"Your Destiny number {numerology_profile.destiny_number} shows your talents and potential.",
+            'soul_urge': f"Your Soul Urge number {numerology_profile.soul_urge_number} reflects your inner desires and motivations."
+        }
     elif template.report_type == 'detailed':
         content['summary'] = f"This is a detailed analysis for {person.name}"
+        content['sections'] = {
+            'overview': f"Welcome to your comprehensive numerology report, {person.name}. This detailed analysis explores all aspects of your numerological profile.",
+            'life_path': f"Your Life Path number {numerology_profile.life_path_number} is the most significant number in your chart, revealing your purpose and direction in life.",
+            'destiny': f"Your Destiny number {numerology_profile.destiny_number} shows your innate talents and potential that you'll express throughout your lifetime.",
+            'soul_urge': f"Your Soul Urge number {numerology_profile.soul_urge_number} reflects your inner desires and motivations that drive you from within.",
+            'personality': f"Your Personality number {numerology_profile.personality_number} shows how others perceive you and how you present yourself to the world.",
+            'attitude': f"Your Attitude number {numerology_profile.attitude_number} represents your instinctive reaction to new situations and people.",
+            'maturity': f"Your Maturity number {numerology_profile.maturity_number} reveals the lessons and wisdom you gain as you grow older.",
+            'balance': f"Your Balance number {numerology_profile.balance_number} indicates what you need to balance in your life for harmony.",
+            'personal_year': f"Your Personal Year number {numerology_profile.personal_year_number} shows the themes and opportunities for this year.",
+            'personal_month': f"Your Personal Month number {numerology_profile.personal_month_number} highlights the energies influencing this month."
+        }
     elif template.report_type == 'compatibility':
         content['summary'] = f"This is a compatibility report for {person.name}"
+        content['sections'] = {
+            'overview': f"Welcome to your compatibility report, {person.name}. This analysis focuses on relationship dynamics.",
+            'compatibility_numbers': [
+                {
+                    'number': numerology_profile.life_path_number,
+                    'type': 'Life Path',
+                    'description': 'Your approach to life and relationships'
+                },
+                {
+                    'number': numerology_profile.destiny_number,
+                    'type': 'Destiny',
+                    'description': 'Your shared talents and goals'
+                },
+                {
+                    'number': numerology_profile.soul_urge_number,
+                    'type': 'Soul Urge',
+                    'description': 'Your emotional compatibility'
+                }
+            ]
+        }
     # Add more template types as needed
     
     return content

@@ -16,31 +16,15 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
+import { reportAPI, peopleAPI } from '@/lib/numerology-api';
+import { GeneratedReport, Person, ReportTemplate } from '@/types';
 
-interface Report {
-  id: string;
-  title: string;
-  person_name: string;
-  template_name: string;
-  generated_at: string;
-  report_type: string;
-}
-
-interface Person {
-  id: string;
-  name: string;
-}
-
-interface ReportTemplate {
-  id: string;
-  name: string;
-  report_type: string;
-}
+// Types imported from '@/types'
 
 export default function ReportsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,39 +40,10 @@ export default function ReportsPage() {
 
   const fetchReports = async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/reports');
-      // const data = await response.json();
-      // setReports(data);
-      
-      // Mock data for demonstration
-      setReports([
-        {
-          id: '1',
-          title: 'Basic Birth Chart for John Doe',
-          person_name: 'John Doe',
-          template_name: 'Basic Birth Chart',
-          generated_at: '2023-06-15T10:30:00Z',
-          report_type: 'basic'
-        },
-        {
-          id: '2',
-          title: 'Detailed Analysis for Jane Smith',
-          person_name: 'Jane Smith',
-          template_name: 'Detailed Analysis',
-          generated_at: '2023-06-10T14:45:00Z',
-          report_type: 'detailed'
-        },
-        {
-          id: '3',
-          title: 'Compatibility Report for Alex Johnson',
-          person_name: 'Alex Johnson',
-          template_name: 'Compatibility Report',
-          generated_at: '2023-06-05T09:15:00Z',
-          report_type: 'compatibility'
-        }
-      ]);
-    } catch (error) {
+      setLoading(true);
+      const data = await reportAPI.getGeneratedReports();
+      setReports(data);
+    } catch (error: any) {
       console.error('Failed to fetch reports:', error);
     } finally {
       setLoading(false);
@@ -97,38 +52,18 @@ export default function ReportsPage() {
 
   const fetchPeople = async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/people');
-      // const data = await response.json();
-      // setPeople(data);
-      
-      // Mock data for demonstration
-      setPeople([
-        { id: '1', name: 'John Doe' },
-        { id: '2', name: 'Jane Smith' },
-        { id: '3', name: 'Alex Johnson' }
-      ]);
-    } catch (error) {
+      const data = await peopleAPI.getPeople();
+      setPeople(data);
+    } catch (error: any) {
       console.error('Failed to fetch people:', error);
     }
   };
 
   const fetchTemplates = async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/report-templates');
-      // const data = await response.json();
-      // setTemplates(data);
-      
-      // Mock data for demonstration
-      setTemplates([
-        { id: '1', name: 'Basic Birth Chart', report_type: 'basic' },
-        { id: '2', name: 'Detailed Analysis', report_type: 'detailed' },
-        { id: '3', name: 'Compatibility Report', report_type: 'compatibility' },
-        { id: '4', name: 'Career Guidance', report_type: 'career' },
-        { id: '5', name: 'Relationship Analysis', report_type: 'relationship' }
-      ]);
-    } catch (error) {
+      const data = await reportAPI.getReportTemplates();
+      setTemplates(data);
+    } catch (error: any) {
       console.error('Failed to fetch templates:', error);
     }
   };
@@ -141,15 +76,42 @@ export default function ReportsPage() {
     router.push(`/reports/${reportId}`);
   };
 
-  const handleDownloadReport = (reportId: string) => {
-    // In a real implementation, this would download the report
-    console.log('Downloading report:', reportId);
+  const handleDownloadReport = async (reportId: string) => {
+    try {
+      // Create a link to the PDF endpoint
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports/${reportId}/pdf/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+      
+      // Create a blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${reportId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert("Failed to download report. Please try again.");
+    }
   };
 
   const filteredReports = reports.filter(report => 
     report.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (filterPerson === '' || report.person_name === filterPerson) &&
-    (filterTemplate === '' || report.template_name === filterTemplate)
+    (filterPerson === '' || people.find(p => p.id === report.person)?.name === filterPerson) &&
+    (filterTemplate === '' || templates.find(t => t.id === report.template)?.name === filterTemplate)
   );
 
   return (
@@ -323,7 +285,7 @@ export default function ReportsPage() {
                           </p>
                         </div>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                          {report.report_type}
+                          {templates.find(t => t.id === report.template)?.name || 'Unknown Template'}
                         </span>
                       </div>
                       

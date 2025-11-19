@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -15,60 +15,33 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
-
-interface Person {
-  id: string;
-  name: string;
-  birth_date: string;
-  relationship: string;
-  notes: string;
-  created_at: string;
-}
-
-interface NumerologyProfile {
-  life_path_number: number;
-  destiny_number: number;
-  soul_urge_number: number;
-  personality_number: number;
-  attitude_number: number;
-  maturity_number: number;
-  balance_number: number;
-  personal_year_number: number;
-  personal_month_number: number;
-  calculation_system: string;
-  calculated_at: string;
-}
+import { peopleAPI } from '@/lib/numerology-api';
+import { Person, PersonNumerologyProfile } from '@/types';
 
 export default function PersonDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
   const [person, setPerson] = useState<Person | null>(null);
-  const [profile, setProfile] = useState<NumerologyProfile | null>(null);
+  const [profile, setProfile] = useState<PersonNumerologyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchPerson();
+  const fetchNumerologyProfile = useCallback(async () => {
+    try {
+      const data = await peopleAPI.getPersonNumerologyProfile(params.id as string);
+      setProfile(data);
+    } catch (err) {
+      console.error('Failed to fetch numerology profile:', err);
+      // It's okay if profile doesn't exist yet
+    }
   }, [params.id]);
 
-  const fetchPerson = async () => {
+  const fetchPerson = useCallback(async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch(`/api/people/${params.id}`);
-      // const data = await response.json();
-      // setPerson(data);
-      
-      // Mock data for demonstration
-      setPerson({
-        id: params.id as string,
-        name: 'John Doe',
-        birth_date: '1990-05-15',
-        relationship: 'self',
-        notes: 'This is a sample note about John.',
-        created_at: '2023-01-15T10:30:00Z'
-      });
+      const data = await peopleAPI.getPerson(params.id as string);
+      setPerson(data);
       
       // Fetch numerology profile
       fetchNumerologyProfile();
@@ -78,34 +51,11 @@ export default function PersonDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, fetchNumerologyProfile]);
 
-  const fetchNumerologyProfile = async () => {
-    try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch(`/api/people/${params.id}/profile/`);
-      // const data = await response.json();
-      // setProfile(data);
-      
-      // Mock data for demonstration
-      setProfile({
-        life_path_number: 7,
-        destiny_number: 5,
-        soul_urge_number: 1,
-        personality_number: 4,
-        attitude_number: 3,
-        maturity_number: 8,
-        balance_number: 2,
-        personal_year_number: 6,
-        personal_month_number: 9,
-        calculation_system: 'pythagorean',
-        calculated_at: '2023-06-15T10:30:00Z'
-      });
-    } catch (err) {
-      console.error('Failed to fetch numerology profile:', err);
-      // It's okay if profile doesn't exist yet
-    }
-  };
+  useEffect(() => {
+    fetchPerson();
+  }, [fetchPerson]);
 
   const handleCalculateNumerology = async () => {
     if (!person) return;
@@ -114,39 +64,8 @@ export default function PersonDetailPage() {
     setError('');
 
     try {
-      // In a real implementation, this would call the API
-      // const response = await fetch(`/api/people/${params.id}/calculate/`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ system: 'pythagorean' })
-      // });
-      // 
-      // if (response.ok) {
-      //   const data = await response.json();
-      //   setProfile(data.profile);
-      // } else {
-      //   setError('Failed to calculate numerology');
-      // }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful calculation
-      setProfile({
-        life_path_number: 7,
-        destiny_number: 5,
-        soul_urge_number: 1,
-        personality_number: 4,
-        attitude_number: 3,
-        maturity_number: 8,
-        balance_number: 2,
-        personal_year_number: 6,
-        personal_month_number: 9,
-        calculation_system: 'pythagorean',
-        calculated_at: new Date().toISOString()
-      });
+      const data = await peopleAPI.calculatePersonNumerology(params.id as string);
+      setProfile(data.profile);
     } catch (err) {
       console.error('Failed to calculate numerology:', err);
       setError('Failed to calculate numerology');
@@ -294,19 +213,19 @@ export default function PersonDetailPage() {
                     </p>
                   </div>
                   
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Added On</p>
-                    <p className="text-gray-900 dark:text-white font-medium">
-                      {new Date(person.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  
                   {person.notes && (
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Notes</p>
                       <p className="text-gray-900 dark:text-white font-medium">{person.notes}</p>
                     </div>
                   )}
+                  
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Added On</p>
+                    <p className="text-gray-900 dark:text-white font-medium">
+                      {new Date(person.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               </GlassCard>
             </div>

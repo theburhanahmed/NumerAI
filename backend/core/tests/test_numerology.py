@@ -1,12 +1,12 @@
 """
 Unit tests for numerology calculations.
 """
-from django.test import TestCase
+from django.test import SimpleTestCase
 from datetime import date
 from core.numerology import NumerologyCalculator, validate_name, validate_birth_date
 
 
-class NumerologyCalculatorTest(TestCase):
+class NumerologyCalculatorTest(SimpleTestCase):
     """Test cases for NumerologyCalculator."""
     
     def setUp(self):
@@ -98,12 +98,22 @@ class NumerologyCalculatorTest(TestCase):
             'maturity_number',
             'balance_number',
             'personal_year_number',
-            'personal_month_number'
+            'personal_month_number',
+            'hidden_passion_number',
+            'subconscious_self_number'
         ]
         
         for key in expected_keys:
             self.assertIn(key, result)
             self.assertIsInstance(result[key], int)
+            
+    def test_calculate_all_complex_name(self):
+        """Test calculate_all with a complex name."""
+        name = "Jean-Luc Picard"
+        date_birth = date(2305, 7, 13)
+        result = self.calculator.calculate_all(name, date_birth)
+        self.assertIn('destiny_number', result)
+        self.assertGreater(result['destiny_number'], 0)
     
     def test_chaldean_system(self):
         """Test Chaldean calculation system."""
@@ -189,8 +199,170 @@ class NumerologyCalculatorTest(TestCase):
         self.assertEqual(result1, result2)
         self.assertEqual(result2, result3)
 
+    def test_y_treatment(self):
+        """Test that Y is treated as a consonant in the current implementation."""
+        # Y is not in VOWELS set, so it should be treated as a consonant
+        # "Yvonne" -> Y (7) + v (4) + n (5) + n (5) = 21 -> 3
+        # Vowels: o (6) + e (5) = 11 -> 2
+        name = "Yvonne"
+        
+        # Soul Urge (Vowels)
+        soul_urge = self.calculator.calculate_soul_urge_number(name)
+        # If Y was vowel: Y(7) + o(6) + e(5) = 18 -> 9
+        # Current (Y is consonant): o(6) + e(5) = 11
+        self.assertEqual(soul_urge, 11) 
+        
+        # Personality (Consonants)
+        personality = self.calculator.calculate_personality_number(name)
+        # If Y was vowel: v(4) + n(5) + n(5) = 14 -> 5
+        # Current (Y is consonant): Y(7) + v(4) + n(5) + n(5) = 21 -> 3
+        self.assertEqual(personality, 3)
 
-class InterpretationTest(TestCase):
+    def test_y_as_vowel_scenario(self):
+        """
+        Test a scenario where Y acts as a vowel (e.g., 'Lynn').
+        Note: Current implementation treats Y as consonant always.
+        This test documents current behavior for edge cases.
+        """
+        name = "Lynn"
+        # L (3), y (7), n (5), n (5)
+        # If y is vowel: Soul Urge = 7. Personality = 3+5+5=13->4.
+        # Current (y is consonant): Soul Urge = 0. Personality = 3+7+5+5=20->2.
+        
+        soul_urge = self.calculator.calculate_soul_urge_number(name)
+        self.assertEqual(soul_urge, 0)  # Current limitation
+        
+        personality = self.calculator.calculate_personality_number(name)
+        self.assertEqual(personality, 2)
+
+    def test_master_number_intermediate_steps(self):
+        """Test master numbers appearing in intermediate steps."""
+        # Date summing to 11: 2000-01-08 -> 2+0+0+0 + 1 + 8 = 11
+        date_11 = date(2000, 1, 8)
+        self.assertEqual(self.calculator.calculate_life_path_number(date_11), 11)
+        
+        # Date summing to 22: 2000-01-19 -> 2+1+19(1) = 4? No.
+        # Year 2000 -> 2. Month 1 -> 1. Day 19 -> 1. Total 4.
+        # Need total 22.
+        # Year 1999 -> 1+9+9+9=28->10->1.
+        # Month 9.
+        # Day 29 -> 11.
+        # Total 1 + 9 + 11 = 21.
+        
+        # Let's try: Year 2002 -> 4. Month 9. Day 9. Total 22.
+        date_22 = date(2002, 9, 9)
+        # Year: 2+0+0+2 = 4
+        # Month: 9
+        # Day: 9
+        # Total: 4+9+9 = 22
+        self.assertEqual(self.calculator.calculate_life_path_number(date_22), 22)
+        
+        # Date summing to 33
+        # Year 2000 -> 2. Month ? Day ? -> Total 33.
+        # Need Month + Day = 31. Not possible (max 12+9=21).
+        # Year 1988 -> 1+9+8+8=26->8.
+        # Need Month + Day = 25.
+        # Month 9, Day 16(7) -> 9+7=16.
+        # Wait, we need unreduced sums?
+        # calculate_life_path_number reduces year, month, day first.
+        # Year 1966 -> 1+9+6+6=22 (Master).
+        # Month 11 (Master).
+        # Day 22 (Master)? No, day reduces. 22 is master.
+        # Total 22 + 11 + 22 = 55 -> 1.
+        
+        # Let's try to get 33 from reduced components.
+        # Year 6. Month 9. Day 9. Total 24 -> 6.
+        # We need total 33.
+        # Year 11. Month 11. Day 11. Total 33.
+        # Year 2009 -> 11.
+        # Month 11.
+        # Day 11.
+        # Total 11+11+11 = 33.
+        date_33 = date(2009, 11, 11)
+        self.assertEqual(self.calculator.calculate_life_path_number(date_33), 33)
+
+    def test_karmic_debt_number_calculation(self):
+        """Test karmic debt number calculation."""
+        # Test date with day 13 (Karmic Debt)
+        date_13 = date(1990, 5, 13)
+        karmic_13 = self.calculator.calculate_karmic_debt_number(date_13)
+        self.assertEqual(karmic_13, 13)
+        
+        # Test date with day 14 (Karmic Debt)
+        date_14 = date(1990, 5, 14)
+        karmic_14 = self.calculator.calculate_karmic_debt_number(date_14)
+        self.assertEqual(karmic_14, 14)
+        
+        # Test date with day 16
+        date_16 = date(1990, 5, 16)
+        karmic_16 = self.calculator.calculate_karmic_debt_number(date_16)
+        self.assertEqual(karmic_16, 16)
+        
+        # Test date with day 19
+        date_19 = date(1990, 5, 19)
+        karmic_19 = self.calculator.calculate_karmic_debt_number(date_19)
+        self.assertEqual(karmic_19, 19)
+        
+        # Test date with no karmic debt
+        date_normal = date(1990, 5, 15)
+        karmic_none = self.calculator.calculate_karmic_debt_number(date_normal)
+        self.assertIsNone(karmic_none)
+
+    def test_karmic_debt_from_total(self):
+        """Test karmic debt derived from the total sum."""
+        # We need a date where day/month/year are NOT karmic, but sum is.
+        # Target 13.
+        # Year 2000 -> 2. Month 1 -> 1. Day 10 -> 1. Total 4.
+        # We need unreduced sum to be 13.
+        # Year 2000 (2) + Month 1 (1) + Day ? = 13.
+        # Day needs to be 10.
+        # 2 + 1 + 10 = 13.
+        # But calculate_karmic_debt_number uses reduced day.
+        # Day 10 reduces to 1.
+        # So 2 + 1 + 1 = 4.
+        # This logic in calculate_karmic_debt_number seems to rely on reduced values.
+        # If the intention is to check the sum of reduced values:
+        # We need sum of reduced values to be 13.
+        # Year 2000 (2). Month 2. Day 9. Total 13.
+        date_sum_13 = date(2000, 2, 9)
+        # Year 2 + Month 2 + Day 9 = 13.
+        karmic_sum_13 = self.calculator.calculate_karmic_debt_number(date_sum_13)
+        self.assertEqual(karmic_sum_13, 13)
+
+    def test_hidden_passion_number_calculation(self):
+        """Test hidden passion number calculation."""
+        # Name with frequent 'E' (5)
+        # "Eve Teen" -> E:3, v:1, T:1, n:1
+        name = "Eve Teen"
+        result = self.calculator.calculate_hidden_passion_number(name)
+        self.assertEqual(result, 5)
+        
+    def test_hidden_passion_tie(self):
+        """Test hidden passion with tied frequencies."""
+        # "AABB" -> A:2, B:2.
+        # A=1, B=2. Sum = 3.
+        name = "AABB"
+        result = self.calculator.calculate_hidden_passion_number(name)
+        self.assertEqual(result, 3)
+        
+    def test_hidden_passion_no_repeats(self):
+        """Test hidden passion with no repeating letters."""
+        # "ABC" -> A:1, B:1, C:1. All max count 1.
+        # Sum 1+2+3 = 6.
+        name = "ABC"
+        result = self.calculator.calculate_hidden_passion_number(name)
+        self.assertEqual(result, 6)
+
+    def test_subconscious_self_number_calculation(self):
+        """Test subconscious self number calculation."""
+        # Subconscious self = count of vowels + count of consonants
+        # "John" -> 1 vowel (o), 3 consonants (J, h, n) -> Total 4
+        name = "John"
+        result = self.calculator.calculate_subconscious_self_number(name)
+        self.assertEqual(result, 4)
+
+
+class InterpretationTest(SimpleTestCase):
     """Test cases for number interpretations."""
     
     def test_get_interpretation_valid(self):
@@ -216,7 +388,7 @@ class InterpretationTest(TestCase):
             get_interpretation(0)
 
 
-class DailyReadingGeneratorTest(TestCase):
+class DailyReadingGeneratorTest(SimpleTestCase):
     """Test cases for daily reading generator."""
     
     def test_generate_reading(self):

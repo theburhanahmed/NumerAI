@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   FileText, 
@@ -15,6 +15,8 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
+import { reportAPI } from '@/lib/numerology-api';
+import { GeneratedReport } from '@/types';
 
 interface Report {
   id: string;
@@ -29,68 +31,88 @@ interface Report {
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { user } = useAuth();
-  const [report, setReport] = useState<Report | null>(null);
+  const [report, setReport] = useState<GeneratedReport | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchReport();
-  }, [params.id]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch(`/api/reports/${params.id}`);
-      // const data = await response.json();
-      // setReport(data);
-      
-      // Mock data for demonstration
-      setReport({
-        id: params.id,
-        title: 'Detailed Analysis for John Doe',
-        person_name: 'John Doe',
-        template_name: 'Detailed Analysis',
-        generated_at: '2023-06-15T10:30:00Z',
-        report_type: 'detailed',
-        content: {
-          life_path: {
-            number: 7,
-            title: 'The Seeker',
-            description: 'People with a Life Path number 7 are seekers of truth and knowledge.',
-            strengths: ['Analytical', 'Intuitive', 'Spiritual', 'Observant'],
-            challenges: ['Overthinking', 'Isolation', 'Suspicion', 'Emotional detachment'],
-            career: ['Research', 'Science', 'Philosophy', 'Writing', 'Technology'],
-            relationships: 'Value deep connections but may struggle with emotional intimacy.'
-          },
-          destiny: {
-            number: 5,
-            title: 'The Explorer',
-            description: 'Destiny number 5 individuals are adventurous and freedom-loving.',
-            strengths: ['Adaptable', 'Versatile', 'Communicative', 'Curious'],
-            challenges: ['Restlessness', 'Impulsiveness', 'Inconsistency', 'Overcommitment'],
-            career: ['Sales', 'Marketing', 'Travel', 'Journalism', 'Entertainment'],
-            relationships: 'Bring excitement to relationships but need variety to stay engaged.'
-          }
-        }
-      });
-    } catch (error) {
+      setLoading(true);
+      const data = await reportAPI.getGeneratedReport(params.id);
+      setReport(data);
+    } catch (error: any) {
       console.error('Failed to fetch report:', error);
+      // Handle error appropriately
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
 
-  const handleDownload = () => {
-    // In a real implementation, this would download the report
-    console.log('Downloading report:', params.id);
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
+
+  const handleDownload = async () => {
+    try {
+      // Create a link to the PDF endpoint
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports/${params.id}/pdf/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+      
+      // Create a blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${report?.title || 'report'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert("Failed to download report. Please try again.");
+    }
   };
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleShare = () => {
-    // In a real implementation, this would share the report
-    console.log('Sharing report:', params.id);
+  const handleShare = async () => {
+    try {
+      if (!report) return;
+      
+      // Create share text
+      const shareText = `Check out this numerology report!
+
+` +
+        `Title: ${report.title}
+` +
+        `Generated on: ${new Date(report.generated_at).toLocaleDateString()}`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: report.title,
+          text: shareText,
+        });
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(shareText);
+        alert("Report details copied to clipboard!");
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      alert("Failed to share report. Please try again.");
+    }
   };
 
   if (loading) {
@@ -160,14 +182,14 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               <div className="flex flex-wrap items-center gap-4 mt-2">
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                   <User className="w-4 h-4" />
-                  <span>{report.person_name}</span>
+                  <span>Person ID: {report.person}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4" />
                   <span>{new Date(report.generated_at).toLocaleDateString()}</span>
                 </div>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                  {report.report_type}
+                  Template ID: {report.template}
                 </span>
               </div>
             </div>

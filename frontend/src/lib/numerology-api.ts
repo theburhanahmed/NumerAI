@@ -208,6 +208,56 @@ export interface NumerologyReport {
   summary: string;
 }
 
+// New type definitions for multi-person numerology
+export interface Person {
+  id: string;
+  name: string;
+  birth_date: string;
+  relationship: string;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonNumerologyProfile {
+  id: string;
+  life_path_number: number;
+  destiny_number: number;
+  soul_urge_number: number;
+  personality_number: number;
+  attitude_number: number;
+  maturity_number: number;
+  balance_number: number;
+  personal_year_number: number;
+  personal_month_number: number;
+  calculation_system: 'pythagorean' | 'chaldean';
+  calculated_at: string;
+  updated_at: string;
+}
+
+export interface ReportTemplate {
+  id: string;
+  name: string;
+  description: string;
+  report_type: string;
+  is_premium: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GeneratedReport {
+  id: string;
+  user: string;
+  person: string;
+  template: string;
+  title: string;
+  content: any;
+  generated_at: string;
+  expires_at: string | null;
+}
+
 // API methods
 export const numerologyAPI = {
   /**
@@ -399,6 +449,130 @@ export const consultationAPI = {
     is_anonymous?: boolean;
   }): Promise<ConsultationReview> {
     const response = await apiClient.post(`/consultations/${consultationId}/rate/`, data);
+    return response.data;
+  }
+};
+
+// API methods for people management
+export const peopleAPI = {
+  /**
+   * Get list of people for the current user.
+   */
+  async getPeople(): Promise<Person[]> {
+    const response = await apiClient.get('/people/');
+    return response.data;
+  },
+
+  /**
+   * Create a new person.
+   */
+  async createPerson(data: {
+    name: string;
+    birth_date: string;
+    relationship: string;
+    notes?: string;
+  }): Promise<Person> {
+    const response = await apiClient.post('/people/', data);
+    return response.data;
+  },
+
+  /**
+   * Get details of a specific person.
+   */
+  async getPerson(personId: string): Promise<Person> {
+    const response = await apiClient.get(`/people/${personId}/`);
+    return response.data;
+  },
+
+  /**
+   * Update a specific person.
+   */
+  async updatePerson(personId: string, data: {
+    name?: string;
+    birth_date?: string;
+    relationship?: string;
+    notes?: string;
+    is_active?: boolean;
+  }): Promise<Person> {
+    const response = await apiClient.put(`/people/${personId}/`, data);
+    return response.data;
+  },
+
+  /**
+   * Delete a specific person (soft delete).
+   */
+  async deletePerson(personId: string): Promise<void> {
+    await apiClient.delete(`/people/${personId}/`);
+  },
+
+  /**
+   * Calculate numerology profile for a specific person.
+   */
+  async calculatePersonNumerology(personId: string, system: 'pythagorean' | 'chaldean' = 'pythagorean'): Promise<{
+    message: string;
+    profile: PersonNumerologyProfile;
+  }> {
+    const response = await apiClient.post(`/people/${personId}/calculate/`, { system });
+    return response.data;
+  },
+
+  /**
+   * Get numerology profile for a specific person.
+   */
+  async getPersonNumerologyProfile(personId: string): Promise<PersonNumerologyProfile> {
+    const response = await apiClient.get(`/people/${personId}/profile/`);
+    return response.data;
+  }
+};
+
+// API methods for report templates and generation
+export const reportAPI = {
+  /**
+   * Get list of available report templates.
+   */
+  async getReportTemplates(): Promise<ReportTemplate[]> {
+    const response = await apiClient.get('/report-templates/');
+    return response.data;
+  },
+
+  /**
+   * Generate a new report for a person using a template.
+   */
+  async generateReport(data: {
+    person_id: string;
+    template_id: string;
+  }): Promise<GeneratedReport> {
+    const response = await apiClient.post('/reports/generate/', data);
+    return response.data;
+  },
+
+  /**
+   * Generate multiple reports at once.
+   */
+  async bulkGenerateReports(data: {
+    person_ids: string[];
+    template_ids: string[];
+  }): Promise<{
+    reports: GeneratedReport[];
+    errors: string[];
+  }> {
+    const response = await apiClient.post('/reports/bulk-generate/', data);
+    return response.data;
+  },
+
+  /**
+   * Get list of user's generated reports.
+   */
+  async getGeneratedReports(): Promise<GeneratedReport[]> {
+    const response = await apiClient.get('/reports/');
+    return response.data;
+  },
+
+  /**
+   * Get a specific generated report.
+   */
+  async getGeneratedReport(reportId: string): Promise<GeneratedReport> {
+    const response = await apiClient.get(`/reports/${reportId}/`);
     return response.data;
   }
 };

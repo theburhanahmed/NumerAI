@@ -13,16 +13,10 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
+import { reportAPI } from '@/lib/numerology-api';
+import { ReportTemplate } from '@/types';
 
-interface ReportTemplate {
-  id: string;
-  name: string;
-  description: string;
-  report_type: string;
-  is_premium: boolean;
-  is_active: boolean;
-  created_at: string;
-}
+// Type imported from '@/types'
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -38,69 +32,10 @@ export default function TemplatesPage() {
 
   const fetchTemplates = async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/report-templates');
-      // const data = await response.json();
-      // setTemplates(data);
-      
-      // Mock data for demonstration
-      setTemplates([
-        {
-          id: '1',
-          name: 'Basic Birth Chart',
-          description: 'Essential numerology numbers and their meanings. Perfect for beginners who want to understand their core numerology profile.',
-          report_type: 'basic',
-          is_premium: false,
-          is_active: true,
-          created_at: '2023-01-15T10:30:00Z'
-        },
-        {
-          id: '2',
-          name: 'Detailed Analysis',
-          description: 'Comprehensive analysis of all numerology aspects including life path, destiny, soul urge, and more. Provides in-depth insights into your personality and life purpose.',
-          report_type: 'detailed',
-          is_premium: true,
-          is_active: true,
-          created_at: '2023-02-20T14:45:00Z'
-        },
-        {
-          id: '3',
-          name: 'Compatibility Report',
-          description: 'Relationship compatibility analysis based on numerology. Understand how your numbers interact with another person\'s numbers.',
-          report_type: 'compatibility',
-          is_premium: false,
-          is_active: true,
-          created_at: '2023-03-10T09:15:00Z'
-        },
-        {
-          id: '4',
-          name: 'Career Guidance',
-          description: 'Career path and professional insights based on your numerology profile. Discover your strengths and ideal career paths.',
-          report_type: 'career',
-          is_premium: true,
-          is_active: true,
-          created_at: '2023-04-05T11:30:00Z'
-        },
-        {
-          id: '5',
-          name: 'Relationship Analysis',
-          description: 'Deep dive into relationship dynamics and compatibility factors. Perfect for understanding romantic relationships.',
-          report_type: 'relationship',
-          is_premium: true,
-          is_active: true,
-          created_at: '2023-05-12T16:20:00Z'
-        },
-        {
-          id: '6',
-          name: 'Health Insights',
-          description: 'Health insights based on numerology. Understand your body\'s needs and potential health challenges.',
-          report_type: 'health',
-          is_premium: true,
-          is_active: true,
-          created_at: '2023-05-18T13:45:00Z'
-        }
-      ]);
-    } catch (error) {
+      setLoading(true);
+      const data = await reportAPI.getReportTemplates();
+      setTemplates(data);
+    } catch (error: any) {
       console.error('Failed to fetch templates:', error);
     } finally {
       setLoading(false);

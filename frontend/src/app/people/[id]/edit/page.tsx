@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -13,14 +13,8 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
-
-interface Person {
-  id: string;
-  name: string;
-  birth_date: string;
-  relationship: string;
-  notes: string;
-}
+import { peopleAPI } from '@/lib/numerology-api';
+import { Person } from '@/types';
 
 export default function EditPersonPage() {
   const router = useRouter();
@@ -30,25 +24,22 @@ export default function EditPersonPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    birth_date: '',
+    relationship: 'other',
+    notes: ''
+  });
 
-  useEffect(() => {
-    fetchPerson();
-  }, [params.id]);
-
-  const fetchPerson = async () => {
+  const fetchPerson = useCallback(async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch(`/api/people/${params.id}`);
-      // const data = await response.json();
-      // setPerson(data);
-      
-      // Mock data for demonstration
-      setPerson({
-        id: params.id as string,
-        name: 'John Doe',
-        birth_date: '1990-05-15',
-        relationship: 'self',
-        notes: 'This is a sample note about John.'
+      const data = await peopleAPI.getPerson(params.id as string);
+      setPerson(data);
+      setFormData({
+        name: data.name,
+        birth_date: data.birth_date,
+        relationship: data.relationship,
+        notes: data.notes || ''
       });
     } catch (err) {
       console.error('Failed to fetch person:', err);
@@ -56,43 +47,28 @@ export default function EditPersonPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchPerson();
+  }, [fetchPerson]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (person) {
-      setPerson({
-        ...person,
-        [name]: value
-      });
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!person) return;
 
     setSaving(true);
     setError('');
 
     try {
-      // In a real implementation, this would call the API
-      // const response = await fetch(`/api/people/${params.id}/`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(person)
-      // });
-      // 
-      // if (response.ok) {
-      //   router.push('/people');
-      // } else {
-      //   setError('Failed to update person');
-      // }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await peopleAPI.updatePerson(params.id as string, formData);
       
       // Redirect to people page
       router.push('/people');
@@ -196,10 +172,11 @@ export default function EditPersonPage() {
                     type="text"
                     id="name"
                     name="name"
-                    value={person.name}
+                    value={formData.name}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="Enter full name"
+                    required
                   />
                 </div>
               </div>
@@ -217,9 +194,10 @@ export default function EditPersonPage() {
                     type="date"
                     id="birth_date"
                     name="birth_date"
-                    value={person.birth_date}
+                    value={formData.birth_date}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    required
                   />
                 </div>
               </div>
@@ -236,7 +214,7 @@ export default function EditPersonPage() {
                   <select
                     id="relationship"
                     name="relationship"
-                    value={person.relationship}
+                    value={formData.relationship}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
                   >
@@ -257,7 +235,7 @@ export default function EditPersonPage() {
                 <textarea
                   id="notes"
                   name="notes"
-                  value={person.notes}
+                  value={formData.notes}
                   onChange={handleChange}
                   rows={4}
                   className="block w-full px-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"

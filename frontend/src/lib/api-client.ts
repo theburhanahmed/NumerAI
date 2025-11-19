@@ -27,12 +27,17 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+import { toast } from "@/components/ui/use-toast";
+
+// ...
+
+// Response interceptor to handle token refresh and errors
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    // Handle 401 Unauthorized (Token Refresh)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -56,12 +61,56 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh token failed, logout user
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+
+          toast({
+            title: "Session Expired",
+            description: "Please log in again.",
+            variant: "destructive",
+          });
+        }
         return Promise.reject(refreshError);
       }
+    }
+
+    // Handle other errors
+    if (error.response) {
+      const status = error.response.status;
+      const data = error.response.data as any;
+
+      // Don't show toast for 401 as it's handled above (or redirects)
+      if (status !== 401) {
+        let message = "An unexpected error occurred.";
+
+        if (data?.detail) {
+          message = data.detail;
+        } else if (data?.message) {
+          message = data.message;
+        } else if (status === 500) {
+          message = "Server error. Please try again later.";
+        } else if (status === 404) {
+          message = "Resource not found.";
+        } else if (status === 403) {
+          message = "You do not have permission to perform this action.";
+        }
+
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        });
+      }
+    } else if (error.request) {
+      // Network error
+      toast({
+        title: "Network Error",
+        description: "Please check your internet connection.",
+        variant: "destructive",
+      });
     }
 
     return Promise.reject(error);

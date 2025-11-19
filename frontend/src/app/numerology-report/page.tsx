@@ -23,14 +23,85 @@ export default function NumerologyReportPage() {
   const router = useRouter();
   const { report, loading, error } = useNumerologyReport();
 
-  const handleDownload = () => {
-    // In a real implementation, this would download the actual PDF report
-    alert("Report download started!");
+  const handleDownload = async () => {
+    try {
+      // Create a link to the PDF endpoint
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/numerology/full-report/pdf/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+      
+      // Create a blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `numerology_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      alert("Report downloaded successfully!");
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert("Failed to download report. Please try again.");
+    }
   };
 
-  const handleShare = () => {
-    // In a real implementation, this would open sharing options
-    alert("Report sharing options opened!");
+  const handleShare = async () => {
+    try {
+      // Get the current user's report data
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/numerology/full-report/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch report data');
+      }
+      
+      const reportData = await response.json();
+      
+      // Create share text
+      const shareText = `Check out my numerology report!
+
+` +
+        `Name: ${reportData.full_name}
+` +
+        `Life Path: ${reportData.life_path_number} - ${reportData.life_path_title}
+` +
+        `Destiny: ${reportData.destiny_number} - ${reportData.destiny_title}
+` +
+        `Soul Urge: ${reportData.soul_urge_number} - ${reportData.soul_urge_title}
+
+` +
+        `Generated on: ${new Date().toLocaleDateString()}`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: 'My Numerology Report',
+          text: shareText,
+        });
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(shareText);
+        alert("Report details copied to clipboard!");
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      alert("Failed to share report. Please try again.");
+    }
   };
 
   return (
@@ -117,7 +188,7 @@ export default function NumerologyReportPage() {
                     <FileTextIcon className="w-10 h-10 text-purple-500" />
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Report ID</p>
-                      <p className="font-mono text-gray-900 dark:text-white">#NR-2024-{Math.floor(Math.random() * 10000)}</p>
+                      <p className="font-mono text-gray-900 dark:text-white">#NR-2024-{report.life_path_number}{report.destiny_number}{Math.floor(Math.random() * 100)}</p>
                     </div>
                   </div>
                 </div>

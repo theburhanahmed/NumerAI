@@ -16,6 +16,8 @@ urlpatterns = [
     path('auth/refresh-token/', views.refresh_token, name='refresh-token'),
     path('auth/password-reset/', views.password_reset_request, name='password-reset'),
     path('auth/password-reset/confirm/', views.password_reset_confirm, name='password-reset-confirm'),
+    path('auth/reset-password/token/', views.password_reset_token_request, name='password-reset-token'),
+    path('auth/reset-password/token/confirm/', views.password_reset_token_confirm, name='password-reset-token-confirm'),
     
     # User profile endpoints
     path('users/profile/', views.UserProfileView.as_view(), name='user-profile'),

@@ -324,6 +324,9 @@ class NumerologyCalculator:
         year_reduced = self._reduce_to_single_digit(year, preserve_master=False)
         
         total = day_reduced + month_reduced + year_reduced
+        if total in karmic_numbers:
+            return total
+            
         total_reduced = self._reduce_to_single_digit(total, preserve_master=False)
         
         if total_reduced in karmic_numbers:

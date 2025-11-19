@@ -723,3 +723,31 @@ class GeneratedReport(models.Model):
     
     def __str__(self):
         return f"Report for {self.person.name} - {self.template.name}"
+
+
+class PasswordResetToken(models.Model):
+    """Password reset tokens for email-based password reset."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=100, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'password_reset_tokens'
+        verbose_name = 'Password Reset Token'
+        verbose_name_plural = 'Password Reset Tokens'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'expires_at']),
+            models.Index(fields=['token']),
+        ]
+    
+    def __str__(self):
+        return f"Password reset token for {self.user}"
+    
+    def is_valid(self):
+        """Check if token is still valid."""
+        return not self.is_used and self.expires_at > timezone.now()

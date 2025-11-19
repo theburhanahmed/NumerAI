@@ -176,6 +176,25 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return attrs
 
 
+class PasswordResetTokenRequestSerializer(serializers.Serializer):
+    """Serializer for password reset token request."""
+    email = serializers.EmailField()
+
+
+class PasswordResetTokenConfirmSerializer(serializers.Serializer):
+    """Serializer for password reset token confirmation."""
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=8)
+    confirm_password = serializers.CharField()
+    
+    def validate(self, attrs):
+        """Validate password reset with token."""
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match")
+        
+        return attrs
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile."""
     email = serializers.EmailField(source='user.email', read_only=True)

@@ -14,14 +14,17 @@ import { useAuth } from '@/contexts/auth-context';
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useLifePathAnalysis } from '@/lib/hooks';
+import { Suspense } from 'react';
 
-export default function LifePathAnalysisPage() {
+function LifePathContent() {
   const router = useRouter();
   const { user } = useAuth();
   const { analysis, loading, error } = useLifePathAnalysis();
 
   if (!user) {
-    router.push('/login');
+    if (typeof window !== 'undefined') {
+      router.push('/login');
+    }
     return null;
   }
 
@@ -195,5 +198,13 @@ export default function LifePathAnalysisPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LifePathAnalysisPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LifePathContent />
+    </Suspense>
   );
 }

@@ -4,33 +4,28 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
-  UserPlus, 
+  User, 
   Calendar,
   Users,
-  ChevronLeft
+  ChevronLeft,
+  Plus
 } from 'lucide-react';
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
-
-interface PersonFormData {
-  name: string;
-  birth_date: string;
-  relationship: string;
-  notes: string;
-}
+import { peopleAPI } from '@/lib/numerology-api';
 
 export default function AddPersonPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [formData, setFormData] = useState<PersonFormData>({
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
     name: '',
     birth_date: '',
     relationship: 'other',
     notes: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -42,40 +37,12 @@ export default function AddPersonPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+
+    setSaving(true);
     setError('');
 
-    // Validate form
-    if (!formData.name.trim()) {
-      setError('Name is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.birth_date) {
-      setError('Birth date is required');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // In a real implementation, this would call the API
-      // const response = await fetch('/api/people/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(formData)
-      // });
-      // 
-      // if (response.ok) {
-      //   router.push('/people');
-      // } else {
-      //   setError('Failed to add person');
-      // }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await peopleAPI.createPerson(formData);
       
       // Redirect to people page
       router.push('/people');
@@ -83,14 +50,14 @@ export default function AddPersonPage() {
       console.error('Failed to add person:', err);
       setError('Failed to add person');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const relationshipOptions = [
     { value: 'self', label: 'Self' },
     { value: 'spouse', label: 'Spouse' },
-    { value: 'child', label: 'Child' },
+    { value: 'child', label: 'Child' }, 
     { value: 'parent', label: 'Parent' },
     { value: 'sibling', label: 'Sibling' },
     { value: 'friend', label: 'Friend' },
@@ -136,7 +103,7 @@ export default function AddPersonPage() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <UserPlus className="h-5 w-5 text-gray-400" />
+                    <User className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type="text"
@@ -146,6 +113,7 @@ export default function AddPersonPage() {
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="Enter full name"
+                    required
                   />
                 </div>
               </div>
@@ -166,6 +134,7 @@ export default function AddPersonPage() {
                     value={formData.birth_date}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    required
                   />
                 </div>
               </div>
@@ -216,7 +185,7 @@ export default function AddPersonPage() {
                 <GlassButton 
                   variant="secondary" 
                   onClick={() => router.push('/people')}
-                  disabled={loading}
+                  disabled={saving}
                   className="flex-1"
                 >
                   Cancel
@@ -224,11 +193,11 @@ export default function AddPersonPage() {
                 <GlassButton 
                   variant="primary" 
                   type="submit"
-                  disabled={loading}
+                  disabled={saving}
                   className="flex-1"
-                  icon={loading ? undefined : <UserPlus className="w-5 h-5" />}
+                  icon={saving ? undefined : <Plus className="w-5 h-5" />}
                 >
-                  {loading ? 'Adding...' : 'Add Person'}
+                  {saving ? 'Adding...' : 'Add Person'}
                 </GlassButton>
               </div>
             </form>

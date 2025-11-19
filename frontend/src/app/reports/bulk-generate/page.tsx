@@ -14,19 +14,8 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
-
-interface Person {
-  id: string;
-  name: string;
-  birth_date: string;
-  relationship: string;
-}
-
-interface ReportTemplate {
-  id: string;
-  name: string;
-  report_type: string;
-}
+import { peopleAPI, reportAPI } from '@/lib/numerology-api';
+import { Person, ReportTemplate } from '@/types';
 
 export default function BulkGenerateReportsPage() {
   const router = useRouter();
@@ -47,33 +36,10 @@ export default function BulkGenerateReportsPage() {
 
   const fetchPeople = async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/people');
-      // const data = await response.json();
-      // setPeople(data);
-      
-      // Mock data for demonstration
-      setPeople([
-        {
-          id: '1',
-          name: 'John Doe',
-          birth_date: '1990-05-15',
-          relationship: 'self'
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          birth_date: '1985-12-03',
-          relationship: 'spouse'
-        },
-        {
-          id: '3',
-          name: 'Alex Johnson',
-          birth_date: '2010-08-22',
-          relationship: 'child'
-        }
-      ]);
-    } catch (error) {
+      setLoading(true);
+      const data = await peopleAPI.getPeople();
+      setPeople(data);
+    } catch (error: any) {
       console.error('Failed to fetch people:', error);
     } finally {
       setLoading(false);
@@ -82,30 +48,9 @@ export default function BulkGenerateReportsPage() {
 
   const fetchTemplates = async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/report-templates');
-      // const data = await response.json();
-      // setTemplates(data);
-      
-      // Mock data for demonstration
-      setTemplates([
-        {
-          id: '1',
-          name: 'Basic Birth Chart',
-          report_type: 'basic'
-        },
-        {
-          id: '2',
-          name: 'Detailed Analysis',
-          report_type: 'detailed'
-        },
-        {
-          id: '3',
-          name: 'Compatibility Report',
-          report_type: 'compatibility'
-        }
-      ]);
-    } catch (error) {
+      const data = await reportAPI.getReportTemplates();
+      setTemplates(data);
+    } catch (error: any) {
       console.error('Failed to fetch templates:', error);
     }
   };
@@ -154,44 +99,26 @@ export default function BulkGenerateReportsPage() {
     setGenerationMessage('');
 
     try {
-      // In a real implementation, this would call the API
-      // const response = await fetch('/api/reports/bulk-generate/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     person_ids: selectedPeople,
-      //     template_ids: selectedTemplates
-      //   })
-      // });
-      // 
-      // if (response.ok) {
-      //   setGenerationStatus('success');
-      //   setGenerationMessage(`Successfully generated ${selectedPeople.length * selectedTemplates.length} reports`);
-      //   // Redirect to reports page after a delay
-      //   setTimeout(() => {
-      //     router.push('/reports');
-      //   }, 2000);
-      // } else {
-      //   setGenerationStatus('error');
-      //   setGenerationMessage('Failed to generate reports');
-      // }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await reportAPI.bulkGenerateReports({
+        person_ids: selectedPeople,
+        template_ids: selectedTemplates
+      });
       
-      setGenerationStatus('success');
-      setGenerationMessage(`Successfully generated ${selectedPeople.length * selectedTemplates.length} reports`);
-      
-      // Redirect to reports page after a delay
-      setTimeout(() => {
-        router.push('/reports');
-      }, 2000);
-    } catch (error) {
+      if (result.errors && result.errors.length > 0) {
+        setGenerationStatus('error');
+        setGenerationMessage(`Generated ${result.reports.length} reports with ${result.errors.length} errors`);
+      } else {
+        setGenerationStatus('success');
+        setGenerationMessage(`Successfully generated ${result.reports.length} reports`);
+        // Redirect to reports page after a delay
+        setTimeout(() => {
+          router.push('/reports');
+        }, 2000);
+      }
+    } catch (error: any) {
       console.error('Failed to generate reports:', error);
       setGenerationStatus('error');
-      setGenerationMessage('Failed to generate reports');
+      setGenerationMessage('Failed to generate reports: ' + (error.response?.data?.error || error.message));
     } finally {
       setGenerating(false);
     }

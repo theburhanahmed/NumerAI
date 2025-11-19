@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -15,170 +15,101 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
+import { peopleAPI, reportAPI } from '@/lib/numerology-api';
+import { Person, ReportTemplate } from '@/types';
+import { Suspense } from 'react';
 
-interface Person {
-  id: string;
-  name: string;
-  birth_date: string;
-  relationship: string;
-}
-
-interface ReportTemplate {
-  id: string;
-  name: string;
-  description: string;
-  report_type: string;
-  is_premium: boolean;
-}
-
-export default function GenerateReportPage() {
+function GenerateReportContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [people, setPeople] = useState<Person[]>([]);
-  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
-  const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
-  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
+  const [people, setPeople] = useState<(Person & { selected: boolean })[]>([]);
+  const [templates, setTemplates] = useState<(ReportTemplate & { selected: boolean })[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [generationMessage, setGenerationMessage] = useState('');
 
-  useEffect(() => {
-    fetchPeople();
-    fetchTemplates();
-    
-    // Check if there are pre-selected people or templates from URL params
-    const personId = searchParams.get('person');
-    const templateId = searchParams.get('template');
-    
-    if (personId) {
-      setSelectedPeople([personId]);
-    }
-    
-    if (templateId) {
-      setSelectedTemplates([templateId]);
-    }
-  }, [searchParams]);
-
-  const fetchPeople = async () => {
+  const fetchPeople = useCallback(async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/people');
-      // const data = await response.json();
-      // setPeople(data);
-      
-      // Mock data for demonstration
-      setPeople([
-        {
-          id: '1',
-          name: 'John Doe',
-          birth_date: '1990-05-15',
-          relationship: 'self'
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          birth_date: '1985-12-03',
-          relationship: 'spouse'
-        },
-        {
-          id: '3',
-          name: 'Alex Johnson',
-          birth_date: '2010-08-22',
-          relationship: 'child'
-        }
-      ]);
+      const data = await peopleAPI.getPeople();
+      const peopleWithSelection = data.map(person => ({
+        ...person,
+        selected: false
+      }));
+      setPeople(peopleWithSelection);
     } catch (error) {
       console.error('Failed to fetch people:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
-      // In a real implementation, this would fetch from the API
-      // const response = await fetch('/api/report-templates');
-      // const data = await response.json();
-      // setTemplates(data);
-      
-      // Mock data for demonstration
-      setTemplates([
-        {
-          id: '1',
-          name: 'Basic Birth Chart',
-          description: 'Essential numerology numbers and their meanings',
-          report_type: 'basic',
-          is_premium: false
-        },
-        {
-          id: '2',
-          name: 'Detailed Analysis',
-          description: 'Comprehensive analysis of all numerology aspects',
-          report_type: 'detailed',
-          is_premium: true
-        },
-        {
-          id: '3',
-          name: 'Compatibility Report',
-          description: 'Relationship compatibility analysis',
-          report_type: 'compatibility',
-          is_premium: false
-        },
-        {
-          id: '4',
-          name: 'Career Guidance',
-          description: 'Career path and professional insights',
-          report_type: 'career',
-          is_premium: true
-        },
-        {
-          id: '5',
-          name: 'Relationship Analysis',
-          description: 'Deep dive into relationship dynamics',
-          report_type: 'relationship',
-          is_premium: true
-        }
-      ]);
+      const data = await reportAPI.getReportTemplates();
+      const templatesWithSelection = data.map(template => ({
+        ...template,
+        selected: false
+      }));
+      setTemplates(templatesWithSelection);
     } catch (error) {
       console.error('Failed to fetch templates:', error);
     }
-  };
+  }, []);
 
-  const handleSelectPerson = (personId: string) => {
-    setSelectedPeople(prev => 
-      prev.includes(personId) 
-        ? prev.filter(id => id !== personId) 
-        : [...prev, personId]
-    );
-  };
-
-  const handleSelectTemplate = (templateId: string) => {
-    setSelectedTemplates(prev => 
-      prev.includes(templateId) 
-        ? prev.filter(id => id !== templateId) 
-        : [...prev, templateId]
-    );
-  };
-
-  const handleSelectAllPeople = () => {
-    if (selectedPeople.length === people.length) {
-      setSelectedPeople([]);
-    } else {
-      setSelectedPeople(people.map(p => p.id));
+  useEffect(() => {
+    Promise.all([fetchPeople(), fetchTemplates()]).finally(() => {
+      setLoading(false);
+    });
+    
+    // Check if there are pre-selected people or templates from URL params
+    if (typeof window !== 'undefined' && searchParams) {
+      const personId = searchParams.get('person');
+      const templateId = searchParams.get('template');
+      
+      if (personId) {
+        setPeople(prev => prev.map(p => 
+          p.id === personId ? { ...p, selected: true } : p
+        ));
+      }
+      
+      if (templateId) {
+        setTemplates(prev => prev.map(t => 
+          t.id === templateId ? { ...t, selected: true } : t
+        ));
+      }
     }
+  }, [searchParams, fetchPeople, fetchTemplates]);
+
+  const togglePersonSelection = (personId: string) => {
+    setPeople(prev => prev.map(person => 
+      person.id === personId 
+        ? { ...person, selected: !person.selected } 
+        : person
+    ));
   };
 
-  const handleSelectAllTemplates = () => {
-    if (selectedTemplates.length === templates.length) {
-      setSelectedTemplates([]);
-    } else {
-      setSelectedTemplates(templates.map(t => t.id));
-    }
+  const toggleTemplateSelection = (templateId: string) => {
+    setTemplates(prev => prev.map(template => 
+      template.id === templateId 
+        ? { ...template, selected: !template.selected } 
+        : template
+    ));
+  };
+
+  const toggleAllPeople = () => {
+    const allSelected = people.every(p => p.selected);
+    setPeople(prev => prev.map(p => ({ ...p, selected: !allSelected })));
+  };
+
+  const toggleAllTemplates = () => {
+    const allSelected = templates.every(t => t.selected);
+    setTemplates(prev => prev.map(t => ({ ...t, selected: !allSelected })));
   };
 
   const handleGenerateReports = async () => {
+    const selectedPeople = people.filter(p => p.selected);
+    const selectedTemplates = templates.filter(t => t.selected);
+    
     if (selectedPeople.length === 0 || selectedTemplates.length === 0) {
       setGenerationStatus('error');
       setGenerationMessage('Please select at least one person and one template');
@@ -190,35 +121,21 @@ export default function GenerateReportPage() {
     setGenerationMessage('');
 
     try {
-      // In a real implementation, this would call the API
-      // const response = await fetch('/api/reports/bulk-generate/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     person_ids: selectedPeople,
-      //     template_ids: selectedTemplates
-      //   })
-      // });
-      // 
-      // if (response.ok) {
-      //   setGenerationStatus('success');
-      //   setGenerationMessage(`Successfully generated ${selectedPeople.length * selectedTemplates.length} reports`);
-      //   // Redirect to reports page after a delay
-      //   setTimeout(() => {
-      //     router.push('/reports');
-      //   }, 2000);
-      // } else {
-      //   setGenerationStatus('error');
-      //   setGenerationMessage('Failed to generate reports');
-      // }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const personIds = selectedPeople.map(p => p.id);
+      const templateIds = selectedTemplates.map(t => t.id);
       
-      setGenerationStatus('success');
-      setGenerationMessage(`Successfully generated ${selectedPeople.length * selectedTemplates.length} reports`);
+      const result = await reportAPI.bulkGenerateReports({
+        person_ids: personIds,
+        template_ids: templateIds
+      });
+      
+      if (result.errors && result.errors.length > 0) {
+        setGenerationStatus('error');
+        setGenerationMessage(`Generated ${result.reports.length} reports with ${result.errors.length} errors`);
+      } else {
+        setGenerationStatus('success');
+        setGenerationMessage(`Successfully generated ${result.reports.length} reports`);
+      }
       
       // Redirect to reports page after a delay
       setTimeout(() => {
@@ -240,6 +157,10 @@ export default function GenerateReportPage() {
   const handleBrowseTemplates = () => {
     router.push('/templates');
   };
+
+  const selectedPeopleCount = people.filter(p => p.selected).length;
+  const selectedTemplatesCount = templates.filter(t => t.selected).length;
+  const totalReportsToGenerate = selectedPeopleCount * selectedTemplatesCount;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 p-4 sm:p-8">
@@ -300,9 +221,9 @@ export default function GenerateReportPage() {
                 <GlassButton 
                   variant="ghost" 
                   size="sm"
-                  onClick={handleSelectAllPeople}
+                  onClick={toggleAllPeople}
                 >
-                  {selectedPeople.length === people.length ? 'Deselect All' : 'Select All'}
+                  {people.length > 0 && people.every(p => p.selected) ? 'Deselect All' : 'Select All'}
                 </GlassButton>
               </div>
 
@@ -342,21 +263,21 @@ export default function GenerateReportPage() {
                       transition={{ delay: 0.1 }}
                     >
                       <GlassCard 
-                        variant={selectedPeople.includes(person.id) ? "elevated" : "default"}
+                        variant={person.selected ? "elevated" : "default"}
                         className={`p-6 cursor-pointer transition-all duration-200 ${
-                          selectedPeople.includes(person.id) 
+                          person.selected 
                             ? 'ring-2 ring-purple-500 bg-purple-50/50 dark:bg-purple-900/20' 
                             : ''
                         }`}
-                        onClick={() => handleSelectPerson(person.id)}
+                        onClick={() => togglePersonSelection(person.id)}
                       >
                         <div className="flex items-center gap-4">
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                            selectedPeople.includes(person.id)
+                            person.selected
                               ? 'bg-purple-500 border-purple-500'
                               : 'border-gray-300 dark:border-gray-600'
                           }`}>
-                            {selectedPeople.includes(person.id) && (
+                            {person.selected && (
                               <CheckCircle className="w-4 h-4 text-white" />
                             )}
                           </div>
@@ -388,9 +309,9 @@ export default function GenerateReportPage() {
                 <GlassButton 
                   variant="ghost" 
                   size="sm"
-                  onClick={handleSelectAllTemplates}
+                  onClick={toggleAllTemplates}
                 >
-                  {selectedTemplates.length === templates.length ? 'Deselect All' : 'Select All'}
+                  {templates.length > 0 && templates.every(t => t.selected) ? 'Deselect All' : 'Select All'}
                 </GlassButton>
               </div>
 
@@ -413,21 +334,21 @@ export default function GenerateReportPage() {
                       transition={{ delay: 0.1 }}
                     >
                       <GlassCard 
-                        variant={selectedTemplates.includes(template.id) ? "elevated" : "default"}
+                        variant={template.selected ? "elevated" : "default"}
                         className={`p-6 cursor-pointer transition-all duration-200 ${
-                          selectedTemplates.includes(template.id) 
+                          template.selected 
                             ? 'ring-2 ring-purple-500 bg-purple-50/50 dark:bg-purple-900/20' 
                             : ''
                         }`}
-                        onClick={() => handleSelectTemplate(template.id)}
+                        onClick={() => toggleTemplateSelection(template.id)}
                       >
                         <div className="flex items-start gap-4">
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 ${
-                            selectedTemplates.includes(template.id)
+                            template.selected
                               ? 'bg-purple-500 border-purple-500'
                               : 'border-gray-300 dark:border-gray-600'
                           }`}>
-                            {selectedTemplates.includes(template.id) && (
+                            {template.selected && (
                               <CheckCircle className="w-4 h-4 text-white" />
                             )}
                           </div>
@@ -478,19 +399,19 @@ export default function GenerateReportPage() {
                 <div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">Selected People</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {selectedPeople.length} of {people.length}
+                    {selectedPeopleCount} of {people.length}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">Selected Templates</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {selectedTemplates.length} of {templates.length}
+                    {selectedTemplatesCount} of {templates.length}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">Reports to Generate</p>
                   <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {selectedPeople.length * selectedTemplates.length}
+                    {totalReportsToGenerate}
                   </p>
                 </div>
               </div>
@@ -508,15 +429,23 @@ export default function GenerateReportPage() {
               <GlassButton 
                 variant="primary" 
                 onClick={handleGenerateReports}
-                disabled={generating || selectedPeople.length === 0 || selectedTemplates.length === 0}
+                disabled={generating || selectedPeopleCount === 0 || selectedTemplatesCount === 0}
                 icon={generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
               >
-                {generating ? 'Generating...' : `Generate ${selectedPeople.length * selectedTemplates.length} Reports`}
+                {generating ? 'Generating...' : `Generate ${totalReportsToGenerate} Reports`}
               </GlassButton>
             </div>
           </div>
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function GenerateReportPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GenerateReportContent />
+    </Suspense>
   );
 }
