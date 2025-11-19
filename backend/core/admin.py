@@ -3,7 +3,12 @@ Django admin configuration for core models.
 """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken, CompatibilityCheck, Remedy, RemedyTracking, Expert, Consultation, ConsultationReview
+from .models import (
+    User, UserProfile, NumerologyProfile, DailyReading, AIConversation, AIMessage,
+    OTPCode, RefreshToken, DeviceToken, CompatibilityCheck, Remedy, RemedyTracking,
+    Expert, Consultation, ConsultationReview, Person, PersonNumerologyProfile,
+    ReportTemplate, GeneratedReport
+)
 
 
 @admin.register(User)
@@ -52,6 +57,69 @@ class UserProfileAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ['profile_completed_at', 'created_at', 'updated_at']
+
+
+@admin.register(NumerologyProfile)
+class NumerologyProfileAdmin(admin.ModelAdmin):
+    """Admin interface for NumerologyProfile model."""
+    
+    list_display = ['user', 'life_path_number', 'destiny_number', 'calculation_system', 'updated_at']
+    list_filter = ['calculation_system', 'life_path_number', 'destiny_number']
+    search_fields = ['user__email', 'user__full_name']
+    ordering = ['-updated_at']
+    
+    fieldsets = (
+        ('User', {'fields': ('user',)}),
+        ('Core Numbers', {'fields': ('life_path_number', 'destiny_number', 'soul_urge_number', 'personality_number', 'attitude_number', 'maturity_number', 'balance_number')}),
+        ('Cycles', {'fields': ('personal_year_number', 'personal_month_number')}),
+        ('Enhanced Numbers', {'fields': ('karmic_debt_number', 'hidden_passion_number', 'subconscious_self_number')}),
+        ('Metadata', {'fields': ('calculation_system', 'calculated_at', 'updated_at')}),
+    )
+    
+    readonly_fields = ['calculated_at', 'updated_at']
+
+
+@admin.register(DailyReading)
+class DailyReadingAdmin(admin.ModelAdmin):
+    """Admin interface for DailyReading model."""
+    
+    list_display = ['user', 'reading_date', 'personal_day_number', 'lucky_number']
+    list_filter = ['reading_date', 'personal_day_number']
+    search_fields = ['user__email', 'user__full_name']
+    ordering = ['-reading_date']
+    
+    fieldsets = (
+        ('User & Date', {'fields': ('user', 'reading_date')}),
+        ('Numbers', {'fields': ('personal_day_number', 'lucky_number')}),
+        ('Content', {'fields': ('lucky_color', 'auspicious_time', 'activity_recommendation', 'warning', 'affirmation', 'actionable_tip')}),
+        ('Metadata', {'fields': ('generated_at',)}),
+    )
+    
+    readonly_fields = ['generated_at']
+
+
+@admin.register(AIConversation)
+class AIConversationAdmin(admin.ModelAdmin):
+    """Admin interface for AIConversation model."""
+    
+    list_display = ['user', 'started_at', 'message_count', 'is_active']
+    list_filter = ['is_active', 'started_at']
+    search_fields = ['user__email', 'user__full_name']
+    ordering = ['-started_at']
+    
+    readonly_fields = ['started_at', 'last_message_at']
+
+
+@admin.register(AIMessage)
+class AIMessageAdmin(admin.ModelAdmin):
+    """Admin interface for AIMessage model."""
+    
+    list_display = ['conversation', 'role', 'created_at', 'tokens_used']
+    list_filter = ['role', 'created_at']
+    search_fields = ['content']
+    ordering = ['-created_at']
+    
+    readonly_fields = ['created_at']
 
 
 @admin.register(OTPCode)
@@ -216,3 +284,76 @@ class ConsultationReviewAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ['created_at']
+
+
+@admin.register(Person)
+class PersonAdmin(admin.ModelAdmin):
+    """Admin interface for Person model."""
+    
+    list_display = ['name', 'user', 'relationship', 'birth_date', 'is_active', 'created_at']
+    list_filter = ['relationship', 'is_active', 'created_at']
+    search_fields = ['name', 'user__email', 'user__full_name']
+    ordering = ['name']
+    
+    fieldsets = (
+        ('User', {'fields': ('user',)}),
+        ('Person Details', {'fields': ('name', 'birth_date', 'relationship', 'notes', 'is_active')}),
+        ('Timestamps', {'fields': ('created_at', 'updated_at')}),
+    )
+    
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(PersonNumerologyProfile)
+class PersonNumerologyProfileAdmin(admin.ModelAdmin):
+    """Admin interface for PersonNumerologyProfile model."""
+    
+    list_display = ['person', 'life_path_number', 'destiny_number', 'calculation_system', 'updated_at']
+    list_filter = ['calculation_system', 'life_path_number', 'destiny_number']
+    search_fields = ['person__name', 'person__user__email']
+    ordering = ['-updated_at']
+    
+    fieldsets = (
+        ('Person', {'fields': ('person',)}),
+        ('Core Numbers', {'fields': ('life_path_number', 'destiny_number', 'soul_urge_number', 'personality_number', 'attitude_number', 'maturity_number', 'balance_number')}),
+        ('Cycles', {'fields': ('personal_year_number', 'personal_month_number')}),
+        ('Metadata', {'fields': ('calculation_system', 'calculated_at', 'updated_at')}),
+    )
+    
+    readonly_fields = ['calculated_at', 'updated_at']
+
+
+@admin.register(ReportTemplate)
+class ReportTemplateAdmin(admin.ModelAdmin):
+    """Admin interface for ReportTemplate model."""
+    
+    list_display = ['name', 'report_type', 'is_premium', 'is_active', 'created_at']
+    list_filter = ['report_type', 'is_premium', 'is_active']
+    search_fields = ['name', 'description']
+    ordering = ['name']
+    
+    fieldsets = (
+        ('Template Details', {'fields': ('name', 'description', 'report_type')}),
+        ('Settings', {'fields': ('is_premium', 'is_active')}),
+        ('Timestamps', {'fields': ('created_at', 'updated_at')}),
+    )
+    
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(GeneratedReport)
+class GeneratedReportAdmin(admin.ModelAdmin):
+    """Admin interface for GeneratedReport model."""
+    
+    list_display = ['title', 'user', 'person', 'template', 'generated_at', 'expires_at']
+    list_filter = ['template__report_type', 'generated_at']
+    search_fields = ['title', 'user__email', 'person__name']
+    ordering = ['-generated_at']
+    
+    fieldsets = (
+        ('Context', {'fields': ('user', 'person', 'template')}),
+        ('Report Content', {'fields': ('title', 'content')}),
+        ('Metadata', {'fields': ('generated_at', 'expires_at')}),
+    )
+    
+    readonly_fields = ['generated_at']
