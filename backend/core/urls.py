@@ -40,6 +40,7 @@ urlpatterns = [
     path('numerology/remedies/', views.get_personalized_remedies, name='personalized-remedies'),
     path('numerology/remedies/<uuid:remedy_id>/track/', views.track_remedy, name='track-remedy'),
     path('numerology/full-report/', views.get_full_numerology_report, name='full-numerology-report'),
+    path('numerology/full-report/pdf/', views.export_full_numerology_report_pdf, name='full-numerology-report-pdf'),
     
     # Multi-person numerology endpoints
     path('people/', views.people_list_create, name='people-list-create'),

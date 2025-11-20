@@ -702,11 +702,16 @@ def get_daily_reading(request):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Calculate personal day number
-            calculator = NumerologyCalculator()
-            personal_day_number = calculator.calculate_personal_day_number(
-                user.profile.date_of_birth,
-                reading_date
-            )
+            try:
+                calculator = NumerologyCalculator()
+                personal_day_number = calculator.calculate_personal_day_number(
+                    user.profile.date_of_birth,
+                    reading_date
+                )
+            except Exception as e:
+                return Response({
+                    'error': f'Failed to calculate personal day number: {str(e)}'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             # Get user's numerology profile for personalization
             try:
@@ -720,34 +725,61 @@ def get_daily_reading(request):
                 }
                 
                 # Generate personalized reading
-                generator = DailyReadingGenerator()
-                reading_content = generator.generate_personalized_reading(personal_day_number, user_profile)
+                try:
+                    generator = DailyReadingGenerator()
+                    reading_content = generator.generate_personalized_reading(personal_day_number, user_profile)
+                except Exception as e:
+                    return Response({
+                        'error': f'Failed to generate personalized reading: {str(e)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except NumerologyProfile.DoesNotExist:
                 # Fall back to basic reading if no numerology profile
-                generator = DailyReadingGenerator()
-                reading_content = generator.generate_reading(personal_day_number)
+                try:
+                    generator = DailyReadingGenerator()
+                    reading_content = generator.generate_reading(personal_day_number)
+                except Exception as e:
+                    return Response({
+                        'error': f'Failed to generate basic reading: {str(e)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            reading = DailyReading.objects.create(
-                user=user,
-                reading_date=reading_date,
-                personal_day_number=personal_day_number,
-                **reading_content
-            )
+            # Create the reading in database
+            try:
+                reading = DailyReading.objects.create(
+                    user=user,
+                    reading_date=reading_date,
+                    personal_day_number=personal_day_number,
+                    **reading_content
+                )
+            except Exception as e:
+                return Response({
+                    'error': f'Failed to save reading to database: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             return Response({
-                'error': f'Failed to generate reading: {str(e)}'
+                'error': f'Failed to retrieve or create reading: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
     except Exception as e:
         return Response({
-            'error': f'Failed to get reading: {str(e)}'
+            'error': f'Unexpected error occurred: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    serializer = DailyReadingSerializer(reading)
-    
-    # Cache the result
-    NumerologyCache.set_daily_reading(str(user.id), str(reading_date), serializer.data)
-    
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    # Serialize and return the reading
+    try:
+        serializer = DailyReadingSerializer(reading)
+        
+        # Cache the result
+        try:
+            NumerologyCache.set_daily_reading(str(user.id), str(reading_date), serializer.data)
+        except Exception:
+            # Don't fail if caching fails
+            pass
+            
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'error': f'Failed to serialize reading: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -1621,6 +1653,110 @@ def get_full_numerology_report(request):
             'error': f'Failed to generate report: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_full_numerology_report_pdf(request):
+    """Export full numerology report as PDF."""
+    user = request.user
+    
+    try:
+        # Get user's numerology profile
+        profile = NumerologyProfile.objects.get(user=user)
+        
+        # Get interpretations for all numbers
+        interpretations = {}
+        numbers = [
+            ('life_path_number', profile.life_path_number),
+            ('destiny_number', profile.destiny_number),
+            ('soul_urge_number', profile.soul_urge_number),
+            ('personality_number', profile.personality_number),
+            ('attitude_number', profile.attitude_number),
+            ('maturity_number', profile.maturity_number),
+            ('balance_number', profile.balance_number),
+            ('personal_year_number', profile.personal_year_number),
+            ('birthday_number', profile.personal_month_number),
+        ]
+        
+        for field_name, number in numbers:
+            try:
+                interpretations[field_name] = get_interpretation(number)
+            except ValueError:
+                interpretations[field_name] = {'title': 'Unknown', 'description': 'Interpretation not available'}
+
+        # Create PDF
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="numerology_report_{user.full_name.replace(" ", "_")}.pdf"'
+        
+        # Create PDF document
+        p = canvas.Canvas(response, pagesize=letter)
+        width, height = letter
+        
+        # Title
+        p.setFont("Helvetica-Bold", 24)
+        p.drawString(50, height - 50, f"Numerology Report for {user.full_name}")
+        
+        # User info
+        p.setFont("Helvetica", 12)
+        p.drawString(50, height - 80, f"Date of Birth: {user.profile.date_of_birth}")
+        p.drawString(50, height - 100, f"Report Generated: {timezone.now().strftime('%Y-%m-%d')}")
+        
+        # Core Numbers table
+        data = [
+            ['Number Type', 'Value', 'Title', 'Description'],
+            ['Life Path', str(profile.life_path_number), 
+             interpretations.get('life_path_number', {}).get('title', 'Unknown'),
+             interpretations.get('life_path_number', {}).get('description', '')[:50] + '...'],
+            ['Destiny', str(profile.destiny_number),
+             interpretations.get('destiny_number', {}).get('title', 'Unknown'),
+             interpretations.get('destiny_number', {}).get('description', '')[:50] + '...'],
+            ['Soul Urge', str(profile.soul_urge_number),
+             interpretations.get('soul_urge_number', {}).get('title', 'Unknown'),
+             interpretations.get('soul_urge_number', {}).get('description', '')[:50] + '...'],
+            ['Personality', str(profile.personality_number),
+             interpretations.get('personality_number', {}).get('title', 'Unknown'),
+             interpretations.get('personality_number', {}).get('description', '')[:50] + '...'],
+            ['Birthday', str(profile.personal_month_number),
+             interpretations.get('birthday_number', {}).get('title', 'Unknown'),
+             interpretations.get('birthday_number', {}).get('description', '')[:50] + '...'],
+            ['Challenge', str(profile.balance_number),
+             interpretations.get('challenge_number', {}).get('title', 'Unknown'),
+             interpretations.get('challenge_number', {}).get('description', '')[:50] + '...'],
+        ]
+        
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ]))
+        
+        table.wrapOn(p, width, height)
+        table.drawOn(p, 50, height - 350)
+        
+        # Footer
+        p.setFont("Helvetica", 10)
+        p.drawString(50, 50, "Generated by NumerAI - Your Personal Numerology Guide")
+        
+        p.showPage()
+        p.save()
+        
+        return response
+        
+    except NumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Please complete your numerology profile first.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'error': f'Failed to generate PDF: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # New API endpoints for multi-person numerology
 
