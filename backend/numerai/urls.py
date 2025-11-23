@@ -12,7 +12,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # API v1
-    path('api/v1/', include('core.urls')),
+    path('api/v1/', include('accounts.urls')),
+    path('api/v1/', include('numerology.urls')),
+    path('api/v1/', include('ai_chat.urls')),
+    path('api/v1/', include('consultations.urls')),
+    path('api/v1/', include('reports.urls')),
     
     # Django Allauth
     path('accounts/', include('allauth.urls')),

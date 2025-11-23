@@ -436,7 +436,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_object(self):
-        return self.request.user.profile
+        # Type checker issues are suppressed with # type: ignore comments
+        return self.request.user.profile  # type: ignore
 
 
 @api_view(['POST'])
@@ -446,20 +447,21 @@ def register_device_token(request):
     serializer = DeviceTokenSerializer(data=request.data)
     if serializer.is_valid():
         # Check if token already exists
+        # Type checker issues are suppressed with # type: ignore comments
         existing_token = DeviceToken.objects.filter(
-            fcm_token=serializer.validated_data['fcm_token']
+            fcm_token=serializer.validated_data['fcm_token']  # type: ignore
         ).first()
         
         if existing_token:
             existing_token.user = request.user
-            existing_token.device_type = serializer.validated_data['device_type']
-            existing_token.device_name = serializer.validated_data.get('device_name')
+            existing_token.device_type = serializer.validated_data['device_type']  # type: ignore
+            existing_token.device_name = serializer.validated_data.get('device_name')  # type: ignore
             existing_token.is_active = True
             existing_token.save()
         else:
             DeviceToken.objects.create(
                 user=request.user,
-                **serializer.validated_data
+                **serializer.validated_data  # type: ignore
             )
         
         return Response({
@@ -495,7 +497,9 @@ def calculate_numerology_profile(request):
         birth_date = user.profile.date_of_birth
     else:
         try:
-            birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+            # Import datetime module correctly
+            from datetime import datetime as dt
+            birth_date = dt.strptime(birth_date_str, '%Y-%m-%d').date()
         except ValueError:
             return Response({
                 'error': 'Invalid date format. Use YYYY-MM-DD'
@@ -566,7 +570,9 @@ def get_numerology_profile(request):
         serializer = NumerologyProfileSerializer(profile)
         
         # Cache the result
-        NumerologyCache.set_profile(str(user.id), serializer.data)
+        # Convert serializer data to dict to satisfy type checker
+        profile_data = dict(serializer.data) if not isinstance(serializer.data, dict) else serializer.data
+        NumerologyCache.set_profile(str(user.id), profile_data)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     except NumerologyProfile.DoesNotExist:
@@ -626,6 +632,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from io import BytesIO
 
 from .models import NumerologyProfile, DailyReading
 from .serializers import DailyReadingSerializer
@@ -652,7 +659,8 @@ def export_birth_chart_pdf(request):
     response['Content-Disposition'] = f'attachment; filename="birth_chart_{user.full_name.replace(" ", "_")}.pdf"'
     
     # Create PDF document
-    p = canvas.Canvas(response, pagesize=letter)
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     
     # Title
@@ -700,6 +708,10 @@ def export_birth_chart_pdf(request):
     p.showPage()
     p.save()
     
+    # Get the value of the BytesIO buffer and write it to the response
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
     return response
 
 
@@ -713,7 +725,9 @@ def get_daily_reading(request):
     # Parse date or use today
     if reading_date_str:
         try:
-            reading_date = datetime.strptime(reading_date_str, '%Y-%m-%d').date()
+            # Import datetime module correctly
+            from datetime import datetime as dt
+            reading_date = dt.strptime(reading_date_str, '%Y-%m-%d').date()
         except ValueError:
             return Response({
                 'error': 'Invalid date format. Use YYYY-MM-DD'
@@ -808,7 +822,9 @@ def get_daily_reading(request):
         
         # Cache the result
         try:
-            NumerologyCache.set_daily_reading(str(user.id), str(reading_date), serializer.data)
+            # Convert serializer data to dict to satisfy type checker
+            reading_data = dict(serializer.data) if not isinstance(serializer.data, dict) else serializer.data
+            NumerologyCache.set_daily_reading(str(user.id), str(reading_date), reading_data)
         except Exception:
             # Don't fail if caching fails
             pass
@@ -860,7 +876,8 @@ def ai_chat(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    user_message = serializer.validated_data['message']
+    # Type checker issues are suppressed with # type: ignore comments
+    user_message = serializer.validated_data['message']  # type: ignore
     
     # Check rate limit (20 messages per hour for free users)
     if user.subscription_plan == 'free':
@@ -975,7 +992,8 @@ def ai_chat(request):
         )
         
         ai_response = response.choices[0].message.content
-        tokens_used = response.usage.total_tokens
+        # Handle case where usage might be None
+        tokens_used = response.usage.total_tokens if response.usage else 0
         
         # Handle case where ai_response is None
         if ai_response is None:
@@ -1731,7 +1749,8 @@ def export_full_numerology_report_pdf(request):
         response['Content-Disposition'] = f'attachment; filename="numerology_report_{user.full_name.replace(" ", "_")}.pdf"'
         
         # Create PDF document
-        p = canvas.Canvas(response, pagesize=letter)
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
         width, height = letter
         
         # Title
@@ -1789,6 +1808,10 @@ def export_full_numerology_report_pdf(request):
         p.showPage()
         p.save()
         
+        # Get the value of the BytesIO buffer and write it to the response
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
         return response
         
     except NumerologyProfile.DoesNotExist:
@@ -1815,7 +1838,8 @@ def export_generated_report_pdf(request, report_id):
         response['Content-Disposition'] = f'attachment; filename="{report.title.replace(" ", "_")}.pdf"'
         
         # Create PDF document
-        p = canvas.Canvas(response, pagesize=letter)
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
         width, height = letter
         
         # Title
@@ -1954,6 +1978,10 @@ def export_generated_report_pdf(request, report_id):
         p.showPage()
         p.save()
         
+        # Get the value of the BytesIO buffer and write it to the response
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
         return response
         
     except GeneratedReport.DoesNotExist:
@@ -1982,10 +2010,11 @@ def people_list_create(request):
         serializer = PersonSerializer(data=request.data)
         if serializer.is_valid():
             # Check if person already exists
+            # Type checker issues are suppressed with # type: ignore comments
             existing_person = Person.objects.filter(
                 user=request.user,
-                name=serializer.validated_data['name'],
-                birth_date=serializer.validated_data['birth_date']
+                name=serializer.validated_data['name'],  # type: ignore
+                birth_date=serializer.validated_data['birth_date']  # type: ignore
             ).first()
             
             if existing_person:
@@ -2199,6 +2228,10 @@ def bulk_generate_reports(request):
     # Generate reports for each combination
     for person_id in person_ids:
         for template_id in template_ids:
+            # Initialize variables to avoid unbound errors
+            person = None
+            template = None
+            
             try:
                 # Get person and template
                 person = Person.objects.get(id=person_id, user=request.user, is_active=True)
@@ -2226,9 +2259,14 @@ def bulk_generate_reports(request):
             except ReportTemplate.DoesNotExist:
                 errors.append(f"Template with ID {template_id} not found")
             except PersonNumerologyProfile.DoesNotExist:
-                errors.append(f"Numerology profile for {person.name} not found")
+                if person:
+                    errors.append(f"Numerology profile for {person.name} not found")
+                else:
+                    errors.append(f"Numerology profile not found for person ID {person_id}")
             except Exception as e:
-                errors.append(f"Failed to generate report for {person.name} with template {template.name}: {str(e)}")
+                person_name = person.name if person else f"person ID {person_id}"
+                template_name = template.name if template else f"template ID {template_id}"
+                errors.append(f"Failed to generate report for {person_name} with template {template_name}: {str(e)}")
     
     # Serialize generated reports
     serializer = GeneratedReportSerializer(generated_reports, many=True)
@@ -2440,7 +2478,6 @@ def _generate_report_content(person, numerology_profile, template):
             'health_focus': "Maintain consistent wellness practices and be patient with your personal transformation process.",
             'affirmation': f"This year, trust: {interpretations['life_path'].get('life_purpose', 'Your life purpose')}"
         }
-    }
     # Add more template types as needed
     
     return content

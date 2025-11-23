@@ -51,6 +51,11 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'django_celery_beat',
     'core',
+    'accounts',
+    'numerology',
+    'ai_chat',
+    'consultations',
+    'reports',
 ]
 
 MIDDLEWARE = [
@@ -149,7 +154,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
-AUTH_USER_MODEL = 'core.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config(
@@ -184,7 +189,7 @@ REST_FRAMEWORK = {
         'ai_chat': '20/hour',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'accounts.exceptions.custom_exception_handler',
 }
 
 # JWT Settings
@@ -242,19 +247,19 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 # Celery Beat Schedule
 CELERY_BEAT_SCHEDULE = {
     'generate-daily-readings': {
-        'task': 'core.tasks.generate_daily_readings',
+        'task': 'numerology.tasks.generate_daily_readings',
         'schedule': crontab(hour='7', minute='0'),  # Run daily at 7:00 AM UTC
     },
     'send-daily-reading-notifications': {
-        'task': 'core.tasks.send_daily_reading_notifications',
+        'task': 'numerology.tasks.send_daily_reading_notifications',
         'schedule': crontab(hour='7', minute='5'),  # Run 5 minutes after readings are generated
     },
     'cleanup-expired-otps': {
-        'task': 'core.tasks.cleanup_expired_otps',
+        'task': 'accounts.tasks.cleanup_expired_otps',
         'schedule': timedelta(hours=1),  # Run hourly
     },
     'cleanup-expired-tokens': {
-        'task': 'core.tasks.cleanup_expired_tokens',
+        'task': 'accounts.tasks.cleanup_expired_tokens',
         'schedule': timedelta(hours=24),  # Run daily
     },
 }
@@ -327,7 +332,23 @@ LOGGING = {
             'handlers': ['console', 'file'],
             'level': 'INFO',
         },
-        'core': {
+        'accounts': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'numerology': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'ai_chat': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'consultations': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'reports': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
         },
