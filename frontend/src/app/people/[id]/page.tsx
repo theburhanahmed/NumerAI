@@ -256,7 +256,7 @@ export default function PersonDetailPage() {
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {profile 
-                        ? "View this person's numerology numbers and interpretations" 
+                        ? "View this person&#39;s numerology numbers and interpretations" 
                         : "Calculate numerology profile to view detailed insights"}
                     </p>
                   </div>
@@ -326,7 +326,7 @@ export default function PersonDetailPage() {
                       No Numerology Profile Yet
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      Calculate this person's numerology profile to unlock detailed insights and generate reports.
+                      Calculate this person&#39;s numerology profile to unlock detailed insights and generate reports.
                     </p>
                     <GlassButton 
                       variant="primary" 
