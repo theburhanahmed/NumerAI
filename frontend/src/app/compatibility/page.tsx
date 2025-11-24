@@ -245,7 +245,7 @@ export default function CompatibilityCheckerPage() {
                         These are the areas where you and your partner naturally connect and support each other.
                       </p>
                       <ul className="space-y-2">
-                        {result.strengths.map((strength: string, index: number) => (
+                        {Array.isArray(result.strengths) && result.strengths.map((strength: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                               <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ export default function CompatibilityCheckerPage() {
                         These are areas where you and your partner may experience friction or need to work on communication.
                       </p>
                       <ul className="space-y-2">
-                        {result.challenges.map((challenge: string, index: number) => (
+                        {Array.isArray(result.challenges) && result.challenges.map((challenge: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                               <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -34,6 +34,9 @@ export default function DailyReadingPage() {
         description: error.response?.data?.error || 'Failed to load today&apos;s reading',
         variant: 'destructive',
       });
+      // Set null on error to prevent undefined issues
+      setTodayReading(null);
+      setSelectedReading(null);
     } finally {
       setLoading(false);
     }
@@ -42,9 +45,16 @@ export default function DailyReadingPage() {
   const fetchReadingHistory = useCallback(async () => {
     try {
       const data = await numerologyAPI.getReadingHistory(1, 7);
-      setReadingHistory(data.results);
+      // Ensure data.results exists and is an array before setting state
+      if (data && Array.isArray(data.results)) {
+        setReadingHistory(data.results);
+      } else {
+        setReadingHistory([]);
+      }
     } catch (error: any) {
       console.error('Failed to load reading history:', error);
+      // Set empty array on error to prevent undefined issues
+      setReadingHistory([]);
     }
   }, []);
 
@@ -59,6 +69,8 @@ export default function DailyReadingPage() {
         description: 'Failed to load reading for selected date',
         variant: 'destructive',
       });
+      // Set null on error to prevent undefined issues
+      setSelectedReading(null);
     }
   }, [toast]);
 
@@ -208,7 +220,7 @@ Affirmation: "${todayReading.affirmation}"`;
       )}
 
       {/* Reading History */}
-      {readingHistory.length > 0 && isToday(selectedDate) && (
+      {Array.isArray(readingHistory) && readingHistory.length > 0 && isToday(selectedDate) && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Recent Readings</h2>
           <p className="text-muted-foreground mb-6 max-w-3xl mx-auto">

@@ -110,7 +110,7 @@ function LifePathContent() {
                     and fulfillment in various areas of your life.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {analysis.strengths.map((strength: string, index: number) => (
+                    {Array.isArray(analysis.strengths) && analysis.strengths.map((strength: string, index: number) => (
                       <div 
                         key={index} 
                         className="px-4 py-2 bg-white/50 dark:bg-gray-800/50 rounded-xl text-center text-sm font-medium text-gray-900 dark:text-white"
@@ -133,7 +133,7 @@ function LifePathContent() {
                     Understanding these challenges can help you navigate them more effectively.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {analysis.challenges.map((challenge: string, index: number) => (
+                    {Array.isArray(analysis.challenges) && analysis.challenges.map((challenge: string, index: number) => (
                       <div 
                         key={index} 
                         className="px-4 py-2 bg-white/50 dark:bg-gray-800/50 rounded-xl text-center text-sm font-medium text-gray-900 dark:text-white"
@@ -159,7 +159,7 @@ function LifePathContent() {
                     Consider these options when making professional decisions or seeking fulfillment in your work.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {analysis.career.map((career: string, index: number) => (
+                    {Array.isArray(analysis.career) && analysis.career.map((career: string, index: number) => (
                       <span 
                         key={index} 
                         className="px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-blue-700 dark:text-blue-300 rounded-full text-sm"

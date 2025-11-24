@@ -253,7 +253,7 @@ export default function NumerologyReportPage() {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Pinnacle Cycles</h2>
                 <GlassCard variant="default" className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {report.pinnacle_cycle.map((cycle: any, index: number) => (
+                    {Array.isArray(report.pinnacle_cycle) && report.pinnacle_cycle.map((cycle: any, index: number) => (
                       <div 
                         key={index} 
                         className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl text-center"
