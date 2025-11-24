@@ -14,6 +14,7 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Only access localStorage in browser environment
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('access_token');
       if (token && config.headers) {
@@ -28,8 +29,6 @@ apiClient.interceptors.request.use(
 );
 
 import { toast } from "@/components/ui/use-toast";
-
-// ...
 
 // Response interceptor to handle token refresh and errors
 apiClient.interceptors.response.use(
@@ -51,11 +50,11 @@ apiClient.interceptors.response.use(
           refresh: refreshToken,
         });
 
-        const { access } = response.data;
-        localStorage.setItem('access_token', access);
+        const { access_token } = response.data;
+        localStorage.setItem('access_token', access_token);
 
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access}`;
+          originalRequest.headers.Authorization = `Bearer ${access_token}`;
         }
 
         return apiClient(originalRequest);

@@ -26,20 +26,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is logged in on mount
     const initAuth = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        const accessToken = localStorage.getItem('access_token');
-
-        if (storedUser && accessToken) {
-          setUser(JSON.parse(storedUser));
-          // Optionally fetch fresh user data
-          await refreshUser();
+        // Only run in browser environment
+        if (typeof window !== 'undefined') {
+          const storedUser = localStorage.getItem('user');
+          const accessToken = localStorage.getItem('access_token');
+  
+          if (storedUser && accessToken) {
+            setUser(JSON.parse(storedUser));
+            // Optionally fetch fresh user data
+            await refreshUser();
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        // Clear invalid auth data
-        localStorage.removeItem('user');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        // Only clear localStorage in browser environment
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
       } finally {
         setLoading(false);
       }
@@ -63,10 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authAPI.verifyOTP(data);
       const { access_token, refresh_token, user } = response.data;
 
-      // Store tokens and user data
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Only store in localStorage if we're in browser environment
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
 
       setUser(user);
       return response.data;
@@ -80,10 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authAPI.login(data);
       const { access_token, refresh_token, user } = response.data;
 
-      // Store tokens and user data
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Only store in localStorage if we're in browser environment
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
 
       setUser(user);
       return response.data;
@@ -94,30 +103,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (): Promise<void> => {
     try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken) {
-        await authAPI.logout(refreshToken);
+      // Only run in browser environment
+      if (typeof window !== 'undefined') {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          await authAPI.logout(refreshToken);
+        }
       }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear local storage
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
+      // Clear local storage only in browser environment
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+      }
       setUser(null);
-      router.push('/login');
+      // Only redirect in browser environment
+      if (typeof window !== 'undefined') {
+        router.push('/login');
+      }
     }
   };
 
   const refreshUser = async (): Promise<void> => {
     try {
+      // Only run in browser environment
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       const response = await userAPI.getProfile();
       const userData = response.data.user;
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('Failed to refresh user:', error);
+      // Don't automatically logout on profile fetch failure
+      // The user might still have valid tokens but the profile endpoint is temporarily unavailable
     }
   };
 
