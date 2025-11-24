@@ -180,55 +180,83 @@ class CompatibilityAnalyzer:
         Returns:
             Compatibility modifier (-20 to +20)
         """
-        modifier = 0
-        
-        # Check for same master numbers
-        user_masters = {k: v for k, v in user_numbers.items() if v in {11, 22, 33}}
-        partner_masters = {k: v for k, v in partner_numbers.items() if v in {11, 22, 33}}
-        
-        for key, user_master in user_masters.items():
-            if key in partner_masters and user_master == partner_masters[key]:
-                modifier += self.COMPATIBILITY_MODIFIERS['same_master_numbers']
-        
-        # Check for complementary elements (based on Life Path primarily)
-        user_life_path = user_numbers.get('life_path_number', 1)
-        partner_life_path = partner_numbers.get('life_path_number', 1)
-        
-        # Reduce master numbers for element calculation
-        if user_life_path > 9:
-            user_element_num = user_life_path - 9 if user_life_path in {11, 22, 33} else user_life_path % 9 or 9
-        else:
-            user_element_num = user_life_path
+        try:
+            modifier = 0
             
-        if partner_life_path > 9:
-            partner_element_num = partner_life_path - 9 if partner_life_path in {11, 22, 33} else partner_life_path % 9 or 9
-        else:
-            partner_element_num = partner_life_path
-        
-        user_element = self.NUMBER_ELEMENTS.get(user_element_num, 'fire')
-        partner_element = self.NUMBER_ELEMENTS.get(partner_element_num, 'fire')
-        
-        # Fire (1,4,7) complements Water (2,5,8) complements Air (3,6,9)
-        if (user_element == 'fire' and partner_element == 'water') or \
-           (user_element == 'water' and partner_element == 'air') or \
-           (user_element == 'air' and partner_element == 'fire'):
-            modifier += self.COMPATIBILITY_MODIFIERS['complementary_elements']
-        
-        # Check for karmic debt
-        user_karmic = user_numbers.get('karmic_debt_number')
-        partner_karmic = partner_numbers.get('karmic_debt_number')
-        
-        if user_karmic or partner_karmic:
-            modifier += self.COMPATIBILITY_MODIFIERS['karmic_debt_present']
+            # Check for same master numbers (only for single integer values)
+            master_numbers = {11, 22, 33}
+            user_masters = {}
+            partner_masters = {}
             
-            # Check if karmic debts are complementary
-            if user_karmic and partner_karmic:
-                # 13 complements 16, 14 complements 19
-                complementary_pairs = {(13, 16), (16, 13), (14, 19), (19, 14)}
-                if (user_karmic, partner_karmic) in complementary_pairs:
-                    modifier += self.COMPATIBILITY_MODIFIERS['karmic_debt_complementary']
-        
-        return modifier
+            # Only check integer values for master numbers
+            for k, v in user_numbers.items():
+                # Ensure we only check hashable types
+                if isinstance(v, int) and v in master_numbers:
+                    user_masters[k] = v
+                    
+            for k, v in partner_numbers.items():
+                # Ensure we only check hashable types
+                if isinstance(v, int) and v in master_numbers:
+                    partner_masters[k] = v
+            
+            for key, user_master in user_masters.items():
+                if key in partner_masters and user_master == partner_masters[key]:
+                    modifier += self.COMPATIBILITY_MODIFIERS['same_master_numbers']
+            
+            # Check for complementary elements (based on Life Path primarily)
+            user_life_path = user_numbers.get('life_path_number', 1)
+            partner_life_path = partner_numbers.get('life_path_number', 1)
+            
+            # Reduce master numbers for element calculation
+            if user_life_path > 9:
+                user_element_num = user_life_path - 9 if user_life_path in {11, 22, 33} else user_life_path % 9 or 9
+            else:
+                user_element_num = user_life_path
+                
+            if partner_life_path > 9:
+                partner_element_num = partner_life_path - 9 if partner_life_path in {11, 22, 33} else partner_life_path % 9 or 9
+            else:
+                partner_element_num = partner_life_path
+            
+            user_element = self.NUMBER_ELEMENTS.get(user_element_num, 'fire')
+            partner_element = self.NUMBER_ELEMENTS.get(partner_element_num, 'fire')
+            
+            # Fire (1,4,7) complements Water (2,5,8) complements Air (3,6,9)
+            if (user_element == 'fire' and partner_element == 'water') or \
+               (user_element == 'water' and partner_element == 'air') or \
+               (user_element == 'air' and partner_element == 'fire'):
+                modifier += self.COMPATIBILITY_MODIFIERS['complementary_elements']
+            
+            # Check for karmic debt
+            # Handle both single values and lists
+            user_karmic = user_numbers.get('karmic_debt_number') or user_numbers.get('karmic_debt_numbers')
+            partner_karmic = partner_numbers.get('karmic_debt_number') or partner_numbers.get('karmic_debt_numbers')
+            
+            # Normalize to lists for consistent handling
+            if user_karmic and not isinstance(user_karmic, list):
+                user_karmic = [user_karmic]
+            if partner_karmic and not isinstance(partner_karmic, list):
+                partner_karmic = [partner_karmic]
+                
+            if user_karmic or partner_karmic:
+                modifier += self.COMPATIBILITY_MODIFIERS['karmic_debt_present']
+                
+                # Check if karmic debts are complementary
+                if user_karmic and partner_karmic:
+                    # 13 complements 16, 14 complements 19
+                    complementary_pairs = {(13, 16), (16, 13), (14, 19), (19, 14)}
+                    # Check all combinations
+                    for user_debt in user_karmic:
+                        for partner_debt in partner_karmic:
+                            if (user_debt, partner_debt) in complementary_pairs:
+                                modifier += self.COMPATIBILITY_MODIFIERS['karmic_debt_complementary']
+                                break  # Only count once
+            
+            return modifier
+        except Exception as e:
+            # Log the error but don't let it break the compatibility calculation
+            print(f"Error in _calculate_advanced_compatibility: {str(e)}")
+            return 0
     
     def calculate_compatibility_score(self, user_numbers: Dict[str, int], 
                                     partner_numbers: Dict[str, int]) -> Tuple[int, List[str], List[str]]:
@@ -242,64 +270,81 @@ class CompatibilityAnalyzer:
         Returns:
             Tuple of (compatibility_score, strengths, challenges)
         """
-        # Mapping from weight keys to numerology number keys
-        factor_mapping = {
-            'life_path': 'life_path_number',
-            'destiny': 'destiny_number',
-            'soul_urge': 'soul_urge_number',
-            'personality': 'personality_number',
-            'attitude': 'attitude_number'
-        }
-        
-        total_score = 0
-        max_possible_score = 0
-        strengths = []
-        challenges = []
-        
-        # Calculate compatibility for each numerology factor
-        for factor, weight in self.weights.items():
-            numerology_key = factor_mapping.get(factor, factor)
-            if numerology_key in user_numbers and numerology_key in partner_numbers:
-                user_num = user_numbers[numerology_key]
-                partner_num = partner_numbers[numerology_key]
-                
-                # Base compatibility score (0-100)
-                factor_score = self._calculate_factor_compatibility(user_num, partner_num)
-                
-                # Apply relationship-specific weight
-                weighted_score = factor_score * weight
-                total_score += weighted_score
-                max_possible_score += 100 * weight
-                
-                # Check for special compatibility rules
-                rule_key = (min(user_num, partner_num), max(user_num, partner_num))
-                if factor in self.COMPATIBILITY_RULES and rule_key in self.COMPATIBILITY_RULES.get(factor, {}):
-                    rule = self.COMPATIBILITY_RULES[factor][rule_key]
-                    strengths.append(rule['strength'])
-        
-        # Apply advanced compatibility modifiers
-        modifier = self._calculate_advanced_compatibility(user_numbers, partner_numbers)
-        
-        # Normalize score to 0-100 range
-        if max_possible_score > 0:
-            normalized_score = int((total_score / max_possible_score) * 100)
-            # Apply modifier with bounds checking
-            normalized_score = max(0, min(100, normalized_score + modifier))
-        else:
-            normalized_score = 50 + modifier  # Default score if no factors calculated
-            normalized_score = max(0, min(100, normalized_score))
-        
-        # Add general strengths and challenges based on score
-        if normalized_score >= 80:
-            strengths.append("High overall compatibility")
-        elif normalized_score >= 60:
-            strengths.append("Moderate compatibility with good potential")
-        elif normalized_score >= 40:
-            challenges.append("Mixed compatibility requiring effort")
-        else:
-            challenges.append("Low compatibility, significant differences")
-        
-        return normalized_score, strengths, challenges
+        try:
+            # Mapping from weight keys to numerology number keys
+            factor_mapping = {
+                'life_path': 'life_path_number',
+                'destiny': 'destiny_number',
+                'soul_urge': 'soul_urge_number',
+                'personality': 'personality_number',
+                'attitude': 'attitude_number'
+            }
+            
+            total_score = 0
+            max_possible_score = 0
+            strengths = []
+            challenges = []
+            
+            # Calculate compatibility for each numerology factor
+            for factor, weight in self.weights.items():
+                numerology_key = factor_mapping.get(factor, factor)
+                if numerology_key in user_numbers and numerology_key in partner_numbers:
+                    user_num = user_numbers[numerology_key]
+                    partner_num = partner_numbers[numerology_key]
+                    
+                    # Skip if either value is not an integer
+                    if not isinstance(user_num, int) or not isinstance(partner_num, int):
+                        continue
+                    
+                    # Base compatibility score (0-100)
+                    factor_score = self._calculate_factor_compatibility(user_num, partner_num)
+                    
+                    # Apply relationship-specific weight
+                    weighted_score = factor_score * weight
+                    total_score += weighted_score
+                    max_possible_score += 100 * weight
+                    
+                    # Check for special compatibility rules
+                    try:
+                        rule_key = (min(user_num, partner_num), max(user_num, partner_num))
+                        if factor in self.COMPATIBILITY_RULES and rule_key in self.COMPATIBILITY_RULES.get(factor, {}):
+                            rule = self.COMPATIBILITY_RULES[factor][rule_key]
+                            strengths.append(rule['strength'])
+                    except Exception:
+                        # Skip rule checking if there's an error
+                        pass
+            
+            # Apply advanced compatibility modifiers
+            try:
+                modifier = self._calculate_advanced_compatibility(user_numbers, partner_numbers)
+            except Exception as e:
+                print(f"Error calculating advanced compatibility: {str(e)}")
+                modifier = 0
+            
+            # Normalize score to 0-100 range
+            if max_possible_score > 0:
+                normalized_score = int((total_score / max_possible_score) * 100)
+                # Apply modifier with bounds checking
+                normalized_score = max(0, min(100, normalized_score + modifier))
+            else:
+                normalized_score = 50 + modifier  # Default score if no factors calculated
+                normalized_score = max(0, min(100, normalized_score))
+            
+            # Add general strengths and challenges based on score
+            if normalized_score >= 80:
+                strengths.append("High overall compatibility")
+            elif normalized_score >= 60:
+                strengths.append("Moderate compatibility with good potential")
+            elif normalized_score >= 40:
+                challenges.append("Mixed compatibility requiring effort")
+            else:
+                challenges.append("Low compatibility, significant differences")
+            
+            return normalized_score, strengths, challenges
+        except Exception as e:
+            print(f"Error in calculate_compatibility_score: {str(e)}")
+            # Return a default score with minimal information
+            return 50, ["Compatibility calculation completed with some limitations"], ["Some compatibility factors could not be calculated"]
     
     def generate_compatibility_advice(self, user_numbers: Dict[str, int], 
                                     partner_numbers: Dict[str, int],
