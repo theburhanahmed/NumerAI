@@ -505,10 +505,17 @@ def check_compatibility(request):
         user_birth_date = None
         if hasattr(user, 'profile') and hasattr(user.profile, 'date_of_birth') and user.profile.date_of_birth:
             user_birth_date = user.profile.date_of_birth
+        # Fallback to user profile's date_of_birth if it exists
+        elif hasattr(user_profile, 'user') and hasattr(user_profile.user, 'profile') and hasattr(user_profile.user.profile, 'date_of_birth') and user_profile.user.profile.date_of_birth:
+            user_birth_date = user_profile.user.profile.date_of_birth
         else:
             return Response({
                 'error': 'User birth date is required. Please update your profile.'
             }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ensure user_birth_date is a date object, not datetime
+        if hasattr(user_birth_date, 'date') and callable(getattr(user_birth_date, 'date', None)):
+            user_birth_date = user_birth_date.date()
         
         # Analyze compatibility
         analyzer = CompatibilityAnalyzer()
@@ -537,6 +544,11 @@ def check_compatibility(request):
     except NumerologyProfile.DoesNotExist:
         return Response({
             'error': 'Please calculate your numerology profile first.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except AttributeError as e:
+        # Handle case where user profile attributes are missing
+        return Response({
+            'error': f'Missing required user profile information: {str(e)}. Please update your profile.'
         }, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({
@@ -1094,4 +1106,8 @@ def get_person_numerology_profile(request, person_id):
     except Person.DoesNotExist:
         return Response({'error': 'Person not found'}, status=status.HTTP_404_NOT_FOUND)
     except PersonNumerologyProfile.DoesNotExist:
-        return Response({'error': 'Numerology profile not found for this person'}, status=status.HTTP_404_NOT_FOUND)
+        # Return a more informative response when profile doesn't exist yet
+        return Response({
+            'error': 'Numerology profile not found for this person',
+            'message': 'Please calculate the numerology profile for this person first'
+        }, status=status.HTTP_404_NOT_FOUND)
