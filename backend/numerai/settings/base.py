@@ -391,6 +391,10 @@ LOGGING = {
             'handlers': ['console', 'file'],
             'level': 'INFO',
         },
+        '': {  # Root logger
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
     },
 }
 

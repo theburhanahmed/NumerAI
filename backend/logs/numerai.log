@@ -31,3 +31,16 @@ INFO 2025-11-24 15:56:32,787 autoreload /Users/burhanahmed/Desktop/NumerAI/backe
 INFO 2025-11-24 15:56:34,208 autoreload Watching for file changes with StatReloader
 INFO 2025-11-24 15:58:11,678 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerology/views.py changed, reloading.
 INFO 2025-11-24 15:58:13,293 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:23:20,430 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerology/views.py changed, reloading.
+INFO 2025-11-24 16:23:22,150 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:23:37,686 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerology/compatibility.py changed, reloading.
+INFO 2025-11-24 16:23:39,485 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:24:33,324 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerology/views.py changed, reloading.
+INFO 2025-11-24 16:24:34,990 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:24:43,085 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerology/views.py changed, reloading.
+INFO 2025-11-24 16:24:44,041 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:25:08,779 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerology/urls.py changed, reloading.
+INFO 2025-11-24 16:25:09,815 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:25:24,994 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/numerai/settings/base.py changed, reloading.
+INFO 2025-11-24 16:25:25,940 autoreload Watching for file changes with StatReloader
+INFO 2025-11-24 16:25:25,940 autoreload Watching for file changes with StatReloader

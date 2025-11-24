@@ -7,6 +7,9 @@ from . import views
 app_name = 'numerology'
 
 urlpatterns = [
+    # Health check
+    path('health/', views.health_check, name='health-check'),
+    
     # Numerology endpoints
     path('numerology/calculate/', views.calculate_numerology_profile, name='calculate-numerology'),
     path('numerology/profile/', views.get_numerology_profile, name='numerology-profile'),

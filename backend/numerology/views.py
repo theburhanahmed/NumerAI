@@ -551,8 +551,15 @@ def check_compatibility(request):
             'error': f'Missing required user profile information: {str(e)}. Please update your profile.'
         }, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
+        # Log the full traceback for debugging
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Compatibility check error: {str(e)}")
+        print(f"Traceback: {error_details}")
+        
         return Response({
-            'error': f'Compatibility check failed: {str(e)}'
+            'error': f'Compatibility check failed: {str(e)}',
+            'details': error_details
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -1111,3 +1118,14 @@ def get_person_numerology_profile(request, person_id):
             'error': 'Numerology profile not found for this person',
             'message': 'Please calculate the numerology profile for this person first'
         }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Health check endpoint."""
+    return Response({
+        'status': 'healthy',
+        'timestamp': timezone.now().isoformat()
+    }, status=status.HTTP_200_OK)
+

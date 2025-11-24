@@ -382,23 +382,31 @@ class CompatibilityAnalyzer:
         Returns:
             Dictionary with complete compatibility analysis
         """
-        calculator = NumerologyCalculator()
-        
-        # Calculate numerology numbers for both people
-        user_numbers = calculator.calculate_all(user_full_name, user_birth_date)
-        partner_numbers = calculator.calculate_all(partner_full_name, partner_birth_date)
-        
-        # Calculate compatibility score
-        score, strengths, challenges = self.calculate_compatibility_score(user_numbers, partner_numbers)
-        
-        # Generate advice
-        advice = self.generate_compatibility_advice(user_numbers, partner_numbers, score, strengths, challenges)
-        
-        return {
-            'compatibility_score': score,
-            'strengths': strengths,
-            'challenges': challenges,
-            'advice': advice,
-            'user_numbers': user_numbers,
-            'partner_numbers': partner_numbers
-        }
+        try:
+            calculator = NumerologyCalculator()
+            
+            # Calculate numerology numbers for both people
+            user_numbers = calculator.calculate_all(user_full_name, user_birth_date)
+            partner_numbers = calculator.calculate_all(partner_full_name, partner_birth_date)
+            
+            # Calculate compatibility score
+            score, strengths, challenges = self.calculate_compatibility_score(user_numbers, partner_numbers)
+            
+            # Generate advice
+            advice = self.generate_compatibility_advice(user_numbers, partner_numbers, score, strengths, challenges)
+            
+            return {
+                'compatibility_score': score,
+                'strengths': strengths,
+                'challenges': challenges,
+                'advice': advice,
+                'user_numbers': user_numbers,
+                'partner_numbers': partner_numbers
+            }
+        except Exception as e:
+            # Log the error for debugging
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"Compatibility analysis error: {str(e)}")
+            print(f"Traceback: {error_details}")
+            raise
