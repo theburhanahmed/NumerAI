@@ -519,9 +519,18 @@ export const peopleAPI = {
   /**
    * Get numerology profile for a specific person.
    */
-  async getPersonNumerologyProfile(personId: string): Promise<PersonNumerologyProfile> {
-    const response = await apiClient.get(`/people/${personId}/profile/`);
-    return response.data;
+  async getPersonNumerologyProfile(personId: string): Promise<PersonNumerologyProfile | null> {
+    try {
+      const response = await apiClient.get(`/people/${personId}/profile/`);
+      return response.data;
+    } catch (error: any) {
+      // Handle 404 errors gracefully - it's okay if profile doesn't exist yet
+      if (error.response?.status === 404) {
+        return null;
+      }
+      // Re-throw other errors
+      throw error;
+    }
   }
 };
 

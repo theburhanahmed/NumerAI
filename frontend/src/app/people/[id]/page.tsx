@@ -31,7 +31,9 @@ export default function PersonDetailPage() {
   const fetchNumerologyProfile = useCallback(async () => {
     try {
       const data = await peopleAPI.getPersonNumerologyProfile(params.id as string);
-      setProfile(data);
+      if (data) {
+        setProfile(data);
+      }
     } catch (err) {
       console.error('Failed to fetch numerology profile:', err);
       // It's okay if profile doesn't exist yet
@@ -66,9 +68,9 @@ export default function PersonDetailPage() {
     try {
       const data = await peopleAPI.calculatePersonNumerology(params.id as string);
       setProfile(data.profile);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to calculate numerology:', err);
-      setError('Failed to calculate numerology');
+      setError(err.response?.data?.error || 'Failed to calculate numerology');
     } finally {
       setCalculating(false);
     }
@@ -76,6 +78,13 @@ export default function PersonDetailPage() {
 
   const handleGenerateReport = () => {
     if (!person) return;
+    
+    // Check if profile exists before generating report
+    if (!profile) {
+      setError('Please calculate the numerology profile first before generating a report.');
+      return;
+    }
+    
     router.push(`/reports/generate?person=${person.id}`);
   };
 
@@ -174,6 +183,7 @@ export default function PersonDetailPage() {
                 variant="primary" 
                 onClick={handleGenerateReport}
                 icon={<FileText className="w-5 h-5" />}
+                disabled={!profile}
               >
                 Generate Report
               </GlassButton>
@@ -239,15 +249,19 @@ export default function PersonDetailPage() {
             {/* Numerology Profile */}
             <div className="lg:col-span-2">
               <GlassCard variant="default" className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Numerology Profile
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Core numerology numbers calculated from this person&apos;s birth date
-                  </p>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Numerology Profile
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {profile 
+                        ? "View this person's numerology numbers and interpretations" 
+                        : "Calculate numerology profile to view detailed insights"}
+                    </p>
+                  </div>
                   
-                  {!profile ? (
+                  {!profile && (
                     <GlassButton 
                       variant="primary" 
                       onClick={handleCalculateNumerology}
@@ -256,26 +270,10 @@ export default function PersonDetailPage() {
                     >
                       {calculating ? 'Calculating...' : 'Calculate Profile'}
                     </GlassButton>
-                  ) : (
-                    <GlassButton 
-                      variant="secondary" 
-                      onClick={handleCalculateNumerology}
-                      disabled={calculating}
-                      icon={<Calculator className="w-5 h-5" />}
-                    >
-                      Recalculate
-                    </GlassButton>
                   )}
                 </div>
                 
-                {calculating ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Calculating numerology profile...
-                    </p>
-                  </div>
-                ) : profile ? (
+                {profile ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
                       <p className="text-sm text-gray-500 dark:text-gray-400">Life Path</p>
@@ -321,19 +319,22 @@ export default function PersonDetailPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      No Numerology Profile
+                    <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center mb-4">
+                      <Calculator className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      No Numerology Profile Yet
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      Calculate numerology profile to see insights about {person.name}
+                      Calculate this person's numerology profile to unlock detailed insights and generate reports.
                     </p>
                     <GlassButton 
                       variant="primary" 
                       onClick={handleCalculateNumerology}
+                      disabled={calculating}
                       icon={<Calculator className="w-5 h-5" />}
                     >
-                      Calculate Profile
+                      {calculating ? 'Calculating...' : 'Calculate Profile'}
                     </GlassButton>
                   </div>
                 )}
