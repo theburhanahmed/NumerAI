@@ -13,8 +13,13 @@ python manage.py showmigrations
 echo "Handling migration inconsistencies..."
 # Handle the specific migration dependency issue between accounts and account apps
 # This is a known issue when using django-allauth with custom user models
-# We need to fake the accounts initial migration to resolve the dependency order
-python manage.py migrate accounts 0001_initial --fake --no-input || true
+# Check if accounts.0001_initial is not applied but account.0001_initial is applied
+if python manage.py showmigrations accounts | grep -q "^\[ \] 0001_initial"; then
+    if python manage.py showmigrations account | grep -q "^\[X\] 0001_initial"; then
+        echo "Detected inconsistent migration history. Faking accounts.0001_initial migration..."
+        python manage.py migrate accounts 0001_initial --fake --no-input || true
+    fi
+fi
 
 echo "Creating migrations for all apps..."
 python manage.py makemigrations --no-input
