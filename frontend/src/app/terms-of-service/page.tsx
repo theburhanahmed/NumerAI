@@ -80,7 +80,7 @@ export default function TermsOfServicePage() {
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">7. Disclaimer</h2>
                 <p>
-                  The information on this service is provided on an "as is" basis. To the fullest extent permitted by law,
+                  The information on this service is provided on an {'"as is"'} basis. To the fullest extent permitted by law,
                   NumerAI excludes all representations, warranties, conditions, and terms.
                 </p>
               </section>

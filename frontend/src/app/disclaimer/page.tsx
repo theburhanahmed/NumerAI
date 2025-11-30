@@ -25,7 +25,7 @@ export default function DisclaimerPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">General Information</h2>
                 <p>
-                  The information provided by NumerAI ("we," "us," or "our") on our website and service is for general
+                  The information provided by NumerAI ({'"we,"'} {'"us,"'} or {'"our"'}) on our website and service is for general
                   informational and entertainment purposes only. All information on the service is provided in good faith,
                   however we make no representation or warranty of any kind, express or implied, regarding the accuracy,
                   adequacy, validity, reliability, availability, or completeness of any information on the service.
