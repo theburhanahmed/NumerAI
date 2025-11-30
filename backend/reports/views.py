@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from django.http import HttpResponse
+from django.db.models import Q
 from datetime import timedelta, date, datetime
 from .models import ReportTemplate, GeneratedReport
 from .serializers import (
@@ -112,79 +113,109 @@ def generate_report(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bulk_generate_reports(request):
-    """Generate multiple reports at once."""
+    """Generate multiple reports at once.
+    
+    Accepts either:
+    - template_id (single) + person_ids (array) - generates one template for multiple people
+    - template_ids (array) + person_ids (array) - generates multiple templates for multiple people
+    """
     user = request.user
+    
+    # Support both single template_id and multiple template_ids
     template_id = request.data.get('template_id')
+    template_ids = request.data.get('template_ids', [])
     person_ids = request.data.get('person_ids', [])
     
-    if not template_id or not person_ids:
+    # Normalize template_ids to a list
+    if template_id:
+        template_ids = [template_id]
+    elif not template_ids:
         return Response({
-            'error': 'Template ID and at least one Person ID are required'
+            'error': 'Either template_id or template_ids is required'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    try:
-        # Get template
-        template = ReportTemplate.objects.get(id=template_id, is_active=True)
-    except ReportTemplate.DoesNotExist:
+    if not person_ids:
         return Response({
-            'error': 'Template not found or not available'
+            'error': 'At least one Person ID is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate all templates exist
+    try:
+        templates = ReportTemplate.objects.filter(
+            id__in=template_ids, 
+            is_active=True
+        )
+        found_template_ids = set(str(t.id) for t in templates)
+        requested_template_ids = set(str(tid) for tid in template_ids)
+        
+        if found_template_ids != requested_template_ids:
+            missing = requested_template_ids - found_template_ids
+            return Response({
+                'error': f'Template(s) not found or not available: {", ".join(missing)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({
+            'error': f'Error validating templates: {str(e)}'
         }, status=status.HTTP_400_BAD_REQUEST)
     
     generated_reports = []
     errors = []
     
-    for person_id in person_ids:
-        try:
-            # Get person
-            person = Person.objects.get(id=person_id, user=user, is_active=True)
-        except Person.DoesNotExist:
-            errors.append(f"Person {person_id} not found")
-            continue
-        
-        try:
-            # Get person's numerology profile
-            numerology_profile = PersonNumerologyProfile.objects.get(person=person)
-        except PersonNumerologyProfile.DoesNotExist:
-            errors.append(f"Numerology profile not found for person {person.name}")
-            continue
-        
-        try:
-            # Check if report already exists
-            existing_report = GeneratedReport.objects.filter(
-                user=user,
-                person=person,
-                template=template,
-                expires_at__gt=timezone.now()
-            ).first()
-            
-            if existing_report:
-                generated_reports.append(existing_report)
+    # Generate reports for each template-person combination
+    for template in templates:
+        for person_id in person_ids:
+            try:
+                # Get person
+                person = Person.objects.get(id=person_id, user=user, is_active=True)
+            except Person.DoesNotExist:
+                errors.append(f"Person {person_id} not found")
                 continue
             
-            # Generate report content
-            from .report_generator import generate_report_content
-            content = generate_report_content(person, numerology_profile, template)
+            try:
+                # Get person's numerology profile
+                numerology_profile = PersonNumerologyProfile.objects.get(person=person)
+            except PersonNumerologyProfile.DoesNotExist:
+                errors.append(f"Numerology profile not found for person {person.name}")
+                continue
             
-            # Create generated report
-            report = GeneratedReport.objects.create(
-                user=user,
-                person=person,
-                template=template,
-                title=f"{template.name} for {person.name}",
-                content=content,
-                expires_at=timezone.now() + timedelta(days=30)
-            )
-            
-            generated_reports.append(report)
-            
-        except Exception as e:
-            errors.append(f"Failed to generate report for {person.name}: {str(e)}")
+            try:
+                # Check if report already exists (non-expired)
+                existing_report = GeneratedReport.objects.filter(
+                    user=user,
+                    person=person,
+                    template=template
+                ).filter(
+                    Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
+                ).order_by('-generated_at').first()
+                
+                if existing_report:
+                    generated_reports.append(existing_report)
+                    continue
+                
+                # Generate report content
+                from .report_generator import generate_report_content
+                content = generate_report_content(person, numerology_profile, template)
+                
+                # Create generated report
+                report = GeneratedReport.objects.create(
+                    user=user,
+                    person=person,
+                    template=template,
+                    title=f"{template.name} for {person.name}",
+                    content=content,
+                    expires_at=timezone.now() + timedelta(days=30)
+                )
+                
+                generated_reports.append(report)
+                
+            except Exception as e:
+                errors.append(f"Failed to generate report for {person.name} with template {template.name}: {str(e)}")
     
-    # Serialize results
+    # Serialize results - use 'reports' to match frontend expectations
     serializer = GeneratedReportSerializer(generated_reports, many=True)
     
     response_data = {
-        'generated_reports': serializer.data,
+        'reports': serializer.data,  # Changed from 'generated_reports' to 'reports'
         'count': len(generated_reports),
         'errors': errors
     }

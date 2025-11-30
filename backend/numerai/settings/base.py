@@ -165,6 +165,9 @@ CORS_ALLOWED_ORIGINS = config(
     cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
 )
 
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # Set to False for security
+
 # Add CORS_ALLOW_HEADERS and CORS_ALLOW_METHODS for better control
 CORS_ALLOW_HEADERS = [
     'accept',

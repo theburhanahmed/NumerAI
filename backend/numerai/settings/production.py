@@ -19,7 +19,10 @@ DATABASES = {
 }
 
 # CORS Settings for production
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+# Default to frontend URL if not specified in environment
+default_frontend_url = 'https://numerai-frontend.onrender.com'
+cors_origins = config('CORS_ALLOWED_ORIGINS', default=default_frontend_url, cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+CORS_ALLOWED_ORIGINS = cors_origins if cors_origins else [default_frontend_url]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False  # Explicitly set to False for security
 
