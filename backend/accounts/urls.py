@@ -21,7 +21,17 @@ urlpatterns = [
     
     # User profile endpoints
     path('users/profile/', views.UserProfileView.as_view(), name='user-profile'),
+    path('users/delete-account/', views.delete_account, name='delete-account'),
+    path('users/export-data/', views.export_data, name='export-data'),
+    
+    # Social authentication endpoints
+    path('auth/social/google/', views.google_oauth, name='google-oauth'),
     
     # Notification endpoints
     path('notifications/devices/', views.register_device_token, name='register-device-token'),
+    path('notifications/', views.list_notifications, name='list-notifications'),
+    path('notifications/unread-count/', views.unread_notifications_count, name='unread-notifications-count'),
+    path('notifications/<uuid:notification_id>/read/', views.mark_notification_read, name='mark-notification-read'),
+    path('notifications/read-all/', views.mark_all_notifications_read, name='mark-all-notifications-read'),
+    path('notifications/<uuid:notification_id>/', views.delete_notification, name='delete-notification'),
 ]

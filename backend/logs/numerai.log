@@ -92,3 +92,59 @@ INFO 2025-11-25 22:21:11,350 autoreload Watching for file changes with StatReloa
 INFO 2025-11-25 22:21:11,350 autoreload Watching for file changes with StatReloader
 INFO 2025-11-25 22:21:11,396 autoreload Watching for file changes with StatReloader
 INFO 2025-11-25 22:21:11,396 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:09,420 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/models.py changed, reloading.
+INFO 2025-11-26 05:28:09,420 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/models.py changed, reloading.
+INFO 2025-11-26 05:28:09,929 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/models.py changed, reloading.
+INFO 2025-11-26 05:28:09,929 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/models.py changed, reloading.
+INFO 2025-11-26 05:28:11,737 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:11,737 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:11,877 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:11,877 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:18,822 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:18,822 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:19,072 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:19,072 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:19,826 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:19,826 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:20,098 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:20,098 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:33,048 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:33,048 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:33,277 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:33,277 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 05:28:34,465 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:34,465 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:34,593 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:34,593 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:45,907 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:28:45,907 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:28:46,012 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:28:46,012 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:28:47,205 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:47,205 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:47,243 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:28:47,243 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:10,273 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:29:10,273 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:29:11,390 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:29:11,390 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/views.py changed, reloading.
+INFO 2025-11-26 05:29:12,747 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:12,747 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:13,462 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:13,462 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:27,137 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/urls.py changed, reloading.
+INFO 2025-11-26 05:29:27,137 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/urls.py changed, reloading.
+INFO 2025-11-26 05:29:27,223 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/urls.py changed, reloading.
+INFO 2025-11-26 05:29:27,223 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/urls.py changed, reloading.
+INFO 2025-11-26 05:29:29,108 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:29,108 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:29,129 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 05:29:29,129 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 10:40:26,728 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 10:40:26,728 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/serializers.py changed, reloading.
+INFO 2025-11-26 10:40:26,773 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/urls.py changed, reloading.
+INFO 2025-11-26 10:40:26,773 autoreload /Users/burhanahmed/Desktop/NumerAI/backend/accounts/urls.py changed, reloading.
+INFO 2025-11-26 10:40:31,536 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 10:40:31,536 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 10:40:31,725 autoreload Watching for file changes with StatReloader
+INFO 2025-11-26 10:40:31,725 autoreload Watching for file changes with StatReloader

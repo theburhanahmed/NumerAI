@@ -280,3 +280,57 @@ class PasswordResetToken(models.Model):
     def is_valid(self):
         """Check if token is still valid."""
         return not self.is_used and self.expires_at > timezone.now()
+
+
+class Notification(models.Model):
+    """In-app notifications for users."""
+    
+    NOTIFICATION_TYPES = [
+        ('info', 'Information'),
+        ('warning', 'Warning'),
+        ('success', 'Success'),
+        ('error', 'Error'),
+        ('report_ready', 'Report Ready'),
+        ('daily_reading', 'Daily Reading'),
+        ('compatibility_match', 'Compatibility Match'),
+        ('consultation_reminder', 'Consultation Reminder'),
+        ('new_message', 'New Message'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES, default='info')
+    is_read = models.BooleanField(default=False)
+    is_sent = models.BooleanField(default=False)  # Whether push notification was sent
+    data = models.JSONField(default=dict, blank=True)  # Additional data for deep linking
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'notifications'
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['notification_type']),
+        ]
+    
+    def __str__(self):
+        return f"{self.title} - {self.user}"
+    
+    def mark_as_read(self):
+        """Mark notification as read."""
+        self.is_read = True
+        self.read_at = timezone.now()
+        self.save()
+    
+    def mark_as_unread(self):
+        """Mark notification as unread."""
+        self.is_read = False
+        self.read_at = None
+        self.save()
+

@@ -30,7 +30,9 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@stripe/stripe-js": "^4.8.0",
+    "@stripe/react-stripe-js": "^2.11.0"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",

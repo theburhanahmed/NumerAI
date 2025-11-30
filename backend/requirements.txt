@@ -59,3 +59,11 @@ wheel==0.44.0
 python-dateutil==2.8.2
 pytz==2024.1
 requests==2.31.0
+
+# Payments
+stripe==10.1.0
+
+# Testing
+pytest==8.0.0
+pytest-django==4.8.0
+pytest-cov==4.1.0

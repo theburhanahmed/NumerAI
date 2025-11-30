@@ -147,11 +147,13 @@ export const authAPI = {
 
   confirmPasswordReset: (data: { email: string; otp: string; new_password: string }) =>
     apiClient.post('/auth/password-reset/confirm/', data),
+
+  googleOAuth: (accessToken: string) =>
+    apiClient.post('/auth/social/google/', { access_token: accessToken }),
 };
 
 export const userAPI = {
   getProfile: () => apiClient.get('/users/profile/'),
-
   updateProfile: (data: {
     full_name?: string;
     date_of_birth?: string;
@@ -162,10 +164,41 @@ export const userAPI = {
   }) => apiClient.patch('/users/profile/', data),
 };
 
+export const paymentsAPI = {
+  createSubscription: (data: { plan: string; payment_method_id?: string }) =>
+    apiClient.post('/payments/create-subscription/', data),
+  updateSubscription: (data: { plan?: string; cancel_at_period_end?: boolean }) =>
+    apiClient.post('/payments/update-subscription/', data),
+  cancelSubscription: () =>
+    apiClient.post('/payments/cancel-subscription/'),
+  getSubscriptionStatus: () => apiClient.get('/payments/subscription-status/'),
+  getBillingHistory: () => apiClient.get('/payments/billing-history/'),
+};
+
+export const accountAPI = {
+  deleteAccount: () => apiClient.post('/users/delete-account/'),
+  exportData: () => apiClient.post('/users/export-data/', {}, { responseType: 'blob' }),
+};
+
 export const notificationAPI = {
   registerDevice: (data: {
     fcm_token: string;
     device_type: 'ios' | 'android' | 'web';
     device_name?: string;
   }) => apiClient.post('/notifications/devices/', data),
+  list: (params?: { page?: number }) => 
+    apiClient.get('/notifications/', { params }),
+  markRead: (notificationId: string) =>
+    apiClient.post(`/notifications/${notificationId}/read/`),
+  markAllRead: () =>
+    apiClient.post('/notifications/read-all/'),
+  delete: (notificationId: string) =>
+    apiClient.delete(`/notifications/${notificationId}/`),
+  getUnreadCount: () =>
+    apiClient.get('/notifications/unread-count/'),
+};
+
+export const accountAPI = {
+  deleteAccount: () => apiClient.post('/users/delete-account/'),
+  exportData: () => apiClient.post('/users/export-data/', {}, { responseType: 'blob' }),
 };

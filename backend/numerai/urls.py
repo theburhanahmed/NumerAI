@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/v1/', include('ai_chat.urls')),
     path('api/v1/', include('consultations.urls')),
     path('api/v1/', include('reports.urls')),
+    path('api/v1/', include('payments.urls')),
     
     # Django Allauth
     path('accounts/', include('allauth.urls')),

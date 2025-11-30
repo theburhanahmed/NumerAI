@@ -17,7 +17,9 @@ import {
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { useAuth } from '@/contexts/auth-context';
-import { userAPI } from '@/lib/api-client';
+import { userAPI, accountAPI } from '@/lib/api-client';
+import { useToast } from '@/components/ui/use-toast';
+import { Trash2, Download, AlertTriangle } from 'lucide-react';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -33,6 +35,10 @@ export default function ProfilePage() {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -55,11 +61,68 @@ export default function ProfilePage() {
       await userAPI.updateProfile(formData);
       await refreshUser();
       setIsEditing(false);
+      toast({
+        title: 'Success',
+        description: 'Profile updated successfully.',
+      });
     } catch (err) {
       setError('Failed to update profile. Please try again.');
       console.error('Profile update error:', err);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const response = await accountAPI.exportData();
+      const blob = new Blob([response.data], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `numerai_data_export_${new Date().toISOString()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast({
+        title: 'Success',
+        description: 'Your data has been exported successfully.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export data. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await accountAPI.deleteAccount();
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account has been deleted successfully.',
+      });
+      // Logout and redirect
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      router.push('/login');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete account. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -356,7 +419,7 @@ export default function ProfilePage() {
                   View your account verification status and subscription details
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50">
                     <div className={`w-3 h-3 rounded-full ${user.is_verified ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <div>
@@ -377,7 +440,113 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Data Export & Account Deletion */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Account Management
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                            Export Your Data
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Download all your account data in JSON format (GDPR compliant)
+                          </p>
+                        </div>
+                        <GlassButton
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleExportData}
+                          disabled={exporting}
+                          icon={<Download className="w-4 h-4" />}
+                        >
+                          {exporting ? 'Exporting...' : 'Export Data'}
+                        </GlassButton>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            Delete Account
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Permanently delete your account and all associated data. This action cannot be undone.
+                          </p>
+                        </div>
+                        <GlassButton
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setShowDeleteDialog(true)}
+                          disabled={deleting}
+                          className="bg-red-500 hover:bg-red-600 text-white"
+                          icon={<Trash2 className="w-4 h-4" />}
+                        >
+                          Delete Account
+                        </GlassButton>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </GlassCard>
+
+              {/* Delete Confirmation Dialog */}
+              {showDeleteDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                  <GlassCard variant="elevated" className="p-6 max-w-md w-full">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                          Delete Account
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          This action cannot be undone
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                      Are you sure you want to delete your account? This will permanently remove all your data, including:
+                    </p>
+                    
+                    <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mb-6 space-y-1">
+                      <li>Your profile and personal information</li>
+                      <li>All numerology readings and reports</li>
+                      <li>Your subscription and payment history</li>
+                      <li>All saved data and preferences</li>
+                    </ul>
+                    
+                    <div className="flex gap-3">
+                      <GlassButton
+                        variant="secondary"
+                        onClick={() => setShowDeleteDialog(false)}
+                        disabled={deleting}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </GlassButton>
+                      <GlassButton
+                        variant="primary"
+                        onClick={handleDeleteAccount}
+                        disabled={deleting}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        {deleting ? 'Deleting...' : 'Yes, Delete Account'}
+                      </GlassButton>
+                    </div>
+                  </GlassCard>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

@@ -1,40 +1,78 @@
-# Implementation Plan - Refinement & Optimization
+# Implementation Plan - Push Notifications System
 
 ## Goal Description
-Improve the robustness and user experience of the NumerAI platform by enhancing test coverage for core numerology logic and implementing better error handling in the frontend.
+Implement a comprehensive push notifications system to enhance user engagement and retention by providing timely updates on reports, daily readings, consultations, and other important events.
 
 ## User Review Required
 > [!IMPORTANT]
-> This plan focuses on technical debt and polish. No new features are being added, but existing logic will be more rigorously tested.
+> This plan focuses on implementing the push notifications system. The implementation has been completed with both in-app notifications and push notifications through Firebase Cloud Messaging.
 
 ## Proposed Changes
 
-### Backend - Test Coverage
-#### [MODIFY] [test_numerology.py](file:///Users/burhanahmed/Desktop/NumerAI/backend/core/tests/test_numerology.py)
-- Add tests for 'Y' as a vowel vs. consonant (edge case).
-- Add tests for specific master number reduction scenarios (e.g., 11, 22, 33 in intermediate steps).
-- Add tests for `karmic_debt_number` calculation (currently missing in `test_numerology.py`).
-- Add tests for `hidden_passion_number` and `subconscious_self_number`.
-- Add tests for `calculate_all` with edge case names.
+### Backend - Notification System
+#### [NEW] Notification Model (`accounts/models.py`)
+- Add `Notification` model with fields for title, message, type, read status, and metadata
+- Add proper indexing for performance optimization
 
-### Frontend - Error Handling
-#### [NEW] [ErrorBoundary.tsx](file:///Users/burhanahmed/Desktop/NumerAI/frontend/src/components/ErrorBoundary.tsx)
-- Create a React Error Boundary component to catch runtime errors in the component tree.
-- Display a user-friendly fallback UI instead of crashing the app.
+#### [NEW] Notification Serializer (`accounts/serializers.py`)
+- Create `NotificationSerializer` for API serialization
+- Include computed fields for better UX
 
-#### [MODIFY] [layout.tsx](file:///Users/burhanahmed/Desktop/NumerAI/frontend/src/app/layout.tsx)
-- Wrap the main application content with the new `ErrorBoundary`.
+#### [NEW] Notification Views (`accounts/views.py`)
+- Implement REST API endpoints for notification management:
+  - List notifications (with pagination)
+  - Mark notification(s) as read
+  - Delete notifications
+  - Get unread count
 
-#### [MODIFY] [numerology-api.ts](file:///Users/burhanahmed/Desktop/NumerAI/frontend/src/lib/numerology-api.ts)
-- Add better error handling in API calls (e.g., try-catch blocks with user-friendly error messages).
-- Implement a toast notification for API errors (using `sonner` or existing toast lib).
+#### [MODIFY] Notification URLs (`accounts/urls.py`)
+- Add URL patterns for all notification endpoints
+
+#### [MODIFY] Notification Utilities (`utils/notifications.py`)
+- Enhance existing notification utilities with new functions:
+  - `create_notification()` for unified notification creation
+  - Specific functions for common notification types
+  - Integration with existing FCM implementation
+
+### Frontend - Notification UI (Planned)
+#### [NEW] Notification Center Component
+- Create centralized notification display
+- Implement real-time updates
+- Add notification actions (mark read, delete)
+
+#### [MODIFY] Device Registration
+- Enhance device token registration flow
+- Improve permission handling
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `python manage.py test core.tests.test_numerology` to verify new backend tests.
-- Run frontend build `npm run build` to ensure no type errors.
+- Run backend tests for notification model and views ✅
+- Test notification utility functions ✅
+- Verify API endpoint functionality ✅
 
 ### Manual Verification
-- Trigger a backend error (e.g., by temporarily breaking an endpoint) and verify the frontend displays a toast/error message gracefully.
-- Verify that numerology calculations remain accurate with the new tests.
+- Test notification creation and delivery ✅
+- Verify push notifications through FCM (when FCM is properly configured)
+- Test notification management in UI (when implemented)
+- Confirm device token registration works correctly ✅
+
+## Progress Tracking
+
+### Completed ✅
+- Notification model implementation
+- Notification serializer creation
+- Notification views implementation
+- Notification URLs addition
+- Notification utility enhancement
+- Database migration generation and application
+- Backend testing
+- Unit tests creation and validation
+
+### In Progress 🔄
+- Frontend component planning
+
+### Pending ⏳
+- Frontend implementation
+- End-to-end testing with FCM
+- Documentation updates

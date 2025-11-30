@@ -5,7 +5,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken
+from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken, Notification
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -211,3 +211,23 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeviceToken
         fields = ['fcm_token', 'device_type', 'device_name']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Serializer for user notifications."""
+    
+    time_since = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Notification
+        fields = [
+            'id', 'title', 'message', 'notification_type', 
+            'is_read', 'data', 'created_at', 'time_since'
+        ]
+        read_only_fields = ['id', 'created_at']
+    
+    def get_time_since(self, obj):
+        """Get human-readable time since notification was created."""
+        from django.utils.timesince import timesince
+        return timesince(obj.created_at)
+

@@ -5,16 +5,17 @@ from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.tokens import RefreshToken as JWTRefreshToken
 from django.utils import timezone
 from datetime import timedelta
-from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken
+from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken, Notification
 from .serializers import (
     UserRegistrationSerializer, OTPVerificationSerializer, ResendOTPSerializer,
     LoginSerializer, LogoutSerializer, RefreshTokenSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
     PasswordResetTokenRequestSerializer, PasswordResetTokenConfirmSerializer,
-    UserProfileSerializer, DeviceTokenSerializer
+    UserProfileSerializer, DeviceTokenSerializer, NotificationSerializer
 )
 from .utils import generate_otp, send_otp_email, generate_secure_token, send_password_reset_email
 import os
@@ -444,3 +445,318 @@ def register_device_token(request):
         }, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_notifications(request):
+    """Get user's notifications."""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Pagination
+    paginator = PageNumberPagination()
+    paginator.page_size = 20
+    result_page = paginator.paginate_queryset(notifications, request)
+    
+    serializer = NotificationSerializer(result_page, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read."""
+    try:
+        notification = Notification.objects.get(
+            id=notification_id,
+            user=request.user
+        )
+        notification.mark_as_read()
+        return Response({'message': 'Notification marked as read'})
+    except Notification.DoesNotExist:
+        return Response(
+            {'error': 'Notification not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_all_notifications_read(request):
+    """Mark all notifications as read."""
+    Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).update(
+        is_read=True,
+        read_at=timezone.now()
+    )
+    return Response({'message': 'All notifications marked as read'})
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_notification(request, notification_id):
+    """Delete a notification."""
+    try:
+        notification = Notification.objects.get(
+            id=notification_id,
+            user=request.user
+        )
+        notification.delete()
+        return Response({'message': 'Notification deleted'})
+    except Notification.DoesNotExist:
+        return Response(
+            {'error': 'Notification not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_notifications_count(request):
+    """Get count of unread notifications."""
+    count = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+    return Response({'count': count})
+
+
+# Social Authentication Views
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_oauth(request):
+    """
+    Handle Google OAuth callback and create/login user.
+    
+    POST /api/v1/auth/social/google/
+    Body: {
+        "access_token": "google_access_token" OR "code": "authorization_code"
+    }
+    """
+    import requests
+    from django.conf import settings
+    
+    access_token = request.data.get('access_token')
+    code = request.data.get('code')
+    
+    # If code is provided, exchange it for access token
+    if code and not access_token:
+        try:
+            client_id = getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', '') or settings.SOCIALACCOUNT_PROVIDERS.get('google', {}).get('APP', {}).get('client_id', '')
+            client_secret = getattr(settings, 'GOOGLE_OAUTH_CLIENT_SECRET', '') or settings.SOCIALACCOUNT_PROVIDERS.get('google', {}).get('APP', {}).get('secret', '')
+            redirect_uri = request.data.get('redirect_uri', f"{settings.FRONTEND_URL}/auth/google/callback")
+            
+            token_response = requests.post(
+                'https://oauth2.googleapis.com/token',
+                data={
+                    'code': code,
+                    'client_id': client_id,
+                    'client_secret': client_secret,
+                    'redirect_uri': redirect_uri,
+                    'grant_type': 'authorization_code',
+                }
+            )
+            
+            if token_response.status_code != 200:
+                return Response(
+                    {'error': 'Failed to exchange authorization code'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            token_data = token_response.json()
+            access_token = token_data.get('access_token')
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error exchanging Google OAuth code: {str(e)}")
+            return Response(
+                {'error': 'Failed to exchange authorization code'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    if not access_token:
+        return Response(
+            {'error': 'access_token or code is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Verify token with Google
+        google_user_info = requests.get(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'}
+        ).json()
+        
+        if 'error' in google_user_info:
+            return Response(
+                {'error': 'Invalid access token'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        email = google_user_info.get('email')
+        if not email:
+            return Response(
+                {'error': 'Email not provided by Google'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'full_name': google_user_info.get('name', ''),
+                'is_verified': True,  # Google verified email
+            }
+        )
+        
+        if not created:
+            # Update user info if needed
+            if not user.full_name and google_user_info.get('name'):
+                user.full_name = google_user_info.get('name')
+            user.is_verified = True
+            user.save()
+        
+        # Generate JWT tokens
+        refresh = JWTRefreshToken.for_user(user)
+        access_token_jwt = str(refresh.access_token)
+        refresh_token_jwt = str(refresh)
+        
+        # Store refresh token
+        RefreshToken.objects.create(
+            user=user,
+            token=refresh_token_jwt,
+            expires_at=timezone.now() + timedelta(days=7)
+        )
+        
+        # Update last login
+        user.last_login = timezone.now()
+        user.save()
+        
+        return Response({
+            'message': 'Login successful',
+            'access_token': access_token_jwt,
+            'refresh_token': refresh_token_jwt,
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'phone': user.phone,
+                'full_name': user.full_name,
+                'subscription_plan': user.subscription_plan,
+                'is_verified': user.is_verified
+            }
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in Google OAuth: {str(e)}")
+        return Response(
+            {'error': 'Authentication failed'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+# Account Management Views
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """
+    Delete user account (soft delete).
+    
+    POST /api/v1/users/delete-account/
+    Body: {
+        "password": "user_password" (optional, for verification)
+    }
+    """
+    try:
+        user = request.user
+        
+        # Soft delete: mark as inactive
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        
+        # Log deletion (you can create an audit log model if needed)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Account deleted: {user.id} - {user.email}")
+        
+        return Response({
+            'message': 'Account deleted successfully'
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error deleting account: {str(e)}")
+        return Response(
+            {'error': 'Failed to delete account'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def export_data(request):
+    """
+    Export user data (GDPR compliance).
+    
+    POST /api/v1/users/export-data/
+    Returns: JSON file with all user data
+    """
+    import json
+    from django.http import HttpResponse
+    from accounts.models import UserProfile
+    
+    try:
+        user = request.user
+        profile = getattr(user, 'profile', None)
+        
+        # Collect all user data
+        user_data = {
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'phone': user.phone,
+                'full_name': user.full_name,
+                'is_verified': user.is_verified,
+                'subscription_plan': user.subscription_plan,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
+            },
+            'profile': {
+                'date_of_birth': profile.date_of_birth.isoformat() if profile and profile.date_of_birth else None,
+                'gender': profile.gender if profile else None,
+                'timezone': profile.timezone if profile else None,
+                'location': profile.location if profile else None,
+                'bio': profile.bio if profile else None,
+            },
+            'notifications': [
+                {
+                    'title': n.title,
+                    'message': n.message,
+                    'type': n.notification_type,
+                    'is_read': n.is_read,
+                    'created_at': n.created_at.isoformat(),
+                }
+                for n in Notification.objects.filter(user=user).order_by('-created_at')[:100]
+            ],
+        }
+        
+        # Create JSON response
+        response = HttpResponse(
+            json.dumps(user_data, indent=2),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="numerai_data_export_{user.id}.json"'
+        
+        return response
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error exporting data: {str(e)}")
+        return Response(
+            {'error': 'Failed to export data'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+

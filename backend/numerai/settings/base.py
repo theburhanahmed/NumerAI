@@ -49,12 +49,15 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
     'django_celery_beat',
     'accounts',
     'numerology',
     'ai_chat',
     'consultations',
     'reports',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -254,6 +257,38 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # We handle OTP verification separately
 SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_STORE_TOKENS = False
+
+# Social Account Providers
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': config('GOOGLE_OAUTH_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_OAUTH_CLIENT_SECRET', default=''),
+            'key': '',
+        }
+    },
+    'apple': {
+        'APP': {
+            'client_id': config('APPLE_CLIENT_ID', default=''),
+            'secret': config('APPLE_SECRET', default=''),
+            'key': '',
+        }
+    }
+}
+
+# Google OAuth Settings (for direct OAuth flow)
+GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='')
+GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='')
 
 # Celery Configuration
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/1')
@@ -403,3 +438,13 @@ os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # Frontend URL for password reset links
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Stripe Configuration
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+STRIPE_PRICE_IDS = {
+    'basic': config('STRIPE_PRICE_ID_BASIC', default=''),
+    'premium': config('STRIPE_PRICE_ID_PREMIUM', default=''),
+    'elite': config('STRIPE_PRICE_ID_ELITE', default=''),
+}

@@ -23,11 +23,15 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GlassButton } from '@/components/glassmorphism/glass-button';
+import { NotificationBadge } from '@/components/notifications/notification-badge';
+import { NotificationCenter } from '@/components/notifications/notification-center';
+import { useState } from 'react';
 
 export function Navigation() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   if (!user) return null;
 
@@ -112,6 +116,8 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-3">
+            <NotificationBadge onClick={() => setShowNotifications(true)} />
+            
             <motion.button 
               onClick={toggleTheme}
               className="p-2.5 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-md"
@@ -165,6 +171,12 @@ export function Navigation() {
           })}
         </div>
       </div>
+      
+      {/* Notification Center */}
+      <NotificationCenter 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
     </nav>
   );
 }

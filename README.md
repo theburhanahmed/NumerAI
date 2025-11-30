@@ -96,6 +96,33 @@ npm run dev
 - Backend: http://localhost:8000/api/v1/
 - Frontend: http://localhost:3000/
 
+## Key Features
+
+### Authentication & User Management
+- Email/Phone registration with OTP verification
+- JWT-based authentication
+- User profile management
+
+### Numerology Engine
+- Birth chart calculation with 9 core numbers
+- Daily numerology readings
+- Compatibility analysis for relationships
+- Personalized remedies and tracking
+
+### People & Reports
+- Multi-person management system
+- Report generation with customizable templates
+- PDF export functionality
+
+### AI Integration
+- AI-powered numerology chat
+- Context-aware responses based on user profiles
+
+### Notifications
+- In-app notification system
+- Push notifications via Firebase Cloud Messaging
+- Real-time alerts for reports, readings, and consultations
+
 ## Troubleshooting
 
 ### 404 Errors for Person Numerology Profile
