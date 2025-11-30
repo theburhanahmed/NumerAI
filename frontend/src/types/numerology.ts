@@ -29,6 +29,22 @@ export interface NumberInterpretation {
   life_purpose: string;
 }
 
+export interface LoShuGrid {
+  grid: {
+    [key: string]: {
+      number: number;
+      count: number;
+      is_present: boolean;
+      strength: 'strong' | 'present' | 'missing';
+      meaning: string;
+    };
+  };
+  missing_numbers: number[];
+  strong_numbers: number[];
+  number_frequency: Record<number, number>;
+  interpretation: string;
+}
+
 export interface BirthChart {
   profile: NumerologyProfile;
   interpretations: {
@@ -42,6 +58,7 @@ export interface BirthChart {
     personal_year_number: NumberInterpretation;
     personal_month_number: NumberInterpretation;
   };
+  lo_shu_grid?: LoShuGrid;
 }
 
 export interface DailyReading {

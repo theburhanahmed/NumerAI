@@ -60,17 +60,25 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh token failed, logout user
+        // Only redirect if we're not on a public page (like '/')
         if (typeof window !== 'undefined') {
+          const currentPath = window.location.pathname;
+          const publicPaths = ['/', '/login', '/register', '/reset-password', '/reset-password/confirm'];
+          const isPublicPath = publicPaths.includes(currentPath) || currentPath.startsWith('/auth/');
+          
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
-
-          toast({
-            title: "Session Expired",
-            description: "Please log in again.",
-            variant: "destructive",
-          });
+          
+          // Only redirect if we're on a protected route
+          if (!isPublicPath) {
+            window.location.href = '/login';
+            toast({
+              title: "Session Expired",
+              description: "Please log in again.",
+              variant: "destructive",
+            });
+          }
         }
         return Promise.reject(refreshError);
       }

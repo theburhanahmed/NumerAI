@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Star, Zap } from 'lucide-react';
 import { GlassCard } from '@/components/glassmorphism/glass-card';
@@ -15,16 +15,11 @@ export function DateInsightCard({ date, className = '' }: DateInsightCardProps) 
   const [insight, setInsight] = useState<DateInsight | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (date) {
-      loadInsight();
-    }
-  }, [date]);
-
-  const loadInsight = async () => {
+  const loadInsight = useCallback(async () => {
+    if (!date) return;
     try {
       setLoading(true);
-      const dateStr = date?.toISOString().split('T')[0];
+      const dateStr = date.toISOString().split('T')[0];
       const data = await calendarAPI.getDateInsight(dateStr);
       setInsight(data);
     } catch (error) {
@@ -32,7 +27,13 @@ export function DateInsightCard({ date, className = '' }: DateInsightCardProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [date]);
+
+  useEffect(() => {
+    if (date) {
+      loadInsight();
+    }
+  }, [date, loadInsight]);
 
   if (loading) {
     return (

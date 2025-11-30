@@ -51,18 +51,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const accessToken = localStorage.getItem('access_token');
   
           if (storedUser && accessToken) {
+            // Restore user from localStorage immediately
             setUser(JSON.parse(storedUser));
-            // Optionally fetch fresh user data
-            await refreshUser();
+            // Silently refresh user data in background without blocking
+            // Don't await this - let it happen in the background
+            refreshUser().catch((error) => {
+              // Only log the error, don't clear user state
+              // The user might still have valid tokens but the profile endpoint is temporarily unavailable
+              console.error('Background user refresh failed:', error);
+            });
           }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        // Only clear localStorage in browser environment
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('user');
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+        // Only clear localStorage if there's a critical error (e.g., corrupted data)
+        // Don't clear on network errors or temporary failures
+        if (error instanceof SyntaxError) {
+          // Corrupted JSON in localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('user');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+          }
         }
       } finally {
         setLoading(false);

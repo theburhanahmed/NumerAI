@@ -131,7 +131,7 @@ export default function DashboardPage() {
           </motion.div>
         </div>
 
-        {/* Today's Focus - Daily Reading */}
+        {/* Today&apos;s Focus - Daily Reading */}
         {dailyReading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -140,7 +140,7 @@ export default function DashboardPage() {
             className="mb-8"
           >
             <DashboardWidget
-              title="Today's Numerology Focus"
+              title="Today&apos;s Numerology Focus"
               icon={<Zap className="w-6 h-6" />}
               color="from-purple-500 to-pink-600"
               onClick={() => router.push('/daily-reading')}
@@ -166,10 +166,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Today's Affirmation
+                    Today&apos;s Affirmation
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 italic">
-                    "{dailyReading.affirmation}"
+                    &ldquo;{dailyReading.affirmation}&rdquo;
                   </p>
                 </div>
                 <div className="flex items-center gap-4 text-sm">

@@ -17,10 +17,6 @@ export function InsightsPanel({ limit = 5, className = '' }: InsightsPanelProps)
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    loadInsights();
-  }, []);
-
   const loadInsights = async () => {
     try {
       setLoading(true);
@@ -32,6 +28,11 @@ export function InsightsPanel({ limit = 5, className = '' }: InsightsPanelProps)
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadInsights();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMarkRead = async (insightId: string) => {
     try {

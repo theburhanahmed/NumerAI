@@ -26,10 +26,6 @@ export function SmartCalendar({ className = '', onDateSelect }: SmartCalendarPro
   const daysInMonth = lastDayOfMonth.getDate();
   const startingDayOfWeek = firstDayOfMonth.getDay();
 
-  useEffect(() => {
-    loadCalendarData();
-  }, [currentDate]);
-
   const loadCalendarData = async () => {
     try {
       setLoading(true);
@@ -49,6 +45,11 @@ export function SmartCalendar({ className = '', onDateSelect }: SmartCalendarPro
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadCalendarData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate]);
 
   const handleDateClick = async (day: number) => {
     const clickedDate = new Date(year, month, day);
