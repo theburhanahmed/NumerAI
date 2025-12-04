@@ -17,23 +17,48 @@ export function NotificationBadge({ onClick }: NotificationBadgeProps) {
   useEffect(() => {
     if (!user) return;
 
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+    let isMounted = true;
+
     const fetchUnreadCount = async () => {
       try {
         const response = await notificationAPI.getUnreadCount();
-        setUnreadCount(response.data.count || 0);
-      } catch (error) {
-        console.error('Error fetching unread count:', error);
+        if (isMounted) {
+          setUnreadCount(response.data.count || 0);
+          retryCount = 0; // Reset retry count on success
+        }
+      } catch (error: any) {
+        // Don't log 429 errors (rate limiting) or 500 errors (table might not exist yet)
+        if (error?.response?.status !== 429 && error?.response?.status !== 500) {
+          console.error('Error fetching unread count:', error);
+        }
+        // If we get repeated errors, stop polling
+        retryCount++;
+        if (retryCount >= MAX_RETRIES && isMounted) {
+          setLoading(false);
+          return; // Stop polling after max retries
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchUnreadCount();
     
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
+    // Poll for updates every 60 seconds (reduced from 30s to prevent rate limiting)
+    const interval = setInterval(() => {
+      if (retryCount < MAX_RETRIES) {
+        fetchUnreadCount();
+      }
+    }, 60000);
     
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [user]);
 
   if (!user || loading) {

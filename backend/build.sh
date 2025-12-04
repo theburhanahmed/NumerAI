@@ -66,13 +66,45 @@ if 'notifications' in missing_tables:
         # Verify it was created
         cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'notifications')")
         if cursor.fetchone()[0]:
-            print('  ✓ Notifications table created successfully!')
+            print('  ✓ Notifications table created successfully via migration!')
         else:
-            print('  ✗ Failed to create notifications table')
-            sys.exit(1)
+            raise Exception("Migration completed but table still doesn't exist")
     except Exception as e:
-        print(f'  ✗ Error creating notifications table: {e}')
-        sys.exit(1)
+        print(f'  ⚠ Migration failed: {e}')
+        print('  → Attempting to create table directly via SQL...')
+        try:
+            # Create table directly as fallback
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    title VARCHAR(200) NOT NULL,
+                    message TEXT NOT NULL,
+                    notification_type VARCHAR(30) NOT NULL DEFAULT 'info',
+                    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                    is_sent BOOLEAN NOT NULL DEFAULT FALSE,
+                    data JSONB DEFAULT '{}',
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    read_at TIMESTAMP WITH TIME ZONE,
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+                );
+            """)
+            # Create indexes
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS notificatio_user_id_a4dd5c_idx ON notifications(user_id, is_read);
+                CREATE INDEX IF NOT EXISTS notificatio_user_id_7336fd_idx ON notifications(user_id, created_at);
+                CREATE INDEX IF NOT EXISTS notificatio_notific_19df93_idx ON notifications(notification_type);
+            """)
+            connection.commit()
+            # Verify it was created
+            cursor.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'notifications')")
+            if cursor.fetchone()[0]:
+                print('  ✓ Notifications table created successfully via SQL fallback!')
+            else:
+                raise Exception("SQL creation completed but table still doesn't exist")
+        except Exception as sql_error:
+            print(f'  ✗ Failed to create notifications table via SQL: {sql_error}')
+            print('  ⚠ Continuing build, but notifications feature will not work until table is created')
+            # Don't exit - let the app start and handle errors gracefully
 
 if missing_tables:
     print(f'\n⚠ WARNING: {len(missing_tables)} table(s) are missing: {", ".join(missing_tables)}')

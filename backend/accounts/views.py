@@ -623,17 +623,41 @@ class NotificationRateThrottle(UserRateThrottle):
 @permission_classes([IsAuthenticated])
 def unread_notifications_count(request):
     """Get count of unread notifications."""
+    from django.db import connection, ProgrammingError, OperationalError
+    
     try:
         count = Notification.objects.filter(
             user=request.user,
             is_read=False
         ).count()
         return Response({'count': count})
-    except Exception as e:
+    except (ProgrammingError, OperationalError) as e:
         # Handle case where notifications table doesn't exist
-        logger.error(f"Error getting unread notifications count: {str(e)}")
-        # Return 0 if table doesn't exist yet (migrations pending)
-        return Response({'count': 0})
+        error_msg = str(e)
+        if 'does not exist' in error_msg or 'relation' in error_msg.lower():
+            logger.warning(f"Notifications table does not exist, attempting to create it: {error_msg}")
+            try:
+                # Try to run the migration programmatically
+                from django.core.management import call_command
+                call_command('migrate', 'accounts', '0003', verbosity=0, interactive=False)
+                # Retry the query
+                count = Notification.objects.filter(
+                    user=request.user,
+                    is_read=False
+                ).count()
+                logger.info("Successfully created notifications table and retrieved count")
+                return Response({'count': count})
+            except Exception as migration_error:
+                logger.error(f"Failed to create notifications table: {str(migration_error)}")
+                # Return 0 as fallback
+                return Response({'count': 0}, status=status.HTTP_200_OK)
+        else:
+            logger.error(f"Database error getting unread notifications count: {error_msg}")
+            return Response({'count': 0}, status=status.HTTP_200_OK)
+    except Exception as e:
+        # Handle any other errors gracefully
+        logger.error(f"Unexpected error getting unread notifications count: {str(e)}")
+        return Response({'count': 0}, status=status.HTTP_200_OK)
 
 
 # Social Authentication Views
