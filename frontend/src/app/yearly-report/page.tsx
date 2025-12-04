@@ -133,12 +133,15 @@ export default function YearlyReportPage() {
                       yog_name: 'Raj Yog Active',
                       strength_score: 80,
                       yog_type: 'other',
-                      contributing_numbers: {},
+                      contributing_numbers: {
+                        life_path: 0,
+                        destiny: 0
+                      },
                       detected_combinations: [],
                       calculation_system: 'pythagorean',
-                      detected_at: '',
-                      updated_at: '',
-                      id: ''
+                      detected_at: report.generated_at || new Date().toISOString(),
+                      updated_at: report.updated_at || new Date().toISOString(),
+                      id: report.id || ''
                     } : null}
                     size="md"
                   />
