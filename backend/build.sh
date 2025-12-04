@@ -23,11 +23,13 @@ python manage.py migrate --no-input --run-syncdb
 
 # Ensure accounts app migrations are fully applied (critical for notifications table)
 echo "Ensuring accounts migrations are fully applied..."
+# First ensure all dependencies are met
+python manage.py migrate accounts 0001 --no-input || true
+python manage.py migrate accounts 0002 --no-input || true
+# Then apply the notification migration
+python manage.py migrate accounts 0003 --no-input || echo "Warning: Migration 0003 may have issues"
+# Finally, run all remaining migrations
 python manage.py migrate accounts --no-input
-
-# Explicitly apply notification migration if it exists
-echo "Checking if notification migration needs to be applied..."
-python manage.py migrate accounts 0003 --no-input || echo "Migration 0003 may already be applied or doesn't exist"
 
 # Verify critical tables exist (using actual db_table names from models)
 echo "Verifying critical database tables..."
