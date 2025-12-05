@@ -40,7 +40,10 @@ export default function Login() {
     },
     onSubmit: async (formValues) => {
       try {
-        await login(formValues as LoginData);
+        await login({
+          email: formValues.email,
+          password: formValues.password
+        } as LoginData);
         toast.success('Welcome back!', {
           description: 'Successfully signed in'
         });
