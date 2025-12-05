@@ -6,7 +6,6 @@ import { SparklesIcon, SendIcon, BotIcon, UserIcon, MessageSquareIcon } from 'lu
 import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
-import { EmptyState } from '@/components/EmptyState';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';

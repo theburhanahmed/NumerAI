@@ -172,12 +172,10 @@ export default function UserAnalytics() {
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-white mb-3 mx-auto">
                   <BarChart3Icon className="w-6 h-6" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                  <AnimatedNumber value={stats.totalReadings} />
-                </div>
-                <p className="text-sm text-gray-600 dark:text-white/70">
-                  Total Readings
-                </p>
+                <AnimatedNumber 
+                  number={stats.totalReadings.toString()} 
+                  label="Total Readings"
+                />
               </div>
             </MagneticCard>
 

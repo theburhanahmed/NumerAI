@@ -7,6 +7,7 @@ export interface User {
   is_premium: boolean;
   subscription_plan: 'free' | 'basic' | 'premium' | 'elite';
   created_at: string;
+  hasCompletedOnboarding?: boolean;
 }
 
 export interface UserProfile {

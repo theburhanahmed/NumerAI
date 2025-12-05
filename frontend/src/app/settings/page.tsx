@@ -23,10 +23,10 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
   // Form states
   const [profileData, setProfileData] = useState({
-    name: user?.name || 'Sarah Johnson',
+    name: user?.full_name || 'Sarah Johnson',
     email: user?.email || 'sarah@example.com',
     phone: '+1 (555) 123-4567',
-    birthDate: user?.birthDate || '1990-03-15'
+    birthDate: '1990-03-15'
   });
   const [notificationSettings, setNotificationSettings] = useState({
     dailyReadings: true,

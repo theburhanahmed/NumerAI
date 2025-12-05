@@ -8,13 +8,15 @@ interface MagneticCardProps {
   variant?: 'default' | 'elevated' | 'subtle' | 'liquid' | 'liquid-premium';
   className?: string;
   strength?: number;
+  onClick?: () => void;
 }
 
 export function MagneticCard({
   children,
   variant = 'default',
   className = '',
-  strength = 15
+  strength = 15,
+  onClick
 }: MagneticCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -56,7 +58,7 @@ export function MagneticCard({
   return (
     <motion.div
       ref={ref}
-      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${className} ${onClick ? 'cursor-pointer' : ''}`}
       style={{
         x: springX,
         y: springY,
@@ -67,6 +69,7 @@ export function MagneticCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
     >
