@@ -476,3 +476,9 @@ STRIPE_PRICE_IDS = {
     'premium': config('STRIPE_PRICE_ID_PREMIUM', default=''),
     'elite': config('STRIPE_PRICE_ID_ELITE', default=''),
 }
+
+# Jitsi Configuration
+JITSI_DOMAIN = config('JITSI_DOMAIN', default='meet.jit.si')
+JITSI_APP_ID = config('JITSI_APP_ID', default='')
+JITSI_SECRET = config('JITSI_SECRET', default='')
+JITSI_USE_JWT = config('JITSI_USE_JWT', default=False, cast=bool)

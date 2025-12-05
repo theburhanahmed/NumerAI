@@ -6,6 +6,7 @@ import string
 import logging
 from django.core.mail import send_mail
 from django.conf import settings
+from .email_service import send_templated_email
 
 logger = logging.getLogger(__name__)
 
@@ -16,21 +17,30 @@ def generate_otp(length=6):
 
 
 def send_otp_email(email, otp):
-    """Send OTP to user's email."""
-    import smtplib
-    import socket
-    
+    """Send OTP to user's email using email template."""
     try:
-        email_user = getattr(settings, 'EMAIL_HOST_USER', '')
-        user_info = f"User: {email_user[:10]}..." if email_user else "User: Not configured"
-        logger.info(
-            f"Attempting to send OTP email to {email}. "
-            f"Host: {getattr(settings, 'EMAIL_HOST', 'Not configured')}, "
-            f"Port: {getattr(settings, 'EMAIL_PORT', 'Not configured')}, "
-            f"TLS: {getattr(settings, 'EMAIL_USE_TLS', False)}, "
-            f"{user_info}"
+        logger.info(f"Attempting to send OTP email to {email}")
+        
+        # Try to use email template first
+        context = {
+            'otp': otp,
+            'email': email,
+            'app_name': 'NumerAI',
+        }
+        
+        success = send_templated_email(
+            template_type='otp',
+            recipient=email,
+            context=context,
+            fail_silently=True  # Fallback to plain email if template not found
         )
         
+        if success:
+            logger.info(f"OTP email successfully sent to {email} using template")
+            return True
+        
+        # Fallback to plain email if template not found
+        logger.warning(f"Email template 'otp' not found, using fallback plain email")
         send_mail(
             subject='NumerAI - OTP Verification',
             message=f'Your OTP for account verification is: {otp}',
@@ -38,39 +48,14 @@ def send_otp_email(email, otp):
             recipient_list=[email],
             fail_silently=False,
         )
-        logger.info(f"OTP email successfully sent to {email}")
+        logger.info(f"OTP email successfully sent to {email} (fallback)")
         return True
-    except smtplib.SMTPConnectError as e:
-        logger.error(
-            f"SMTP Connection Error - Failed to connect to email server: {str(e)}. "
-            f"Email host: {getattr(settings, 'EMAIL_HOST', 'Not configured')}, "
-            f"Port: {getattr(settings, 'EMAIL_PORT', 'Not configured')}. "
-            f"This often happens when the SMTP server blocks connections from cloud providers. "
-            f"Consider using SendGrid, Mailgun, or AWS SES instead."
-        )
-        return False
-    except smtplib.SMTPAuthenticationError as e:
-        logger.error(
-            f"SMTP Authentication Error - Invalid credentials: {str(e)}. "
-            f"Please check EMAIL_HOST_USER and EMAIL_HOST_PASSWORD."
-        )
-        return False
-    except (smtplib.SMTPServerDisconnected, ConnectionResetError, socket.error) as e:
-        logger.error(
-            f"SMTP Connection Closed - Server disconnected unexpectedly: {str(e)}. "
-            f"Email host: {getattr(settings, 'EMAIL_HOST', 'Not configured')}. "
-            f"This often happens with GoDaddy/other providers that block cloud IPs. "
-            f"Try: 1) Use SendGrid/Mailgun, 2) Check if EMAIL_PORT is correct (587 for TLS, 465 for SSL), "
-            f"3) Verify EMAIL_USE_TLS/EMAIL_USE_SSL settings match the port."
-        )
-        return False
+        
     except Exception as e:
         logger.error(
             f"Failed to send OTP email to {email}: {type(e).__name__}: {str(e)}. "
             f"Email backend: {settings.EMAIL_BACKEND}, "
-            f"From email: {settings.DEFAULT_FROM_EMAIL}, "
-            f"Email host: {getattr(settings, 'EMAIL_HOST', 'Not configured')}, "
-            f"Port: {getattr(settings, 'EMAIL_PORT', 'Not configured')}"
+            f"From email: {settings.DEFAULT_FROM_EMAIL}"
         )
         return False
 
@@ -81,10 +66,33 @@ def generate_secure_token(length=32):
 
 
 def send_password_reset_email(user, token):
-    """Send password reset email with token."""
+    """Send password reset email with token using email template."""
     try:
         reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
         logger.info(f"Attempting to send password reset email to {user.email}")
+        
+        # Try to use email template first
+        context = {
+            'user_name': user.full_name,
+            'reset_url': reset_url,
+            'token': token,
+            'app_name': 'NumerAI',
+            'expiry_hours': 24,
+        }
+        
+        success = send_templated_email(
+            template_type='password_reset',
+            recipient=user.email,
+            context=context,
+            fail_silently=True  # Fallback to plain email if template not found
+        )
+        
+        if success:
+            logger.info(f"Password reset email successfully sent to {user.email} using template")
+            return True
+        
+        # Fallback to plain email if template not found
+        logger.warning(f"Email template 'password_reset' not found, using fallback plain email")
         send_mail(
             subject='NumerAI - Password Reset',
             message=f'Hello {user.full_name},\n\n'
@@ -96,8 +104,9 @@ def send_password_reset_email(user, token):
             recipient_list=[user.email],
             fail_silently=False,
         )
-        logger.info(f"Password reset email successfully sent to {user.email}")
+        logger.info(f"Password reset email successfully sent to {user.email} (fallback)")
         return True
+        
     except Exception as e:
         logger.error(
             f"Failed to send password reset email to {user.email}: {str(e)}. "

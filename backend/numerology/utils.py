@@ -5,6 +5,7 @@ import random
 import string
 from django.core.mail import send_mail
 from django.conf import settings
+from accounts.email_service import send_templated_email
 
 
 def generate_otp(length=6):
@@ -13,8 +14,26 @@ def generate_otp(length=6):
 
 
 def send_otp_email(email, otp):
-    """Send OTP to user's email."""
+    """Send OTP to user's email using email template."""
     try:
+        # Try to use email template first
+        context = {
+            'otp': otp,
+            'email': email,
+            'app_name': 'NumerAI',
+        }
+        
+        success = send_templated_email(
+            template_type='otp',
+            recipient=email,
+            context=context,
+            fail_silently=True  # Fallback to plain email if template not found
+        )
+        
+        if success:
+            return True
+        
+        # Fallback to plain email if template not found
         send_mail(
             subject='NumerAI - OTP Verification',
             message=f'Your OTP for account verification is: {otp}',

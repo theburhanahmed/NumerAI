@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SparklesIcon, SendIcon, BotIcon, UserIcon, MessageSquareIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
@@ -101,8 +100,6 @@ export default function AIChatPage() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex flex-col relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       {/* Page Header */}
       <div className="relative z-10 px-4 md:px-6 py-6 border-b border-gray-200 dark:border-white/10">
         <div className="max-w-4xl mx-auto">

@@ -1,19 +1,57 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { StarIcon, SparklesIcon, TrendingUpIcon, HeartIcon, BriefcaseIcon, CalendarIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { numerologyAPI } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
+import { toast } from 'sonner';
+
 export default function DailyReadings() {
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const todayReading = {
+  const [reading, setReading] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReading = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const data = await numerologyAPI.getDailyReading(selectedDate);
+        setReading(data);
+      } catch (error: any) {
+        console.error('Failed to fetch daily reading:', error);
+        toast.error('Failed to load daily reading. Using default content.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReading();
+  }, [user, selectedDate]);
+
+  const todayReading = reading ? {
+    personalDay: reading.personal_day_number,
+    theme: `Personal Day ${reading.personal_day_number}`,
+    message: reading.llm_explanation || reading.actionable_tip || 'Your personalized reading for today.',
+    luckyNumber: reading.lucky_number,
+    luckyColor: reading.lucky_color,
+    advice: [
+      reading.actionable_tip,
+      reading.activity_recommendation,
+      reading.warning ? `Note: ${reading.warning}` : null,
+      reading.affirmation
+    ].filter(Boolean) as string[]
+  } : {
     personalDay: 5,
     theme: 'Change and Adventure',
-    message: 'Today brings opportunities for change and new experiences. Embrace spontaneity and be open to unexpected opportunities. Your adaptability will be your greatest asset.',
+    message: 'Loading your personalized reading...',
     luckyNumber: 8,
     luckyColor: 'Gold',
     advice: ['Stay flexible and open to change', 'Try something new today', 'Connect with adventurous people', 'Trust your instincts']
@@ -50,8 +88,6 @@ export default function DailyReadings() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-8">
         {/* Page Header */}
         <motion.div initial={{
@@ -153,9 +189,25 @@ export default function DailyReadings() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {todayReading.message}
-                  </p>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                        {todayReading.message}
+                      </p>
+                      {reading?.llm_explanation && (
+                        <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                          <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">AI-Generated Insight</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {reading.llm_explanation}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </MagneticCard>
 

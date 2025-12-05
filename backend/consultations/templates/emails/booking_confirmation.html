@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Consultation Booking Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #6366f1;">Consultation Booking Confirmed</h1>
+        <p>Hello {{ user_name }},</p>
+        <p>Your consultation with <strong>{{ expert_name }}</strong> has been successfully booked.</p>
+        
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="margin-top: 0;">Consultation Details</h2>
+            <p><strong>Type:</strong> {{ consultation_type }}</p>
+            <p><strong>Date & Time:</strong> {{ scheduled_at }}</p>
+            <p><strong>Duration:</strong> {{ duration_minutes }} minutes</p>
+            {% if meeting_link %}
+            <p><strong>Meeting Link:</strong> <a href="{{ meeting_link }}">{{ meeting_link }}</a></p>
+            {% endif %}
+        </div>
+        
+        <p>You will receive a reminder 24 hours and 1 hour before your consultation.</p>
+        <p>If you need to cancel or reschedule, please do so at least 24 hours in advance.</p>
+        
+        <p>Best regards,<br>The NumerAI Team</p>
+    </div>
+</body>
+</html>
+

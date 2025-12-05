@@ -272,6 +272,12 @@ class FullNumerologyReportSerializer(serializers.Serializer):
     
     expert_recommendations = serializers.ListField(required=False, allow_null=True)
     expert_recommendations_available = serializers.BooleanField()
+    
+    # Pinnacle cycles and challenges/opportunities
+    pinnacle_cycles = serializers.ListField(required=False, allow_null=True)
+    pinnacle_cycles_available = serializers.BooleanField()
+    challenges_opportunities = serializers.DictField(required=False, allow_null=True)
+    challenges_opportunities_available = serializers.BooleanField()
 
 
 class NameNumerologyGenerateSerializer(serializers.Serializer):

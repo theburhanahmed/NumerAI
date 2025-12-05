@@ -5,16 +5,15 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { UsersIcon, StarIcon, CalendarIcon, ClockIcon, VideoIcon, MessageSquareIcon, CheckCircleIcon, SparklesIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
-import { expertAPI } from '@/lib/numerology-api';
+import { consultationsAPI } from '@/lib/consultations-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
-import type { Expert } from '@/lib/numerology-api';
+import type { Expert } from '@/types/consultations';
 import { useEffect } from 'react';
 
 export default function Consultations() {
@@ -33,8 +32,8 @@ export default function Consultations() {
 
       try {
         setLoading(true);
-        const expertsList = await expertAPI.getExperts();
-        setExperts(expertsList);
+        const expertsData = await consultationsAPI.getExperts();
+        setExperts(expertsData.results);
       } catch (error) {
         console.error('Failed to fetch experts:', error);
         toast.error('Failed to load experts');
@@ -63,10 +62,7 @@ export default function Consultations() {
     description: 'Continue your journey with ongoing guidance'
   }];
   const handleBookConsultation = (expertId: string) => {
-    const expert = experts.find(e => e.id === expertId);
-    toast.success(`Consultation request sent to ${expert?.name || 'expert'}!`, {
-      description: 'You will receive a confirmation email shortly'
-    });
+    router.push(`/consultations/book?expert_id=${expertId}`);
   };
 
   if (loading) {
@@ -74,7 +70,6 @@ export default function Consultations() {
       <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
         <AmbientParticles />
         <FloatingOrbs />
-        <AppNavbar />
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -88,8 +83,6 @@ export default function Consultations() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
         {/* Page Header */}
         <motion.div initial={{
@@ -241,6 +234,11 @@ export default function Consultations() {
                               {expert.rating?.toFixed(1) || 'N/A'}
                             </span>
                           </div>
+                          {expert.is_verified && (
+                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
+                              Verified
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -272,7 +270,7 @@ export default function Consultations() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Status
@@ -281,9 +279,25 @@ export default function Consultations() {
                           {expert.is_active ? 'Available' : 'Unavailable'}
                         </p>
                       </div>
-                      <GlassButton variant="liquid" size="sm" onClick={() => handleBookConsultation(expert.id)} className="glass-glow" disabled={!expert.is_active}>
-                        Book Now
-                      </GlassButton>
+                      <div className="flex gap-2">
+                        <GlassButton 
+                          variant="liquid" 
+                          size="sm" 
+                          onClick={() => router.push(`/consultations/chat?expert_id=${expert.id}`)}
+                          className="glass-glow"
+                        >
+                          Chat
+                        </GlassButton>
+                        <GlassButton 
+                          variant="liquid" 
+                          size="sm" 
+                          onClick={() => handleBookConsultation(expert.id)} 
+                          className="glass-glow" 
+                          disabled={!expert.is_active}
+                        >
+                          Book Now
+                        </GlassButton>
+                      </div>
                     </div>
                   </div>
                 </MagneticCard>

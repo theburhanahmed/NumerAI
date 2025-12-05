@@ -33,6 +33,10 @@ app.conf.beat_schedule = {
         'task': 'core.tasks.cleanup_expired_tokens',
         'schedule': crontab(hour=0, minute=30),  # Run at 12:30 AM daily
     },
+    'send-consultation-reminders': {
+        'task': 'consultations.tasks.send_consultation_reminders',
+        'schedule': crontab(minute='*/15'),  # Run every 15 minutes to check for reminders
+    },
 }
 
 

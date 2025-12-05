@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { PhoneIcon, SparklesIcon, ChevronRightIcon, InfoIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 export default function PhoneNumerology() {
+  const { tier } = useSubscription();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showResults, setShowResults] = useState(false);
   const phoneAnalysis = {
@@ -29,8 +31,6 @@ export default function PhoneNumerology() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex flex-col relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <main className="flex-1 section-spacing px-4 md:px-6 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -97,7 +97,8 @@ export default function PhoneNumerology() {
           </motion.div>
 
           {/* Results */}
-          {showResults && <motion.div initial={{
+          {showResults && <SubscriptionGate feature="phone-numerology" requiredTier="premium" showPreview={tier === 'free'}>
+            <motion.div initial={{
           opacity: 0,
           y: 20
         }} animate={{
@@ -218,7 +219,8 @@ export default function PhoneNumerology() {
                   </ul>
                 </div>
               </MagneticCard>
-            </motion.div>}
+            </motion.div>
+          </SubscriptionGate>}
         </div>
       </main>
     </div>;

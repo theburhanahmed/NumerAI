@@ -334,3 +334,43 @@ class Notification(models.Model):
         self.read_at = None
         self.save()
 
+
+class EmailTemplate(models.Model):
+    """Email templates for various notification types."""
+    
+    TEMPLATE_TYPE_CHOICES = [
+        ('otp', 'OTP Verification'),
+        ('password_reset', 'Password Reset'),
+        ('welcome', 'Welcome Email'),
+        ('daily_reading', 'Daily Reading Notification'),
+        ('report_ready', 'Report Ready Notification'),
+        ('consultation_reminder', 'Consultation Reminder'),
+        ('subscription_upgrade', 'Subscription Upgrade'),
+        ('subscription_expiry', 'Subscription Expiry'),
+        ('account_locked', 'Account Locked'),
+        ('profile_update', 'Profile Update'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    template_type = models.CharField(max_length=50, choices=TEMPLATE_TYPE_CHOICES, unique=True)
+    subject = models.CharField(max_length=200)
+    body_html = models.TextField(help_text="HTML email body. Use {{variable_name}} for variable substitution.")
+    body_text = models.TextField(help_text="Plain text email body. Use {{variable_name}} for variable substitution.")
+    variables = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Available template variables as JSON object with descriptions"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'email_templates'
+        verbose_name = 'Email Template'
+        verbose_name_plural = 'Email Templates'
+        ordering = ['template_type']
+    
+    def __str__(self):
+        return f"{self.get_template_type_display()} - {self.subject}"
+

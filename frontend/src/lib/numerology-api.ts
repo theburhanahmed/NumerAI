@@ -302,6 +302,35 @@ export interface FullNumerologyReport {
     description: string;
   }> | null;
   expert_recommendations_available: boolean;
+  pinnacle_cycles: Array<{
+    cycle_number: number;
+    pinnacle_number: number;
+    age_range: string;
+    start_age: number;
+    end_age: number | null;
+    theme: string;
+    description: string;
+    challenge_number: number | null;
+    challenge_description: string;
+  }> | null;
+  pinnacle_cycles_available: boolean;
+  challenges_opportunities: {
+    challenges: Array<{
+      cycle: number;
+      number: number;
+      title: string;
+      description: string;
+      lessons: string;
+    }>;
+    opportunities: Array<{
+      type: string;
+      number: number;
+      title: string;
+      description: string;
+      focus_areas?: string;
+    }>;
+  } | null;
+  challenges_opportunities_available: boolean;
 }
 
 // New type definitions for multi-person numerology

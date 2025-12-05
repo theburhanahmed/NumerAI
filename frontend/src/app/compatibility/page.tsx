@@ -3,14 +3,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HeartIcon, SparklesIcon, CheckCircleIcon, AlertCircleIcon, UsersIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from 'sonner';
 export default function CompatibilityChecker() {
+  const { tier } = useSubscription();
   const [person1, setPerson1] = useState({
     name: '',
     birthDate: ''
@@ -43,8 +45,6 @@ export default function CompatibilityChecker() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-8">
         {/* Page Header */}
         <motion.div initial={{
@@ -168,7 +168,8 @@ export default function CompatibilityChecker() {
 
         {/* Results */}
         <AnimatePresence>
-          {result && <motion.div initial={{
+          {result && <SubscriptionGate feature="compatibility" requiredTier="premium" showPreview={tier === 'free'}>
+            <motion.div initial={{
           opacity: 0,
           y: 20
         }} animate={{
@@ -267,7 +268,8 @@ export default function CompatibilityChecker() {
                   </GlassCard>
                 </div>
               </GlassCard>
-            </motion.div>}
+            </motion.div>
+          </SubscriptionGate>}
         </AnimatePresence>
       </div>
     </div>;

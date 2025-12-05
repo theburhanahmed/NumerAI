@@ -38,6 +38,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
 from io import BytesIO
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -123,6 +126,16 @@ def calculate_numerology_profile(request):
         )
         
         serializer = NumerologyProfileSerializer(profile)
+        
+        # Trigger async AI reading generation (if Celery is available)
+        try:
+            from .tasks import generate_detailed_readings_for_profile
+            generate_detailed_readings_for_profile.delay(str(user.id))
+            logger.info(f'Queued AI reading generation for user {user.id}')
+        except Exception as e:
+            logger.warning(f'Failed to queue AI reading generation: {str(e)}')
+            # Continue without AI generation - it's not critical
+        
         return Response({
             'message': 'Profile calculated successfully',
             'profile': serializer.data
@@ -209,7 +222,17 @@ def get_birth_chart(request):
 @permission_classes([IsAuthenticated])
 def get_lo_shu_grid(request):
     """Get Lo Shu Grid for user."""
+    from .subscription_utils import can_access_feature
+    
     user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'lo_shu_grid'):
+        return Response({
+            'error': 'Lo Shu Grid is available for Basic plan and above. Please upgrade your subscription.',
+            'required_tier': 'basic',
+            'feature': 'lo_shu_grid'
+        }, status=status.HTTP_403_FORBIDDEN)
     
     try:
         profile = NumerologyProfile.objects.get(user=user)
@@ -513,7 +536,18 @@ def get_life_path_analysis(request):
 @permission_classes([IsAuthenticated])
 def check_compatibility(request):
     """Check compatibility between user and another person."""
+    from .subscription_utils import can_access_feature
+    
     user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'compatibility_insights'):
+        return Response({
+            'error': 'Compatibility Analysis is available for Premium plan and above. Please upgrade your subscription.',
+            'required_tier': 'premium',
+            'feature': 'compatibility_insights'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
     partner_name = request.data.get('partner_name')
     partner_birth_date_str = request.data.get('partner_birth_date')
     
@@ -651,7 +685,17 @@ def get_compatibility_history(request):
 @permission_classes([IsAuthenticated])
 def get_personalized_remedies(request):
     """Get personalized remedies based on user's numerology profile."""
+    from .subscription_utils import can_access_feature
+    
     user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'rectification_suggestions'):
+        return Response({
+            'error': 'Personalized Remedies are available for Premium plan and above. Please upgrade your subscription.',
+            'required_tier': 'premium',
+            'feature': 'rectification_suggestions'
+        }, status=status.HTTP_403_FORBIDDEN)
     
     try:
         profile = NumerologyProfile.objects.get(user=user)
@@ -959,15 +1003,92 @@ def get_full_numerology_report(request):
                 subscription_tier=subscription_tier
             )
         
-        # Detailed analysis (subscription-gated)
+        # Detailed analysis (subscription-gated) - Include AI-generated readings
         detailed_analysis = None
         if can_access_feature(user, 'detailed_analysis'):
-            detailed_analysis = {
-                'life_path_analysis': birth_date_interpretations.get('life_path_number', {}),
-                'destiny_analysis': birth_date_interpretations.get('destiny_number', {}),
-                'soul_urge_analysis': birth_date_interpretations.get('soul_urge_number', {}),
-                'personality_analysis': birth_date_interpretations.get('personality_number', {}),
+            from .models import DetailedReading
+            from .ai_reading_generator import generate_detailed_reading
+            from .tasks import generate_detailed_readings_for_profile
+            import logging
+            
+            logger = logging.getLogger(__name__)
+            
+            # Try to get existing AI-generated readings
+            detailed_readings = {}
+            core_numbers = {
+                'life_path': profile.life_path_number,
+                'destiny': profile.destiny_number,
+                'soul_urge': profile.soul_urge_number,
+                'personality': profile.personality_number,
             }
+            
+            # Add optional numbers if they exist
+            if profile.attitude_number:
+                core_numbers['attitude'] = profile.attitude_number
+            if profile.maturity_number:
+                core_numbers['maturity'] = profile.maturity_number
+            if profile.balance_number:
+                core_numbers['balance'] = profile.balance_number
+            
+            missing_readings = []
+            for reading_type, number_value in core_numbers.items():
+                if not number_value:
+                    continue
+                    
+                try:
+                    reading = DetailedReading.objects.get(
+                        user=user,
+                        reading_type=reading_type,
+                        number=number_value
+                    )
+                    detailed_readings[reading_type] = {
+                        'detailed_interpretation': reading.detailed_interpretation,
+                        'career_insights': reading.career_insights,
+                        'relationship_insights': reading.relationship_insights,
+                        'life_purpose': reading.life_purpose,
+                        'challenges_and_growth': reading.challenges_and_growth,
+                        'personalized_advice': reading.personalized_advice,
+                        'generated_at': reading.generated_at.isoformat() if reading.generated_at else None,
+                        'ai_generated': True,
+                    }
+                except DetailedReading.DoesNotExist:
+                    missing_readings.append((reading_type, number_value))
+                    # Fallback to basic interpretation if AI reading not available
+                    basic_interp = birth_date_interpretations.get(f'{reading_type}_number', {})
+                    if isinstance(basic_interp, dict):
+                        detailed_readings[reading_type] = {
+                            'detailed_interpretation': basic_interp.get('description', '') if basic_interp else '',
+                            'career_insights': ', '.join(basic_interp.get('career', [])) if isinstance(basic_interp.get('career'), list) else (basic_interp.get('career', '') if basic_interp else ''),
+                            'relationship_insights': basic_interp.get('relationships', '') if basic_interp else '',
+                            'life_purpose': basic_interp.get('life_purpose', '') if basic_interp else '',
+                            'challenges_and_growth': ', '.join(basic_interp.get('challenges', [])) if isinstance(basic_interp.get('challenges'), list) else (basic_interp.get('challenges', '') if basic_interp else ''),
+                            'personalized_advice': basic_interp.get('advice', '') if basic_interp else '',
+                            'generated_at': None,
+                            'ai_generated': False,
+                            'note': 'AI-generated reading not available. Using basic interpretation.',
+                        }
+                    else:
+                        detailed_readings[reading_type] = {
+                            'detailed_interpretation': '',
+                            'career_insights': '',
+                            'relationship_insights': '',
+                            'life_purpose': '',
+                            'challenges_and_growth': '',
+                            'personalized_advice': '',
+                            'generated_at': None,
+                            'ai_generated': False,
+                            'note': 'AI-generated reading not available.',
+                        }
+            
+            # Trigger async generation for missing readings (non-blocking)
+            if missing_readings:
+                try:
+                    generate_detailed_readings_for_profile.delay(str(user.id))
+                    logger.info(f'Queued AI reading generation for {len(missing_readings)} missing readings for user {user.id}')
+                except Exception as e:
+                    logger.warning(f'Failed to queue AI reading generation: {str(e)}')
+            
+            detailed_analysis = detailed_readings
         
         # Compatibility insights (subscription-gated)
         compatibility_insights = []
@@ -1038,6 +1159,130 @@ def get_full_numerology_report(request):
                     'description': 'Master numbers require special understanding. Consider expert consultation for deeper insights.',
                 })
         
+        # Pinnacle Cycles (premium feature - part of detailed analysis)
+        pinnacle_cycles = None
+        if can_access_feature(user, 'detailed_analysis') and user_birth_date:
+            from .numerology import NumerologyCalculator
+            from .interpretations import get_interpretation
+            
+            calculator = NumerologyCalculator()
+            pinnacle_numbers = calculator.calculate_pinnacles(user_birth_date)
+            challenge_numbers = calculator.calculate_challenges(user_birth_date)
+            
+            # Calculate age ranges for pinnacle cycles
+            # Standard formula: P1: 0 to (36 - life_path), P2: (36 - life_path) to (36 - life_path) + 9, etc.
+            life_path = profile.life_path_number
+            if life_path in [11, 22, 33]:
+                # Master numbers use reduced value for age calculation
+                life_path_reduced = calculator._reduce_to_single_digit(life_path, False)
+            else:
+                life_path_reduced = life_path
+            
+            p1_start = 0
+            p1_end = max(27, 36 - life_path_reduced)
+            p2_start = p1_end
+            p2_end = p1_end + 9
+            p3_start = p2_end
+            p3_end = p2_end + 9
+            p4_start = p3_end
+            
+            pinnacle_cycles = []
+            for i, pinnacle_num in enumerate(pinnacle_numbers, 1):
+                challenge_num = challenge_numbers[i-1] if i-1 < len(challenge_numbers) else None
+                
+                if i == 1:
+                    age_range = f"Birth to {p1_end}"
+                elif i == 2:
+                    age_range = f"{p2_start} to {p2_end}"
+                elif i == 3:
+                    age_range = f"{p3_start} to {p3_end}"
+                else:
+                    age_range = f"{p4_start} onwards"
+                
+                try:
+                    pinnacle_interp = get_interpretation(pinnacle_num)
+                    challenge_interp = get_interpretation(challenge_num) if challenge_num else None
+                except ValueError:
+                    pinnacle_interp = None
+                    challenge_interp = None
+                
+                pinnacle_cycles.append({
+                    'cycle_number': i,
+                    'pinnacle_number': pinnacle_num,
+                    'age_range': age_range,
+                    'start_age': p1_start if i == 1 else (p2_start if i == 2 else (p3_start if i == 3 else p4_start)),
+                    'end_age': p1_end if i == 1 else (p2_end if i == 2 else (p3_end if i == 3 else None)),
+                    'theme': pinnacle_interp.get('title', '') if pinnacle_interp else '',
+                    'description': pinnacle_interp.get('description', '') if pinnacle_interp else '',
+                    'challenge_number': challenge_num,
+                    'challenge_description': challenge_interp.get('description', '') if challenge_interp else '',
+                })
+        
+        # Challenges & Opportunities Analysis (premium feature)
+        challenges_opportunities = None
+        if can_access_feature(user, 'detailed_analysis') and user_birth_date:
+            from .numerology import NumerologyCalculator
+            from .interpretations import get_interpretation
+            
+            calculator = NumerologyCalculator()
+            challenge_numbers = calculator.calculate_challenges(user_birth_date)
+            
+            challenges = []
+            opportunities = []
+            
+            # Analyze challenges
+            for i, challenge_num in enumerate(challenge_numbers, 1):
+                if challenge_num and challenge_num > 0:
+                    try:
+                        challenge_interp = get_interpretation(challenge_num)
+                        challenges.append({
+                            'cycle': i,
+                            'number': challenge_num,
+                            'title': challenge_interp.get('title', ''),
+                            'description': challenge_interp.get('description', ''),
+                            'lessons': ', '.join(challenge_interp.get('challenges', [])) if isinstance(challenge_interp.get('challenges'), list) else challenge_interp.get('challenges', ''),
+                        })
+                    except ValueError:
+                        pass
+            
+            # Analyze opportunities based on profile
+            # Opportunities come from alignment of numbers
+            if profile.personal_year_number:
+                try:
+                    year_interp = get_interpretation(profile.personal_year_number)
+                    opportunities.append({
+                        'type': 'personal_year',
+                        'number': profile.personal_year_number,
+                        'title': f'Personal Year {profile.personal_year_number} Opportunities',
+                        'description': year_interp.get('description', ''),
+                        'focus_areas': ', '.join(year_interp.get('strengths', [])) if isinstance(year_interp.get('strengths'), list) else year_interp.get('strengths', ''),
+                    })
+                except ValueError:
+                    pass
+            
+            # Karmic debt as opportunity for growth
+            if profile.karmic_debt_number:
+                opportunities.append({
+                    'type': 'karmic_growth',
+                    'number': profile.karmic_debt_number,
+                    'title': f'Karmic Debt {profile.karmic_debt_number} - Growth Opportunity',
+                    'description': f'Working through karmic debt {profile.karmic_debt_number} presents opportunities for deep spiritual growth and resolution of past patterns.',
+                })
+            
+            # Master number opportunities
+            if profile.life_path_number in [11, 22, 33]:
+                opportunities.append({
+                    'type': 'master_number',
+                    'number': profile.life_path_number,
+                    'title': f'Master Number {profile.life_path_number} Potential',
+                    'description': f'Master number {profile.life_path_number} offers exceptional opportunities for spiritual leadership and higher purpose fulfillment.',
+                })
+            
+            challenges_opportunities = {
+                'challenges': challenges,
+                'opportunities': opportunities,
+            }
+        
         # Build response data
         report_data = {
             'user_profile': {
@@ -1060,6 +1305,7 @@ def get_full_numerology_report(request):
             'rectification_suggestions_available': can_access_feature(user, 'rectification_suggestions'),
             'detailed_analysis': detailed_analysis,
             'detailed_analysis_available': can_access_feature(user, 'detailed_analysis'),
+            'ai_generated_readings': detailed_analysis is not None,  # Indicate if AI readings are included
             'compatibility_insights': compatibility_insights,
             'compatibility_insights_available': can_access_feature(user, 'compatibility_insights'),
             'raj_yog_analysis': raj_yog_analysis,
@@ -1068,6 +1314,10 @@ def get_full_numerology_report(request):
             'yearly_forecast_available': can_access_feature(user, 'yearly_forecast'),
             'expert_recommendations': expert_recommendations,
             'expert_recommendations_available': can_access_feature(user, 'expert_recommendations'),
+            'pinnacle_cycles': pinnacle_cycles,
+            'pinnacle_cycles_available': can_access_feature(user, 'detailed_analysis'),
+            'challenges_opportunities': challenges_opportunities,
+            'challenges_opportunities_available': can_access_feature(user, 'detailed_analysis'),
         }
         
         serializer = FullNumerologyReportSerializer(report_data)
@@ -1610,7 +1860,17 @@ def generate_name_numerology(request):
     Generate name numerology report.
     Returns job_id and queues the task.
     """
+    from .subscription_utils import can_access_feature
+    
     user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'name_numerology'):
+        return Response({
+            'error': 'Name Numerology is available for Basic plan and above. Please upgrade your subscription.',
+            'required_tier': 'basic',
+            'feature': 'name_numerology'
+        }, status=status.HTTP_403_FORBIDDEN)
     
     serializer = NameNumerologyGenerateSerializer(data=request.data)
     if not serializer.is_valid():
@@ -1718,6 +1978,18 @@ def preview_name_numerology(request):
     Preview name numerology results without persisting.
     Returns computed numbers and breakdown for immediate UI feedback.
     """
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'name_numerology'):
+        return Response({
+            'error': 'Name Numerology is available for Basic plan and above. Please upgrade your subscription.',
+            'required_tier': 'basic',
+            'feature': 'name_numerology'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
     serializer = NameNumerologyGenerateSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1765,7 +2037,17 @@ def generate_phone_numerology(request):
     Generate phone numerology report.
     Returns job_id and queues the task.
     """
+    from .subscription_utils import can_access_feature
+    
     user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'phone_numerology'):
+        return Response({
+            'error': 'Phone Numerology is available for Premium plan and above. Please upgrade your subscription.',
+            'required_tier': 'premium',
+            'feature': 'phone_numerology'
+        }, status=status.HTTP_403_FORBIDDEN)
     
     serializer = PhoneNumerologyGenerateSerializer(data=request.data)
     if not serializer.is_valid():
@@ -1814,6 +2096,18 @@ def preview_phone_numerology(request):
     Preview phone numerology results without persisting.
     Returns computed numbers and breakdown for immediate UI feedback.
     """
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'phone_numerology'):
+        return Response({
+            'error': 'Phone Numerology is available for Premium plan and above. Please upgrade your subscription.',
+            'required_tier': 'premium',
+            'feature': 'phone_numerology'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
     serializer = PhoneNumerologyGenerateSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

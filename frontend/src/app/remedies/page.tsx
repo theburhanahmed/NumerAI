@@ -4,18 +4,20 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { SparklesIcon, GemIcon, PaletteIcon, FlowerIcon, ClockIcon, CheckCircleIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { numerologyAPI } from '@/lib/numerology-api';
 import { useAuth } from '@/contexts/auth-context';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from 'sonner';
 
 export default function Remedies() {
   const { user } = useAuth();
+  const { tier } = useSubscription();
   const [selectedCategory, setSelectedCategory] = useState('gemstones');
   const [lifePathNumber, setLifePathNumber] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,8 +102,6 @@ export default function Remedies() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
         {/* Page Header */}
         <motion.div initial={{
@@ -176,7 +176,8 @@ export default function Remedies() {
         </motion.div>
 
         {/* Gemstones Section */}
-        {selectedCategory === 'gemstones' && <motion.div initial={{
+        <SubscriptionGate feature="remedies" requiredTier="premium" showPreview={tier === 'free'}>
+          {selectedCategory === 'gemstones' && <motion.div initial={{
         opacity: 0,
         y: 20
       }} animate={{
@@ -392,6 +393,7 @@ export default function Remedies() {
                 </motion.div>)}
             </div>
           </motion.div>}
+        </SubscriptionGate>
       </div>
     </div>;
 }

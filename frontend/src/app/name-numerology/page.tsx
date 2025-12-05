@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TypeIcon, SparklesIcon, ChevronRightIcon } from 'lucide-react';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 export default function NameNumerology() {
+  const { tier } = useSubscription();
   const [name, setName] = useState('');
   const [showResults, setShowResults] = useState(false);
   const nameAnalysis = {
@@ -31,8 +33,6 @@ export default function NameNumerology() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex flex-col relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <main className="flex-1 section-spacing px-4 md:px-6 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -96,7 +96,8 @@ export default function NameNumerology() {
           </motion.div>
 
           {/* Results */}
-          {showResults && <motion.div initial={{
+          {showResults && <SubscriptionGate feature="name-numerology" requiredTier="basic" showPreview={tier === 'free'}>
+            <motion.div initial={{
           opacity: 0,
           y: 20
         }} animate={{
@@ -190,7 +191,8 @@ export default function NameNumerology() {
                   </div>
                 </div>
               </MagneticCard>
-            </motion.div>}
+            </motion.div>
+          </SubscriptionGate>}
         </div>
       </main>
     </div>;

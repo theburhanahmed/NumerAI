@@ -8,7 +8,7 @@ import { LockIcon } from 'lucide-react';
 
 interface SubscriptionGateProps {
   feature: string;
-  requiredTier: 'free' | 'premium' | 'enterprise';
+  requiredTier: 'free' | 'basic' | 'premium' | 'enterprise' | 'elite';
   showPreview?: boolean;
   children: React.ReactNode;
 }
@@ -21,13 +21,27 @@ export function SubscriptionGate({
 }: SubscriptionGateProps) {
   const { tier, hasAccess } = useSubscription();
   
+  // Map backend tiers to frontend tiers
+  // Backend: free, basic, premium, elite
+  // Frontend: free, premium, enterprise
   const tierHierarchy: Record<string, number> = {
     free: 0,
-    premium: 1,
-    enterprise: 2,
+    basic: 1,  // Maps to premium in frontend
+    premium: 1,  // Maps to premium in frontend
+    enterprise: 2,  // Maps to elite in backend
+    elite: 2,  // Maps to enterprise in frontend
   };
+  
+  // Map frontend tier to backend tier for comparison
+  const frontendToBackendTier: Record<string, string> = {
+    free: 'free',
+    premium: 'premium',  // Could be basic or premium
+    enterprise: 'elite',
+  };
+  
+  const currentTier = frontendToBackendTier[tier] || tier;
 
-  const userTierLevel = tierHierarchy[tier] || 0;
+  const userTierLevel = tierHierarchy[currentTier] || tierHierarchy[tier] || 0;
   const requiredTierLevel = tierHierarchy[requiredTier] || 0;
   const hasRequiredAccess = userTierLevel >= requiredTierLevel;
 

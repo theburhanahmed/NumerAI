@@ -593,3 +593,53 @@ class PhoneReport(models.Model):
             prefix = phone_e164[:4]
             suffix = phone_e164[-4:]
             return f"{prefix}****{suffix}"
+
+
+class DetailedReading(models.Model):
+    """AI-generated detailed numerology readings for specific numbers."""
+    
+    READING_TYPE_CHOICES = [
+        ('life_path', 'Life Path'),
+        ('destiny', 'Destiny'),
+        ('soul_urge', 'Soul Urge'),
+        ('personality', 'Personality'),
+        ('attitude', 'Attitude'),
+        ('maturity', 'Maturity'),
+        ('balance', 'Balance'),
+        ('full_profile', 'Full Profile'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='detailed_readings')
+    
+    # Reading details
+    reading_type = models.CharField(max_length=50, choices=READING_TYPE_CHOICES)
+    number = models.IntegerField(help_text="The numerology number this reading is for")
+    
+    # AI-generated content
+    detailed_interpretation = models.TextField(help_text="Comprehensive AI-generated interpretation")
+    career_insights = models.TextField(null=True, blank=True, help_text="Career-related insights")
+    relationship_insights = models.TextField(null=True, blank=True, help_text="Relationship-related insights")
+    life_purpose = models.TextField(null=True, blank=True, help_text="Life purpose and mission")
+    challenges_and_growth = models.TextField(null=True, blank=True, help_text="Challenges and growth opportunities")
+    personalized_advice = models.TextField(null=True, blank=True, help_text="Personalized actionable advice")
+    
+    # Metadata
+    generated_at = models.DateTimeField(auto_now_add=True)
+    generated_by_ai = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'detailed_readings'
+        verbose_name = 'Detailed Reading'
+        verbose_name_plural = 'Detailed Readings'
+        ordering = ['-generated_at']
+        indexes = [
+            models.Index(fields=['user', 'reading_type']),
+            models.Index(fields=['user', 'number']),
+            models.Index(fields=['generated_at']),
+        ]
+        unique_together = ['user', 'reading_type', 'number']
+    
+    def __str__(self):
+        return f"Detailed {self.get_reading_type_display()} Reading for {self.user} (Number {self.number})"

@@ -531,3 +531,63 @@ def generate_phone_report(
     except Exception as e:
         logger.error(f'Error generating phone report for user {user_id}: {e}', exc_info=True)
         return {'error': str(e)}
+
+
+@shared_task
+def generate_detailed_readings_for_profile(user_id):
+    """
+    Generate AI-powered detailed readings for all core numerology numbers.
+    This task is triggered after a numerology profile is calculated.
+    
+    Args:
+        user_id: User UUID
+        
+    Returns:
+        Dictionary with generation results
+    """
+    try:
+        from accounts.models import User
+        from .models import NumerologyProfile
+        from .ai_reading_generator import generate_all_detailed_readings
+        
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        logger.error(f'User {user_id} not found')
+        return {'error': 'User not found'}
+    
+    try:
+        # Verify profile exists
+        try:
+            profile = NumerologyProfile.objects.get(user=user)
+        except NumerologyProfile.DoesNotExist:
+            logger.error(f'Numerology profile not found for user {user_id}')
+            return {'error': 'Numerology profile not found'}
+        
+        # Generate all detailed readings
+        readings = generate_all_detailed_readings(user)
+        
+        # Count successful generations
+        successful = sum(1 for r in readings.values() if r is not None)
+        total = len(readings)
+        
+        logger.info(
+            f'Generated {successful}/{total} detailed readings for user {user_id}'
+        )
+        
+        return {
+            'status': 'completed',
+            'user_id': str(user_id),
+            'successful': successful,
+            'total': total,
+            'readings': {
+                k: str(v.id) if v else None 
+                for k, v in readings.items()
+            }
+        }
+        
+    except Exception as e:
+        logger.error(
+            f'Error generating detailed readings for user {user_id}: {e}',
+            exc_info=True
+        )
+        return {'error': str(e)}

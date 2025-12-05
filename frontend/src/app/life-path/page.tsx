@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { StarIcon, SparklesIcon, TrendingUpIcon, HeartIcon, BriefcaseIcon, BookOpenIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { AppNavbar } from '@/components/navigation/app-navbar';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
@@ -139,7 +138,6 @@ export default function LifePathAnalysis() {
       <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
         <AmbientParticles />
         <FloatingOrbs />
-        <AppNavbar />
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -155,7 +153,6 @@ export default function LifePathAnalysis() {
       <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
         <AmbientParticles />
         <FloatingOrbs />
-        <AppNavbar />
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
           <GlassCard className="p-8 text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
@@ -173,8 +170,6 @@ export default function LifePathAnalysis() {
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <AppNavbar />
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
         {/* Hero Section */}
         <motion.div initial={{
