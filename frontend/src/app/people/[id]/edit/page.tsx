@@ -97,13 +97,14 @@ export default function EditPersonPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10">
-        <div className="max-w-2xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-12 bg-white/50 dark:bg-gray-800/50 rounded w-1/3 mb-8"></div>
-            <div className="h-96 bg-white/50 dark:bg-gray-800/50 rounded-2xl"></div>
+        <AmbientParticles />
+        <FloatingOrbs />
+        <div className="relative z-10">
+          <div className="max-w-2xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-12 bg-white/50 dark:bg-gray-800/50 rounded w-1/3 mb-8"></div>
+              <div className="h-96 bg-white/50 dark:bg-gray-800/50 rounded-2xl"></div>
+            </div>
           </div>
         </div>
       </div>
