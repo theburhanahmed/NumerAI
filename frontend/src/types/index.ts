@@ -51,6 +51,7 @@ export interface LoginData {
   email?: string;
   phone?: string;
   password: string;
+  remember_me?: boolean;
 }
 
 export interface OTPVerificationData {

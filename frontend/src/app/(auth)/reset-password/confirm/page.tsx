@@ -8,14 +8,16 @@ import {
   LockIcon,
   EyeIcon,
   EyeOffIcon,
-  SparklesIcon
+  SparklesIcon,
+  AlertCircleIcon
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { useToast } from '@/components/ui/use-toast';
-import apiClient from '@/lib/api-client';
+import { authAPI } from '@/lib/api-client';
+import { useAuth } from '@/contexts/auth-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +25,7 @@ function ResetPasswordConfirmContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [passwordReset, setPasswordReset] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -32,6 +35,13 @@ function ResetPasswordConfirmContent() {
     new_password: '',
     confirm_password: '',
   });
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   // Get token from URL params
   useEffect(() => {
@@ -43,7 +53,26 @@ function ResetPasswordConfirmContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    // Validate token exists
+    if (!formData.token) {
+      toast({
+        title: 'Missing Token',
+        description: 'Reset token is required. Please use the link from your email.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate password length
+    if (formData.new_password.length < 8) {
+      toast({
+        title: 'Invalid Password',
+        description: 'Password must be at least 8 characters long',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     // Validate passwords match
     if (formData.new_password !== formData.confirm_password) {
@@ -52,12 +81,13 @@ function ResetPasswordConfirmContent() {
         description: 'Passwords do not match',
         variant: 'destructive',
       });
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+
     try {
-      await apiClient.post('/auth/reset-password/token/confirm/', {
+      await authAPI.confirmPasswordResetToken({
         token: formData.token,
         new_password: formData.new_password,
         confirm_password: formData.confirm_password,
@@ -69,9 +99,13 @@ function ResetPasswordConfirmContent() {
         description: 'Password reset successful. You can now login with your new password.',
       });
     } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.detail || 
+                          error.message || 
+                          'Failed to reset password. The token may be invalid or expired.';
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to reset password. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -119,6 +153,74 @@ function ResetPasswordConfirmContent() {
               >
                 Go to Login
               </GlassButton>
+            </div>
+          </GlassCard>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
+        <AmbientParticles />
+        <FloatingOrbs />
+        <div className="w-full max-w-md relative z-10 text-center">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no token
+  if (!formData.token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
+        <AmbientParticles />
+        <FloatingOrbs />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md relative z-10"
+        >
+          <div className="text-center mb-8">
+            <motion.div
+              className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <AlertCircleIcon className="w-8 h-8 text-white" />
+            </motion.div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mb-2">
+              Invalid Reset Link
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              The password reset link is missing or invalid
+            </p>
+          </div>
+
+          <GlassCard variant="elevated" className="p-8">
+            <div className="text-center space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Please use the link from your password reset email, or request a new reset link.
+              </p>
+              <div className="space-y-3">
+                <GlassButton
+                  onClick={() => router.push('/reset-password')}
+                  variant="primary"
+                  className="w-full"
+                >
+                  Request New Reset Link
+                </GlassButton>
+                <Link
+                  href="/login"
+                  className="block text-sm text-purple-600 dark:text-purple-400 hover:underline"
+                >
+                  ← Back to Login
+                </Link>
+              </div>
             </div>
           </GlassCard>
         </motion.div>

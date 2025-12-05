@@ -25,9 +25,16 @@ import { Trash2, Download, AlertTriangle } from 'lucide-react';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, loading, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent('/profile')}`);
+    }
+  }, [user, authLoading, router]);
   const [initialFormData, setInitialFormData] = useState({
     full_name: '',
     date_of_birth: '',
@@ -38,10 +45,10 @@ export default function ProfilePage() {
   });
   
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -62,7 +69,7 @@ export default function ProfilePage() {
   // Fetch profile data on component mount
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user || loading) return;
+      if (!user || authLoading) return;
       
       setProfileLoading(true);
       try {
@@ -108,7 +115,7 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [user, loading, toast]);
+  }, [user, authLoading, toast]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -232,7 +239,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading || profileLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
         <AmbientParticles />

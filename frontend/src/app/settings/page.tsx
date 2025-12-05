@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { UserIcon, BellIcon, ShieldIcon, CreditCardIcon, PaletteIcon, GlobeIcon, MailIcon, PhoneIcon, CalendarIcon, SaveIcon, MoonIcon, SunIcon, SparklesIcon } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
@@ -11,23 +12,72 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { userAPI } from '@/lib/api-client';
 import { toast } from 'sonner';
+
 export default function Settings() {
-  const {
-    theme,
-    toggleTheme
-  } = useTheme();
-  const {
-    user
-  } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('profile');
+  const [loading, setLoading] = useState(true);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent('/settings')}`);
+    }
+  }, [user, authLoading, router]);
+  
   // Form states
   const [profileData, setProfileData] = useState({
-    name: user?.full_name || 'Sarah Johnson',
-    email: user?.email || 'sarah@example.com',
-    phone: '+1 (555) 123-4567',
-    birthDate: '1990-03-15'
+    name: '',
+    email: '',
+    phone: '',
+    birthDate: ''
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await userAPI.getProfile();
+        const profileData = response.data?.user || response.data;
+        
+        if (profileData) {
+          // Format date_of_birth for date input (YYYY-MM-DD)
+          const formattedDate = profileData.date_of_birth 
+            ? new Date(profileData.date_of_birth).toISOString().split('T')[0]
+            : '';
+          
+          setProfileData({
+            name: profileData.full_name || user.full_name || '',
+            email: profileData.email || user.email || '',
+            phone: profileData.phone || '',
+            birthDate: formattedDate
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+        // Set from user object as fallback
+        setProfileData({
+          name: user?.full_name || '',
+          email: user?.email || '',
+          phone: '',
+          birthDate: ''
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
   const [notificationSettings, setNotificationSettings] = useState({
     dailyReadings: true,
     weeklyInsights: true,

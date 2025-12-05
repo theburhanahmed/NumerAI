@@ -51,7 +51,7 @@ export default function Forum() {
     author: 'Sarah Mitchell',
     avatar: 'SM',
     title: 'How accurate are Life Path Number predictions?',
-    content: "I've been following my Life Path 7 guidance for 6 months now, and I'm amazed at how accurate the predictions have been. Has anyone else experienced this?",
+    content: "I've been following my Life Path guidance for 6 months now, and I'm amazed at how accurate the predictions have been. Has anyone else experienced this?",
     category: 'Questions',
     likes: 42,
     comments: 18,

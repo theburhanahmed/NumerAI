@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SparklesIcon, SendIcon, BotIcon, UserIcon, MessageSquareIcon } from 'lucide-react';
 import { AppNavbar } from '@/components/navigation/app-navbar';
@@ -9,40 +9,81 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { numerologyAPI } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+
 interface Message {
   id: string;
   content: string;
   sender: 'user' | 'ai';
   timestamp: Date;
 }
+
 export default function AIChatPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const handleSendMessage = (e: React.FormEvent) => {
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent('/ai-chat')}`);
+    }
+  }, [user, authLoading, router]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isTyping) return;
+    
+    if (!user) {
+      toast.error('Please log in to use AI chat');
+      router.push('/login');
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage,
       sender: 'user',
       timestamp: new Date()
     };
-    setMessages([...messages, userMessage]);
+    
+    setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputMessage;
     setInputMessage('');
     setIsTyping(true);
-    setTimeout(() => {
+
+    try {
+      const response = await numerologyAPI.aiChat(messageToSend);
+      
+      // Store conversation ID if this is the first message
+      if (response.conversation_id && !conversationId) {
+        setConversationId(response.conversation_id);
+      }
+
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Based on your Life Path Number 7, you have a natural inclination towards introspection and spiritual growth. This is a great time to trust your intuition and seek deeper understanding.',
+        id: response.message.id || (Date.now() + 1).toString(),
+        content: response.message.content,
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(response.message.created_at || Date.now())
       };
+      
       setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
       toast.success('Response received');
-    }, 1500);
+    } catch (error: any) {
+      console.error('Failed to send message:', error);
+      toast.error(error.response?.data?.error || 'Failed to get response. Please try again.');
+      
+      // Remove the user message on error
+      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+    } finally {
+      setIsTyping(false);
+    }
   };
   const handleSuggestedQuestion = (question: string) => {
     setInputMessage(question);

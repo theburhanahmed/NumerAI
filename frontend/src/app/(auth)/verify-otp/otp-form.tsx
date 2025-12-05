@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { authAPI } from '@/lib/api-client';
 import { motion } from 'framer-motion';
 import { 
   MailIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  AlertCircleIcon
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassButton } from '@/components/ui/glass-button';
@@ -20,11 +21,30 @@ interface OTPFormProps {
 
 export default function OTPForm({ email, phone }: OTPFormProps) {
   const router = useRouter();
-  const { verifyOTP } = useAuth();
+  const { verifyOTP, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [otp, setOtp] = useState('');
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
+
+  // Validate email/phone is provided
+  useEffect(() => {
+    if (!authLoading && !email && !phone) {
+      toast({
+        title: 'Missing Information',
+        description: 'Email or phone number is required for verification. Please register first.',
+        variant: 'destructive',
+      });
+      router.push('/register');
+    }
+  }, [email, phone, authLoading, router, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +87,32 @@ export default function OTPForm({ email, phone }: OTPFormProps) {
     }
   };
 
+  // Show error if no email/phone
+  if (!email && !phone) {
+    return (
+      <GlassCard variant="elevated" className="p-8">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <AlertCircleIcon className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Missing Information
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Email or phone number is required for verification.
+          </p>
+          <GlassButton
+            onClick={() => router.push('/register')}
+            variant="primary"
+            className="w-full"
+          >
+            Go to Registration
+          </GlassButton>
+        </div>
+      </GlassCard>
+    );
+  }
+
   return (
     <GlassCard variant="elevated" className="p-8">
       <div className="text-center mb-6">
@@ -78,7 +124,7 @@ export default function OTPForm({ email, phone }: OTPFormProps) {
         </p>
         <p className="font-medium text-gray-900 dark:text-white flex items-center justify-center gap-2 mt-1">
           <MailIcon className="w-4 h-4" />
-          {email || phone || 'your account'}
+          {email || phone}
         </p>
       </div>
       

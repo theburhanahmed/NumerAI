@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SparklesIcon, MailIcon, LockIcon, EyeIcon, EyeOffIcon, MoonIcon, SunIcon, CheckCircleIcon, AlertCircleIcon } from 'lucide-react';
@@ -19,9 +19,20 @@ import { toast } from 'sonner';
 export default function Login() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   
+  const searchParams = useSearchParams();
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!authLoading && user) {
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      router.push(redirect);
+    }
+  }, [user, authLoading, router, searchParams]);
+
   const {
     values,
     errors,
@@ -43,12 +54,15 @@ export default function Login() {
       try {
         await login({
           email: formValues.email,
-          password: formValues.password
+          password: formValues.password,
+          remember_me: rememberMe
         } as LoginData);
         toast.success('Welcome back!', {
           description: 'Successfully signed in'
         });
-        router.push('/dashboard');
+        // Check for redirect URL
+        const redirect = searchParams.get('redirect') || '/dashboard';
+        router.push(redirect);
       } catch (error: any) {
         if (error.requiresVerification) {
           const params = new URLSearchParams();
@@ -256,6 +270,8 @@ export default function Login() {
                   <label className="flex items-center cursor-pointer group">
                     <input
                       type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                       className="w-4 h-4 text-purple-600 border-gray-300 dark:border-white/20 rounded focus:ring-purple-500 cursor-pointer bg-white/50 dark:bg-white/10"
                     />
                     <span className="ml-2 text-sm text-gray-600 dark:text-white/70 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">

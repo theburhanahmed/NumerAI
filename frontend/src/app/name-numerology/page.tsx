@@ -13,7 +13,7 @@ export default function NameNumerology() {
   const [name, setName] = useState('');
   const [showResults, setShowResults] = useState(false);
   const nameAnalysis = {
-    name: name || 'Sarah Mitchell',
+    name: name || '',
     expressionNumber: 7,
     soulUrgeNumber: 11,
     personalityNumber: 5,

@@ -11,44 +11,41 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { expertAPI } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
+import type { Expert } from '@/lib/numerology-api';
+import { useEffect } from 'react';
+
 export default function Consultations() {
   const router = useRouter();
-  const [selectedExpert, setSelectedExpert] = useState<number | null>(null);
-  const experts = [{
-    id: 1,
-    name: 'Dr. Maya Patel',
-    title: 'Master Numerologist',
-    experience: '15 years',
-    rating: 4.9,
-    reviews: 234,
-    specialties: ['Life Path Analysis', 'Career Guidance', 'Relationship Compatibility'],
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-    price: 150,
-    availability: 'Available Today'
-  }, {
-    id: 2,
-    name: 'James Chen',
-    title: 'Spiritual Numerologist',
-    experience: '12 years',
-    rating: 4.8,
-    reviews: 189,
-    specialties: ['Spiritual Growth', 'Personal Year Cycles', 'Name Analysis'],
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-    price: 120,
-    availability: 'Next Available: Tomorrow'
-  }, {
-    id: 3,
-    name: 'Sarah Williams',
-    title: 'Business Numerologist',
-    experience: '10 years',
-    rating: 4.9,
-    reviews: 156,
-    specialties: ['Business Strategy', 'Brand Numerology', 'Financial Timing'],
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
-    price: 180,
-    availability: 'Available Today'
-  }];
+  const { user } = useAuth();
+  const [selectedExpert, setSelectedExpert] = useState<string | null>(null);
+  const [experts, setExperts] = useState<Expert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExperts = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const expertsList = await expertAPI.getExperts();
+        setExperts(expertsList);
+      } catch (error) {
+        console.error('Failed to fetch experts:', error);
+        toast.error('Failed to load experts');
+        setExperts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExperts();
+  }, [user]);
   const consultationTypes = [{
     icon: <VideoIcon className="w-6 h-6" />,
     title: 'Video Consultation',
@@ -65,11 +62,29 @@ export default function Consultations() {
     duration: '30 minutes',
     description: 'Continue your journey with ongoing guidance'
   }];
-  const handleBookConsultation = (expertName: string) => {
-    toast.success(`Consultation request sent to ${expertName}!`, {
+  const handleBookConsultation = (expertId: string) => {
+    const expert = experts.find(e => e.id === expertId);
+    toast.success(`Consultation request sent to ${expert?.name || 'expert'}!`, {
       description: 'You will receive a confirmation email shortly'
     });
   };
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
+        <AmbientParticles />
+        <FloatingOrbs />
+        <AppNavbar />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading experts...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
@@ -172,8 +187,15 @@ export default function Consultations() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Our Expert Numerologists
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {experts.map((expert, index) => <motion.div key={expert.id} initial={{
+          {experts.length === 0 ? (
+            <GlassCard className="p-8 text-center">
+              <p className="text-gray-600 dark:text-gray-400">
+                No experts available at the moment. Please check back later.
+              </p>
+            </GlassCard>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {experts.map((expert, index) => (<motion.div key={expert.id} initial={{
             opacity: 0,
             y: 20
           }} animate={{
@@ -188,13 +210,19 @@ export default function Consultations() {
                       <motion.div className="relative w-20 h-20" whileHover={{
                     scale: 1.05
                   }}>
-                        <Image 
-                          src={expert.image} 
-                          alt={expert.name} 
-                          width={80}
-                          height={80}
-                          className="rounded-2xl object-cover" 
-                        />
+                        {expert.profile_picture_url ? (
+                          <Image 
+                            src={expert.profile_picture_url} 
+                            alt={expert.name} 
+                            width={80}
+                            height={80}
+                            className="rounded-2xl object-cover" 
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
+                            {expert.name.charAt(0)}
+                          </div>
+                        )}
                         <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
                           <CheckCircleIcon className="w-5 h-5" />
                         </div>
@@ -203,19 +231,16 @@ export default function Consultations() {
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                           {expert.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          {expert.title}
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 capitalize">
+                          {expert.specialty} Numerologist
                         </p>
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1">
                             <StarIcon className="w-4 h-4 fill-amber-400 text-amber-400" />
                             <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                              {expert.rating}
+                              {expert.rating?.toFixed(1) || 'N/A'}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
-                            ({expert.reviews} reviews)
-                          </span>
                         </div>
                       </div>
                     </div>
@@ -225,46 +250,46 @@ export default function Consultations() {
                         <div className="flex items-center gap-2 mb-2">
                           <ClockIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                           <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {expert.experience} Experience
+                            {expert.experience_years} years Experience
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <CalendarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {expert.availability}
-                          </span>
-                        </div>
+                        {expert.bio && (
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                            {expert.bio.substring(0, 100)}...
+                          </p>
+                        )}
                       </div>
                     </GlassCard>
 
                     <div className="mb-4">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                        Specialties
+                        Specialty
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {expert.specialties.map((specialty, idx) => <span key={idx} className="px-3 py-1 bg-purple-500/20 rounded-full text-xs font-medium text-gray-800 dark:text-gray-200">
-                            {specialty}
-                          </span>)}
+                        <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs font-medium text-gray-800 dark:text-gray-200 capitalize">
+                          {expert.specialty}
+                        </span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Starting at
+                          Status
                         </p>
-                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                          ${expert.price}
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {expert.is_active ? 'Available' : 'Unavailable'}
                         </p>
                       </div>
-                      <GlassButton variant="liquid" size="sm" onClick={() => handleBookConsultation(expert.name)} className="glass-glow">
+                      <GlassButton variant="liquid" size="sm" onClick={() => handleBookConsultation(expert.id)} className="glass-glow" disabled={!expert.is_active}>
                         Book Now
                       </GlassButton>
                     </div>
                   </div>
                 </MagneticCard>
-              </motion.div>)}
+              </motion.div>))}
           </div>
+          )}
         </motion.div>
 
         {/* FAQ Section */}

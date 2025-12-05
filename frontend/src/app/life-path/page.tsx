@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { StarIcon, SparklesIcon, TrendingUpIcon, HeartIcon, BriefcaseIcon, BookOpenIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -10,9 +10,25 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { numerologyAPI } from '@/lib/numerology-api';
+import type { LifePathAnalysis } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
+import { toast } from 'sonner';
+
 export default function LifePathAnalysis() {
   const router = useRouter();
-  const [selectedPath, setSelectedPath] = useState(7);
+  const { user, loading: authLoading } = useAuth();
+  const [selectedPath, setSelectedPath] = useState<number | null>(null);
+  const [lifePathAnalysis, setLifePathAnalysis] = useState<LifePathAnalysis | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent('/life-path')}`);
+    }
+  }, [user, authLoading, router]);
   const lifePaths = [{
     number: 1,
     title: 'The Leader',
@@ -59,7 +75,101 @@ export default function LifePathAnalysis() {
     description: 'Compassionate, idealistic, and generous',
     color: 'from-teal-500 to-cyan-600'
   }];
+
+  useEffect(() => {
+    const fetchUserLifePath = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await numerologyAPI.getProfile();
+        if (profile?.life_path_number) {
+          setSelectedPath(profile.life_path_number);
+          // Fetch detailed analysis for user's life path
+          try {
+            setAnalysisLoading(true);
+            const analysis = await numerologyAPI.getLifePathAnalysis();
+            setLifePathAnalysis(analysis);
+          } catch (error) {
+            console.error('Failed to fetch life path analysis:', error);
+          } finally {
+            setAnalysisLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch numerology profile:', error);
+        toast.error('Failed to load your life path. Please calculate your profile first.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserLifePath();
+  }, [user]);
+
+  const handlePathChange = async (pathNumber: number) => {
+    setSelectedPath(pathNumber);
+    // If changing to user's actual path, fetch analysis
+    if (user) {
+      try {
+        const profile = await numerologyAPI.getProfile();
+        if (profile?.life_path_number === pathNumber) {
+          setAnalysisLoading(true);
+          const analysis = await numerologyAPI.getLifePathAnalysis();
+          setLifePathAnalysis(analysis);
+          setAnalysisLoading(false);
+        } else {
+          // For other paths, clear analysis
+          setLifePathAnalysis(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch analysis:', error);
+        setLifePathAnalysis(null);
+      }
+    }
+  };
+
   const selected = lifePaths.find(p => p.number === selectedPath);
+  const currentAnalysis = lifePathAnalysis && selectedPath === lifePathAnalysis.number ? lifePathAnalysis : null;
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
+        <AmbientParticles />
+        <FloatingOrbs />
+        <AppNavbar />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading your life path...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedPath) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
+        <AmbientParticles />
+        <FloatingOrbs />
+        <AppNavbar />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
+          <GlassCard className="p-8 text-center">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Please calculate your numerology profile first to see your life path.
+            </p>
+            <GlassButton onClick={() => router.push('/dashboard')}>
+              Go to Dashboard
+            </GlassButton>
+          </GlassCard>
+        </div>
+      </div>
+    );
+  }
+
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
@@ -104,7 +214,7 @@ export default function LifePathAnalysis() {
             Explore All Life Paths
           </h3>
           <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
-            {lifePaths.map((path, index) => <motion.button key={path.number} onClick={() => setSelectedPath(path.number)} className={`p-4 rounded-2xl backdrop-blur-xl border transition-all ${selectedPath === path.number ? 'bg-gradient-to-r ' + path.color + ' text-white border-white/30 shadow-xl scale-105' : 'bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-white/20 text-gray-900 dark:text-white'}`} initial={{
+            {lifePaths.map((path, index) => <motion.button key={path.number} onClick={() => handlePathChange(path.number)} className={`p-4 rounded-2xl backdrop-blur-xl border transition-all ${selectedPath === path.number ? 'bg-gradient-to-r ' + path.color + ' text-white border-white/30 shadow-xl scale-105' : 'bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-white/20 text-gray-900 dark:text-white'}`} initial={{
             opacity: 0,
             scale: 0.8
           }} animate={{
@@ -149,43 +259,39 @@ export default function LifePathAnalysis() {
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                       Strengths
                     </h4>
-                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full" />
-                        Deep analytical thinking
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full" />
-                        Strong intuition
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full" />
-                        Spiritual awareness
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full" />
-                        Independent nature
-                      </li>
-                    </ul>
+                    {analysisLoading ? (
+                      <p className="text-sm text-gray-500">Loading...</p>
+                    ) : currentAnalysis?.strengths && currentAnalysis.strengths.length > 0 ? (
+                      <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                        {currentAnalysis.strengths.map((strength, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full" />
+                            {strength}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">Calculate your profile to see personalized strengths</p>
+                    )}
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
                       Challenges
                     </h4>
-                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                        Can be overly critical
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                        May isolate from others
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                        Difficulty trusting
-                      </li>
-                    </ul>
+                    {analysisLoading ? (
+                      <p className="text-sm text-gray-500">Loading...</p>
+                    ) : currentAnalysis?.challenges && currentAnalysis.challenges.length > 0 ? (
+                      <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                        {currentAnalysis.challenges.map((challenge, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-amber-500 rounded-full" />
+                            {challenge}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">Calculate your profile to see personalized challenges</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -220,8 +326,7 @@ export default function LifePathAnalysis() {
                         </h4>
                       </div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Seeks deep, meaningful connections with intellectual
-                        compatibility
+                        {currentAnalysis?.relationships || selected?.description || 'Calculate your profile to see personalized insights'}
                       </p>
                     </div>
                   </GlassCard>
@@ -235,8 +340,9 @@ export default function LifePathAnalysis() {
                         </h4>
                       </div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Excel in research, analysis, teaching, and spiritual
-                        counseling
+                        {currentAnalysis?.career && currentAnalysis.career.length > 0 
+                          ? currentAnalysis.career.join(', ')
+                          : selected?.description || 'Calculate your profile to see personalized career insights'}
                       </p>
                     </div>
                   </GlassCard>
@@ -250,7 +356,7 @@ export default function LifePathAnalysis() {
                         </h4>
                       </div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Focus on spiritual development and inner wisdom
+                        {currentAnalysis?.advice || selected?.description || 'Calculate your profile to see personalized growth insights'}
                       </p>
                     </div>
                   </GlassCard>
@@ -278,7 +384,7 @@ export default function LifePathAnalysis() {
               <p className="text-gray-700 dark:text-gray-300 mb-6">
                 Get a detailed report with personalized insights and guidance
               </p>
-              <GlassButton variant="liquid" size="lg" onClick={() => router.push('/report')} className="glass-glow">
+              <GlassButton variant="liquid" size="lg" onClick={() => router.push('/numerology-report')} className="glass-glow">
                 View Full Report
               </GlassButton>
             </div>

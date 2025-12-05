@@ -1472,11 +1472,16 @@ def get_weekly_report(request, week_start_date_str=None, person_id=None):
         from .services.weekly_report_generator import get_weekly_report_generator
         
         # Parse week start date
+        today = date.today()
         if week_start_date_str:
             week_start_date = dt.strptime(week_start_date_str, '%Y-%m-%d').date()
+            # Validate: don't allow future dates
+            if week_start_date > today:
+                return Response({
+                    'error': 'Cannot generate report for future dates'
+                }, status=status.HTTP_400_BAD_REQUEST)
         else:
             # Default to current week (Sunday)
-            today = date.today()
             days_since_sunday = today.weekday() + 1  # Monday=0, Sunday=6, so +1
             week_start_date = today - timedelta(days=days_since_sunday % 7)
         

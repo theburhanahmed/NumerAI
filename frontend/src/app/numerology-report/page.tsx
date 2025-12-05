@@ -10,6 +10,8 @@ import { MagneticCard } from '@/components/ui/magnetic-card';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { SubscriptionPricingCards } from '@/components/SubscriptionPricingCards';
 import { useSubscription, SubscriptionTier } from '@/contexts/SubscriptionContext';
+import { numerologyAPI } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
 type ReportStep = 'input' | 'subscription' | 'report';
 export default function NumerologyReport() {
@@ -256,9 +258,44 @@ function ReportContent({
 }: {
   formData: any;
 }) {
-  const {
-    tier
-  } = useSubscription();
+  const { tier } = useSubscription();
+  const { user } = useAuth();
+  const [numerologyProfile, setNumerologyProfile] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const profile = await numerologyAPI.getProfile();
+        setNumerologyProfile(profile);
+      } catch (error) {
+        console.error('Failed to fetch numerology profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const lifePathNumber = numerologyProfile?.life_path_number;
+  const lifePathTitles: Record<number, string> = {
+    1: 'The Leader',
+    2: 'The Peacemaker',
+    3: 'The Creative',
+    4: 'The Builder',
+    5: 'The Adventurer',
+    6: 'The Nurturer',
+    7: 'The Seeker',
+    8: 'The Powerhouse',
+    9: 'The Humanitarian',
+    11: 'The Intuitive',
+    22: 'The Master Builder',
+    33: 'The Master Teacher'
+  };
+
   return <>
       {/* Subscription Tier Badge */}
       <motion.div initial={{
@@ -314,13 +351,19 @@ function ReportContent({
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-              <CoreNumberCard label="Life Path" number="7" delay={0.2} />
-              <CoreNumberCard label="Expression" number="3" delay={0.3} />
-              <CoreNumberCard label="Soul Urge" number="5" delay={0.4} />
-              <CoreNumberCard label="Personality" number="9" delay={0.5} />
-              <CoreNumberCard label="Birth Day" number="6" delay={0.6} />
-            </div>
+            {numerologyProfile ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+                <CoreNumberCard label="Life Path" number={numerologyProfile.life_path_number?.toString() || '-'} delay={0.2} />
+                <CoreNumberCard label="Expression" number={numerologyProfile.destiny_number?.toString() || '-'} delay={0.3} />
+                <CoreNumberCard label="Soul Urge" number={numerologyProfile.soul_urge_number?.toString() || '-'} delay={0.4} />
+                <CoreNumberCard label="Personality" number={numerologyProfile.personality_number?.toString() || '-'} delay={0.5} />
+                <CoreNumberCard label="Birth Day" number={numerologyProfile.personality_number?.toString() || '-'} delay={0.6} />
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-white/80 text-sm">Calculate your profile to see your numbers</p>
+              </div>
+            )}
           </div>
         </GlassCard>
       </motion.div>
@@ -343,18 +386,22 @@ function ReportContent({
               </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                  Life Path Number 7
+                  {lifePathNumber ? `Life Path Number ${lifePathNumber}` : 'Life Path Number'}
                 </h2>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                  The Seeker
+                  {lifePathNumber ? lifePathTitles[lifePathNumber] || 'Your Path' : 'Calculate your profile to see your life path'}
                 </p>
               </div>
             </div>
-            <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-              As a Life Path 7, you are a natural seeker of truth and wisdom.
-              You possess a deep, analytical mind and are drawn to understanding
-              the mysteries of life.
-            </p>
+            {lifePathNumber ? (
+              <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                As a Life Path {lifePathNumber}, you are on a unique journey. {lifePathNumber === 7 ? 'You are a natural seeker of truth and wisdom. You possess a deep, analytical mind and are drawn to understanding the mysteries of life.' : 'Your life path offers unique opportunities for growth and understanding.'}
+              </p>
+            ) : (
+              <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Calculate your numerology profile to see your personalized life path analysis.
+              </p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <GlassCard variant="liquid" className="p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/10">
                 <div className="liquid-glass-content">

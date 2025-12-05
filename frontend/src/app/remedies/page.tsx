@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { SparklesIcon, GemIcon, PaletteIcon, FlowerIcon, ClockIcon, CheckCircleIcon } from 'lucide-react';
@@ -10,9 +10,35 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { numerologyAPI } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
+
 export default function Remedies() {
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('gemstones');
+  const [lifePathNumber, setLifePathNumber] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLifePath = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await numerologyAPI.getProfile();
+        setLifePathNumber(profile?.life_path_number || null);
+      } catch (error) {
+        console.error('Failed to fetch numerology profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLifePath();
+  }, [user]);
   const gemstones = [{
     name: 'Amethyst',
     number: 7,
@@ -160,7 +186,10 @@ export default function Remedies() {
         delay: 0.2
       }}>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Recommended Gemstones for Life Path 7
+              {lifePathNumber 
+                ? `Recommended Gemstones for Life Path ${lifePathNumber}`
+                : 'Recommended Gemstones'
+              }
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {gemstones.map((gem, index) => <motion.div key={gem.name} initial={{

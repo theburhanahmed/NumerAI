@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UsersIcon, PlusIcon, HeartIcon, BriefcaseIcon, HomeIcon, UserIcon, CalendarIcon, SparklesIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
 import { AppNavbar } from '@/components/navigation/app-navbar';
@@ -9,47 +9,86 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { peopleAPI, numerologyAPI } from '@/lib/numerology-api';
+import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import type { Person as APIPerson } from '@/lib/numerology-api';
+
 interface Person {
   id: string;
   name: string;
   birthDate: string;
   relationship: 'family' | 'friend' | 'partner' | 'colleague' | 'other';
-  lifePathNumber: number;
-  personalYear: number;
-  compatibility: number;
+  lifePathNumber?: number;
+  personalYear?: number;
+  compatibility?: number;
 }
+
 export default function PeopleManager() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [newPerson, setNewPerson] = useState({
     name: '',
     birthDate: '',
     relationship: 'friend' as const
   });
-  const [people, setPeople] = useState<Person[]>([{
-    id: '1',
-    name: 'Sarah Mitchell',
-    birthDate: '1990-05-15',
-    relationship: 'partner',
-    lifePathNumber: 7,
-    personalYear: 5,
-    compatibility: 92
-  }, {
-    id: '2',
-    name: 'Michael Chen',
-    birthDate: '1988-11-22',
-    relationship: 'friend',
-    lifePathNumber: 11,
-    personalYear: 3,
-    compatibility: 85
-  }, {
-    id: '3',
-    name: 'Emma Rodriguez',
-    birthDate: '1992-03-08',
-    relationship: 'colleague',
-    lifePathNumber: 5,
-    personalYear: 7,
-    compatibility: 78
-  }]);
+  const [people, setPeople] = useState<Person[]>([]);
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    fetchPeople();
+  }, [user, router]);
+
+  const fetchPeople = async () => {
+    try {
+      setLoading(true);
+      const apiPeople = await peopleAPI.getPeople();
+      
+      // Transform API people to local format
+      const transformedPeople: Person[] = await Promise.all(
+        apiPeople.map(async (person: APIPerson) => {
+          let lifePathNumber: number | undefined;
+          let personalYear: number | undefined;
+          
+          try {
+            const profile = await peopleAPI.getPersonNumerologyProfile(person.id);
+            if (profile) {
+              lifePathNumber = profile.life_path_number;
+              personalYear = profile.personal_year_number;
+            }
+          } catch (error) {
+            // Profile not calculated yet
+          }
+          
+          return {
+            id: person.id,
+            name: person.name,
+            birthDate: person.birth_date,
+            relationship: person.relationship as any,
+            lifePathNumber,
+            personalYear,
+            compatibility: undefined // Would need compatibility API
+          };
+        })
+      );
+      
+      setPeople(transformedPeople);
+    } catch (error) {
+      console.error('Failed to fetch people:', error);
+      toast.error('Failed to load people');
+      setPeople([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const relationshipIcons = {
     family: <HomeIcon className="w-5 h-5" />,
     friend: <UsersIcon className="w-5 h-5" />,

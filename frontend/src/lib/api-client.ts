@@ -155,11 +155,19 @@ export const authAPI = {
   refreshToken: (refreshToken: string) =>
     apiClient.post('/auth/refresh-token/', { refresh: refreshToken }),
 
+  // OTP-based password reset (legacy, kept for compatibility)
   requestPasswordReset: (email: string) =>
     apiClient.post('/auth/password-reset/', { email }),
 
   confirmPasswordReset: (data: { email: string; otp: string; new_password: string }) =>
     apiClient.post('/auth/password-reset/confirm/', data),
+
+  // Token-based password reset (recommended)
+  requestPasswordResetToken: (email: string) =>
+    apiClient.post('/auth/reset-password/token/', { email }),
+
+  confirmPasswordResetToken: (data: { token: string; new_password: string; confirm_password: string }) =>
+    apiClient.post('/auth/reset-password/token/confirm/', data),
 
   googleOAuth: (accessToken: string) =>
     apiClient.post('/auth/social/google/', { access_token: accessToken }),

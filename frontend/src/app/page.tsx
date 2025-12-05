@@ -15,7 +15,6 @@ import {
   MinusIcon,
   ArrowRightIcon
 } from 'lucide-react';
-import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingFooter } from '@/components/landing/landing-footer';
 import { GlassButton } from '@/components/ui/glass-button';
 import { LiquidGlassHero } from '@/components/ui/liquid-glass-hero';
@@ -30,7 +29,6 @@ export default function Home() {
     <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
-      <LandingNav />
 
       {/* Enhanced Hero Section */}
       <LiquidGlassHero 

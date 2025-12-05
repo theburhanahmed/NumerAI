@@ -12,31 +12,140 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/auth-context';
+import { numerologyAPI } from '@/lib/numerology-api';
+import { userAPI } from '@/lib/api-client';
 import { toast } from 'sonner';
+
+interface UserProfile {
+  full_name?: string;
+  date_of_birth?: string;
+  email?: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
-  const {
-    user
-  } = useAuth();
-  const {
-    isOnboardingComplete
-  } = useOnboarding();
+  const { user, loading: authLoading } = useAuth();
+  const { isOnboardingComplete } = useOnboarding();
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [numerologyProfile, setNumerologyProfile] = useState<any>(null);
+  const [dailyReading, setDailyReading] = useState<any>(null);
+  const [weeklyReport, setWeeklyReport] = useState<any>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  // Redirect unauthenticated users
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
+    if (!authLoading && !user) {
+      router.push(`/login?redirect=${encodeURIComponent('/dashboard')}`);
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setDataLoading(true);
+        
+        // Fetch user profile
+        try {
+          const profileResponse = await userAPI.getProfile();
+          const profileData = profileResponse.data?.user || profileResponse.data;
+          setUserProfile(profileData || {});
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+
+        // Fetch numerology profile
+        try {
+          const numerologyData = await numerologyAPI.getProfile();
+          setNumerologyProfile(numerologyData);
+        } catch (error) {
+          console.error('Failed to fetch numerology profile:', error);
+        }
+
+        // Fetch today's daily reading
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const reading = await numerologyAPI.getDailyReading(today);
+          setDailyReading(reading);
+        } catch (error) {
+          console.error('Failed to fetch daily reading:', error);
+        }
+
+        // Fetch weekly report
+        try {
+          const weekStart = new Date();
+          const daysSinceSunday = weekStart.getDay();
+          weekStart.setDate(weekStart.getDate() - daysSinceSunday);
+          const weekStartStr = weekStart.toISOString().split('T')[0];
+          const weekly = await numerologyAPI.getWeeklyReport(weekStartStr);
+          setWeeklyReport(weekly);
+        } catch (error) {
+          console.error('Failed to fetch weekly report:', error);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setDataLoading(false);
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  useEffect(() => {
+    if (!isLoading && !dataLoading) {
       // Check if user needs onboarding
       if (user && !user.hasCompletedOnboarding && !isOnboardingComplete) {
         setShowOnboarding(true);
-      } else {
-        toast.success('Welcome back, Sarah!', {
-          description: 'Your daily reading is ready'
+      } else if (user && userProfile) {
+        const userName = userProfile.full_name || user.full_name || 'there';
+        toast.success(`Welcome back, ${userName.split(' ')[0]}!`, {
+          description: dailyReading ? 'Your daily reading is ready' : 'Welcome to your dashboard'
         });
       }
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [user, isOnboardingComplete]);
+    }
+  }, [isLoading, dataLoading, user, userProfile, dailyReading, isOnboardingComplete]);
+
+  const formatBirthDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    } catch {
+      return null;
+    }
+  };
+
+  const getUserName = () => {
+    if (userProfile?.full_name) return userProfile.full_name.split(' ')[0];
+    if (user?.full_name) return user.full_name.split(' ')[0];
+    return 'there';
+  };
+
+  const getLuckyColorStyle = (color?: string) => {
+    if (!color) return 'from-yellow-400 to-amber-500';
+    const colorMap: Record<string, string> = {
+      'red': 'from-red-400 to-red-600',
+      'blue': 'from-blue-400 to-blue-600',
+      'green': 'from-green-400 to-green-600',
+      'yellow': 'from-yellow-400 to-yellow-600',
+      'purple': 'from-purple-400 to-purple-600',
+      'pink': 'from-pink-400 to-pink-600',
+      'orange': 'from-orange-400 to-orange-600',
+      'gold': 'from-yellow-400 to-amber-500',
+      'silver': 'from-gray-300 to-gray-500',
+      'white': 'from-gray-100 to-gray-300',
+      'black': 'from-gray-700 to-gray-900',
+    };
+    return colorMap[color.toLowerCase()] || 'from-yellow-400 to-amber-500';
+  };
   if (isLoading) {
     return <PageLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -82,23 +191,33 @@ export default function Dashboard() {
                       }} transition={{
                         delay: 0.2
                       }}>
-                          Welcome, Sarah
+                          Welcome, {getUserName()}
                         </motion.h2>
-                        <p className="text-white/80 text-sm md:text-base">
-                          Born: March 15, 1990
-                        </p>
+                        {userProfile?.date_of_birth && (
+                          <p className="text-white/80 text-sm md:text-base">
+                            Born: {formatBirthDate(userProfile.date_of_birth)}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <GlassButton variant="secondary" size="sm">
+                    <GlassButton variant="secondary" size="sm" onClick={() => router.push('/profile')}>
                       Edit Profile
                     </GlassButton>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                    <AnimatedNumber number="7" label="Life Path" delay={0.3} />
-                    <AnimatedNumber number="3" label="Destiny" delay={0.4} />
-                    <AnimatedNumber number="5" label="Soul Urge" delay={0.5} />
-                    <AnimatedNumber number="9" label="Personality" delay={0.6} />
-                  </div>
+                  {numerologyProfile ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                      <AnimatedNumber number={numerologyProfile.life_path_number?.toString() || '-'} label="Life Path" delay={0.3} />
+                      <AnimatedNumber number={numerologyProfile.destiny_number?.toString() || '-'} label="Destiny" delay={0.4} />
+                      <AnimatedNumber number={numerologyProfile.soul_urge_number?.toString() || '-'} label="Soul Urge" delay={0.5} />
+                      <AnimatedNumber number={numerologyProfile.personality_number?.toString() || '-'} label="Personality" delay={0.6} />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                      <div className="text-center">
+                        <p className="text-white/60 text-sm">Calculate your profile to see your numbers</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </GlassCard>
             </motion.div>
@@ -133,62 +252,75 @@ export default function Dashboard() {
                     </span>
                   </motion.div>
                 </div>
-                <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6">
-                  <div className="flex items-center gap-3 md:gap-4 mb-4">
-                    <motion.div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl md:text-2xl shadow-xl" animate={{
-                    rotate: [0, 5, -5, 0]
-                  }} transition={{
-                    duration: 2,
-                    repeat: Infinity
-                  }}>
-                      5
-                    </motion.div>
-                    <div>
-                      <p className="font-semibold text-base md:text-lg text-gray-900 dark:text-white">
-                        Personal Day Number
-                      </p>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
-                        Change and Adventure
-                      </p>
+                {dailyReading ? (
+                  <>
+                    <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6">
+                      <div className="flex items-center gap-3 md:gap-4 mb-4">
+                        <motion.div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl md:text-2xl shadow-xl" animate={{
+                        rotate: [0, 5, -5, 0]
+                      }} transition={{
+                        duration: 2,
+                        repeat: Infinity
+                      }}>
+                          {dailyReading.personal_day_number || '-'}
+                        </motion.div>
+                        <div>
+                          <p className="font-semibold text-base md:text-lg text-gray-900 dark:text-white">
+                            Personal Day Number
+                          </p>
+                          {dailyReading.activity_recommendation && (
+                            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
+                              {dailyReading.activity_recommendation.substring(0, 30)}...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {dailyReading.actionable_tip && (
+                        <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {dailyReading.actionable_tip}
+                        </p>
+                      )}
+                    </GlassCard>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                      <GlassCard variant="subtle" className="p-4">
+                        <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                          Lucky Number
+                        </p>
+                        <motion.p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" animate={{
+                        scale: [1, 1.1, 1]
+                      }} transition={{
+                        duration: 1.5,
+                        repeat: Infinity
+                      }}>
+                          {dailyReading.lucky_number || '-'}
+                        </motion.p>
+                      </GlassCard>
+                      <GlassCard variant="subtle" className="p-4">
+                        <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                          Lucky Color
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <motion.div className={`w-10 h-10 bg-gradient-to-r ${getLuckyColorStyle(dailyReading.lucky_color)} rounded-full shadow-lg`} animate={{
+                          rotate: 360
+                        }} transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'linear'
+                        }}></motion.div>
+                          <p className="text-base md:text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                            {dailyReading.lucky_color || 'N/A'}
+                          </p>
+                        </div>
+                      </GlassCard>
                     </div>
-                  </div>
-                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Today brings opportunities for change and new experiences.
-                    Embrace spontaneity and be open to unexpected opportunities.
-                  </p>
-                </GlassCard>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                  <GlassCard variant="subtle" className="p-4">
-                    <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                      Lucky Number
+                  </>
+                ) : (
+                  <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6">
+                    <p className="text-center text-gray-600 dark:text-gray-400">
+                      {dataLoading ? 'Loading your daily reading...' : 'No daily reading available. Calculate your profile first.'}
                     </p>
-                    <motion.p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" animate={{
-                    scale: [1, 1.1, 1]
-                  }} transition={{
-                    duration: 1.5,
-                    repeat: Infinity
-                  }}>
-                      8
-                    </motion.p>
                   </GlassCard>
-                  <GlassCard variant="subtle" className="p-4">
-                    <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                      Lucky Color
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <motion.div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full shadow-lg" animate={{
-                      rotate: 360
-                    }} transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: 'linear'
-                    }}></motion.div>
-                      <p className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
-                        Gold
-                      </p>
-                    </div>
-                  </GlassCard>
-                </div>
+                )}
               </GlassCard>
             </motion.div>
           </div>
@@ -213,7 +345,7 @@ export default function Dashboard() {
                   <ActionCard icon={<MessageSquareIcon className="w-5 h-5" />} label="Ask AI Numerologist" description="Get instant answers" onClick={() => router.push('/chat')} delay={0.4} />
                   <ActionCard icon={<SparklesIcon className="w-5 h-5" />} label="Get Remedies" description="Personalized guidance" onClick={() => router.push('/remedies')} delay={0.5} />
                   <ActionCard icon={<HeartIcon className="w-5 h-5" />} label="Check Compatibility" description="Relationship insights" onClick={() => router.push('/compatibility')} delay={0.6} />
-                  <ActionCard icon={<BookOpenIcon className="w-5 h-5" />} label="View Full Report" description="Complete analysis" onClick={() => router.push('/report')} delay={0.7} />
+                  <ActionCard icon={<BookOpenIcon className="w-5 h-5" />} label="View Full Report" description="Complete analysis" onClick={() => router.push('/numerology-report')} delay={0.7} />
                 </div>
               </GlassCard>
             </motion.div>
@@ -235,13 +367,25 @@ export default function Dashboard() {
                     This Week&apos;s Insights
                   </h3>
                 </div>
-                <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                  Your numbers suggest a strong focus on personal growth and
-                  relationships this week.
-                </p>
-                <GlassButton variant="primary" size="sm" className="w-full">
-                  Learn More
-                </GlassButton>
+                {weeklyReport ? (
+                  <>
+                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+                      {weeklyReport.weekly_summary || weeklyReport.main_theme || 'Your numbers suggest a strong focus on personal growth and relationships this week.'}
+                    </p>
+                    <GlassButton variant="primary" size="sm" className="w-full" onClick={() => router.push('/weekly-report')}>
+                      Learn More
+                    </GlassButton>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+                      {dataLoading ? 'Loading weekly insights...' : 'Calculate your profile to see weekly insights.'}
+                    </p>
+                    <GlassButton variant="primary" size="sm" className="w-full" onClick={() => router.push('/weekly-report')}>
+                      View Weekly Report
+                    </GlassButton>
+                  </>
+                )}
               </GlassCard>
             </motion.div>
           </div>

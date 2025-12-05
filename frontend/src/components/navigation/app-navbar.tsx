@@ -63,7 +63,6 @@ export function AppNavbar() {
       path: '/ai-chat',
       action: () => {
         openChat();
-        router.push('/ai-chat');
       }
     },
     {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 export default function Signup() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const { register } = useAuth();
+  const { register, user, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +41,13 @@ export default function Signup() {
     confirmPassword: false,
     birthDate: false
   });
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, authLoading, router]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -153,9 +160,10 @@ export default function Signup() {
         date_of_birth: formData.birthDate
       });
       toast.success('Account created successfully!', {
-        description: 'Welcome to NumerAI'
+        description: 'Please verify your email to continue'
       });
-      router.push('/verify-otp');
+      // Redirect to verify-otp with email in URL params
+      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
     } catch (error: any) {
       toast.error('Signup failed', {
         description: error.message || 'Please try again'
@@ -166,7 +174,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 transition-colors duration-500 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
 
@@ -179,13 +187,13 @@ export default function Signup() {
         >
           <motion.button
             onClick={toggleTheme}
-            className="p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20"
+            className="p-3 rounded-2xl bg-white/10 dark:bg-white/10 backdrop-blur-xl border border-white/20 dark:border-white/20 hover:bg-white/20 dark:hover:bg-white/20 transition-colors"
             whileHover={{ scale: 1.1, rotate: 180 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.3 }}
           >
             {theme === 'light' ? (
-              <MoonIcon className="w-5 h-5 text-white" />
+              <MoonIcon className="w-5 h-5 text-gray-700 dark:text-white" />
             ) : (
               <SunIcon className="w-5 h-5 text-yellow-400" />
             )}
@@ -211,9 +219,9 @@ export default function Signup() {
             >
               <SparklesIcon className="w-7 h-7 text-white" />
             </motion.div>
-            <span className="text-3xl font-bold text-white">NumerAI</span>
+            <span className="text-3xl font-bold text-gray-900 dark:text-white">NumerAI</span>
           </motion.div>
-          <p className="text-white/70">
+          <p className="text-gray-700 dark:text-white/70">
             Begin your personalized numerology journey
           </p>
         </motion.div>
@@ -226,30 +234,30 @@ export default function Signup() {
         >
           <GlassCard variant="liquid-premium" className="p-6 sm:p-8">
             <div className="liquid-glass-content">
-              <h2 className="text-2xl font-bold text-white mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Create Account
               </h2>
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Name Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white/90 mb-2">
                     Full Name
                   </label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-white/60" />
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       onBlur={() => handleBlur('name')}
-                      className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-10 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
                         touched.name && errors.name
                           ? 'border-red-500'
                           : touched.name && !errors.name && formData.name
                           ? 'border-green-500'
-                          : 'border-white/20'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/50`}
+                          : 'border-gray-300 dark:border-white/20'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50`}
                       placeholder="John Doe"
                     />
                     {touched.name && (
@@ -283,24 +291,24 @@ export default function Signup() {
 
                 {/* Email Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white/90 mb-2">
                     Email Address
                   </label>
                   <div className="relative">
-                    <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-white/60" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       onBlur={() => handleBlur('email')}
-                      className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-10 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
                         touched.email && errors.email
                           ? 'border-red-500'
                           : touched.email && !errors.email && formData.email
                           ? 'border-green-500'
-                          : 'border-white/20'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/50`}
+                          : 'border-gray-300 dark:border-white/20'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50`}
                       placeholder="your@email.com"
                     />
                     {touched.email && (
@@ -334,24 +342,24 @@ export default function Signup() {
 
                 {/* Birth Date Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white/90 mb-2">
                     Birth Date
                   </label>
                   <div className="relative">
-                    <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-white/60" />
                     <input
                       type="date"
                       name="birthDate"
                       value={formData.birthDate}
                       onChange={handleChange}
                       onBlur={() => handleBlur('birthDate')}
-                      className={`w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-10 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
                         touched.birthDate && errors.birthDate
                           ? 'border-red-500'
                           : touched.birthDate && !errors.birthDate && formData.birthDate
                           ? 'border-green-500'
-                          : 'border-white/20'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/50`}
+                          : 'border-gray-300 dark:border-white/20'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50`}
                     />
                     {touched.birthDate && (
                       <motion.div
@@ -384,24 +392,24 @@ export default function Signup() {
 
                 {/* Password Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white/90 mb-2">
                     Password
                   </label>
                   <div className="relative">
-                    <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-white/60" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
                       onBlur={() => handleBlur('password')}
-                      className={`w-full pl-10 pr-20 py-3 bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-20 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
                         touched.password && errors.password
                           ? 'border-red-500'
                           : touched.password && !errors.password && formData.password
                           ? 'border-green-500'
-                          : 'border-white/20'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/50`}
+                          : 'border-gray-300 dark:border-white/20'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50`}
                       placeholder="••••••••"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
@@ -417,7 +425,7 @@ export default function Signup() {
                       <motion.button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="text-white/60 hover:text-white/90"
+                        className="text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -446,24 +454,24 @@ export default function Signup() {
 
                 {/* Confirm Password Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white/90 mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+                    <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-white/60" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       onBlur={() => handleBlur('confirmPassword')}
-                      className={`w-full pl-10 pr-20 py-3 bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-20 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
                         touched.confirmPassword && errors.confirmPassword
                           ? 'border-red-500'
                           : touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword
                           ? 'border-green-500'
-                          : 'border-white/20'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-white/50`}
+                          : 'border-gray-300 dark:border-white/20'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50`}
                       placeholder="••••••••"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
@@ -479,7 +487,7 @@ export default function Signup() {
                       <motion.button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="text-white/60 hover:text-white/90"
+                        className="text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -536,10 +544,10 @@ export default function Signup() {
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/20"></div>
+                  <div className="w-full border-t border-gray-300 dark:border-white/20"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white/5 backdrop-blur-xl text-white/60 rounded-full">
+                  <span className="px-4 bg-white/50 dark:bg-white/5 backdrop-blur-xl text-gray-600 dark:text-white/60 rounded-full">
                     Or continue with
                   </span>
                 </div>
@@ -570,11 +578,11 @@ export default function Signup() {
               </div>
 
               {/* Login Link */}
-              <p className="text-center mt-6 text-white/70">
+              <p className="text-center mt-6 text-gray-700 dark:text-white/70">
                 Already have an account?{' '}
                 <motion.button
                   onClick={() => router.push('/login')}
-                  className="text-purple-300 hover:text-purple-200 font-semibold transition-colors"
+                  className="text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 font-semibold transition-colors"
                   whileHover={{ x: 2 }}
                 >
                   Sign in
@@ -590,7 +598,7 @@ export default function Signup() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
           onClick={() => router.push('/')}
-          className="w-full mt-4 text-center text-white/70 hover:text-white transition-colors"
+          className="w-full mt-4 text-center text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
           whileHover={{ x: -4 }}
         >
           ← Back to home
