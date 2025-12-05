@@ -30,6 +30,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
+      // Check if we have a valid access token before making the request
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        // No token, clear user state
+        setUser(null);
+        localStorage.removeItem('user');
+        return;
+      }
+      
       const response = await userAPI.getProfile();
       // Handle DRF response structure - could be response.data directly or nested
       const profileData = response.data.user || response.data;
@@ -50,32 +59,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         localStorage.setItem('user', JSON.stringify(userData));
       }
-    } catch (error) {
+    } catch (error: any) {
+      // If we get a 401, the token is invalid - clear user state
+      if (error?.response?.status === 401) {
+        setUser(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
+        return;
+      }
+      
       console.error('Failed to refresh user:', error);
-      // Don't automatically logout on profile fetch failure
+      // Don't automatically logout on profile fetch failure for other errors
       // The user might still have valid tokens but the profile endpoint is temporarily unavailable
     }
   }, [user]);
 
   useEffect(() => {
     // Check if user is logged in on mount
+    // Only run once on mount, not when refreshUser changes
     const initAuth = async () => {
       try {
         // Only run in browser environment
-        if (typeof window !== 'undefined') {
-          const storedUser = localStorage.getItem('user');
-          const accessToken = localStorage.getItem('access_token');
+        if (typeof window === 'undefined') {
+          setLoading(false);
+          return;
+        }
+        
+        const storedUser = localStorage.getItem('user');
+        const accessToken = localStorage.getItem('access_token');
   
-          if (storedUser && accessToken) {
-            // Restore user from localStorage immediately
+        if (storedUser && accessToken) {
+          // Restore user from localStorage immediately
+          try {
             setUser(JSON.parse(storedUser));
-            // Silently refresh user data in background without blocking
-            // Don't await this - let it happen in the background
+          } catch (parseError) {
+            // Invalid JSON, clear it
+            localStorage.removeItem('user');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            setLoading(false);
+            return;
+          }
+          
+          // Silently refresh user data in background without blocking
+          // Don't await this - let it happen in the background
+          // Only refresh if we have a valid access token
+          if (accessToken) {
             refreshUser().catch((error) => {
-              // Only log the error, don't clear user state
+              // Only log the error, don't clear user state for non-401 errors
               // The user might still have valid tokens but the profile endpoint is temporarily unavailable
-              console.error('Background user refresh failed:', error);
+              if (error?.response?.status !== 401) {
+                console.error('Background user refresh failed:', error);
+              }
             });
+          }
+        } else {
+          // No stored user or token, clear everything
+          setUser(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('user');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
           }
         }
       } catch (error) {
@@ -90,13 +137,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('refresh_token');
           }
         }
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
     initAuth();
-  }, [refreshUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount, not when refreshUser changes
 
   const register = async (data: RegisterData): Promise<void> => {
     try {

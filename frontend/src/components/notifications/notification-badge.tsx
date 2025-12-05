@@ -20,11 +20,24 @@ export function NotificationBadge({ onClick }: NotificationBadgeProps) {
       return;
     }
 
+    // Check if we have a valid access token before making requests
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
+
     let retryCount = 0;
     const MAX_RETRIES = 3;
     let isMounted = true;
+    let shouldPoll = true;
 
     const fetchUnreadCount = async () => {
+      // Don't make requests if we've stopped polling
+      if (!shouldPoll || !isMounted) {
+        return;
+      }
+
       try {
         const response = await notificationAPI.getUnreadCount();
         if (isMounted) {
@@ -32,13 +45,27 @@ export function NotificationBadge({ onClick }: NotificationBadgeProps) {
           retryCount = 0; // Reset retry count on success
         }
       } catch (error: any) {
+        const status = error?.response?.status;
+        
+        // Stop polling immediately on 401 (authentication failure)
+        if (status === 401) {
+          shouldPoll = false;
+          if (isMounted) {
+            setLoading(false);
+            setUnreadCount(0);
+          }
+          return;
+        }
+        
         // Don't log 429 errors (rate limiting) or 500 errors (table might not exist yet)
-        if (error?.response?.status !== 429 && error?.response?.status !== 500) {
+        if (status !== 429 && status !== 500) {
           console.error('Error fetching unread count:', error);
         }
+        
         // If we get repeated errors, stop polling
         retryCount++;
         if (retryCount >= MAX_RETRIES && isMounted) {
+          shouldPoll = false;
           setLoading(false);
           return; // Stop polling after max retries
         }
@@ -53,13 +80,16 @@ export function NotificationBadge({ onClick }: NotificationBadgeProps) {
     
     // Poll for updates every 60 seconds (reduced from 30s to prevent rate limiting)
     const interval = setInterval(() => {
-      if (retryCount < MAX_RETRIES) {
+      if (shouldPoll && retryCount < MAX_RETRIES) {
         fetchUnreadCount();
+      } else {
+        clearInterval(interval);
       }
     }, 60000);
     
     return () => {
       isMounted = false;
+      shouldPoll = false;
       clearInterval(interval);
     };
   }, [user]);
