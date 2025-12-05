@@ -367,7 +367,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
             )}
           </div>
         </motion.div>
-        </div>      </div>
+      </div>
     </div>
   );
 }

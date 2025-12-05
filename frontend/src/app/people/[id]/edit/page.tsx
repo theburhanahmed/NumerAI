@@ -286,7 +286,7 @@ export default function EditPersonPage() {
             </form>
           </GlassCard>
         </motion.div>
-        </div>      </div>
+      </div>
     </div>
   );
 }
