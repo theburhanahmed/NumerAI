@@ -408,8 +408,9 @@ function ReportContent({
         setFullReport(report);
         setError(null);
       } catch (err: any) {
-        console.error('Failed to fetch full numerology report:', err);
-        setError(err?.message || 'Failed to load report');
+        const errorMessage = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Failed to load report';
+        console.error('Failed to fetch full numerology report:', errorMessage, err);
+        setError(errorMessage);
         toast.error('Failed to load your numerology report. Please try again.');
       } finally {
         setLoading(false);

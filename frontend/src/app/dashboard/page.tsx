@@ -92,8 +92,9 @@ export default function Dashboard() {
           const weekStartStr = weekStart.toISOString().split('T')[0];
           const weekly = await numerologyAPI.getWeeklyReport(weekStartStr);
           setWeeklyReport(weekly);
-        } catch (error) {
-          console.error('Failed to fetch weekly report:', error);
+        } catch (error: any) {
+          const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Failed to fetch weekly report';
+          console.error('Failed to fetch weekly report:', errorMessage, error);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

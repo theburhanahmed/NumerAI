@@ -75,8 +75,9 @@ export default function AIChatPage() {
       setMessages(prev => [...prev, aiMessage]);
       toast.success('Response received');
     } catch (error: any) {
-      console.error('Failed to send message:', error);
-      toast.error(error.response?.data?.error || 'Failed to get response. Please try again.');
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Failed to get response. Please try again.';
+      console.error('Failed to send message:', errorMessage, error);
+      toast.error(errorMessage);
       
       // Remove the user message on error
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));

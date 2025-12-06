@@ -12,12 +12,12 @@ from .models import AIConversation, AIMessage
 from .serializers import (
     AIConversationSerializer, AIMessageSerializer, ChatMessageSerializer
 )
-import openai
+from openai import OpenAI
 import os
 
 
 # Initialize OpenAI client
-openai.api_key = os.getenv('OPENAI_API_KEY')
+openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 
 @api_view(['POST'])
@@ -98,9 +98,16 @@ def ai_chat(request):
             role = "You" if msg.role == "user" else "Numerologist"
             conversation_history += f"{role}: {msg.content}\n"
         
+        # Get user's full name safely
+        user_full_name = "User"
+        if hasattr(user, 'full_name') and user.full_name:
+            user_full_name = user.full_name
+        elif hasattr(user, 'profile') and hasattr(user.profile, 'full_name') and user.profile.full_name:
+            user_full_name = user.profile.full_name
+        
         # Prepare system prompt with enhanced context
         system_prompt = f"""
-        You are an expert numerologist with 20+ years of experience. You are helping {user.full_name} understand their numerology profile.
+        You are an expert numerologist with 20+ years of experience. You are helping {user_full_name} understand their numerology profile.
         
         User's Numerology Profile:
         - Life Path Number: {life_path} - Represents your life's purpose and path
@@ -136,7 +143,7 @@ def ai_chat(request):
         """ + conversation_history
         
         # Call OpenAI API
-        response = openai.chat.completions.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -171,8 +178,13 @@ def ai_chat(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     except Exception as e:
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f'AI chat error for user {user.id}: {str(e)}\n{traceback.format_exc()}')
         return Response({
-            'error': f'AI chat failed: {str(e)}'
+            'error': 'AI chat service unavailable',
+            'message': str(e) if os.getenv('DEBUG', 'False').lower() == 'true' else 'Unable to process your message. Please try again later.'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

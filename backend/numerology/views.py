@@ -1325,8 +1325,10 @@ def get_full_numerology_report(request):
     
     except Exception as e:
         import traceback
+        logger.error(f'Error generating full numerology report for user {user.id}: {str(e)}\n{traceback.format_exc()}')
         error_response = {
-            'error': f'Failed to generate report: {str(e)}'
+            'error': 'Failed to generate full numerology report',
+            'message': str(e) if settings.DEBUG else 'An error occurred while generating your report. Please try again later.'
         }
         if settings.DEBUG:
             error_response['traceback'] = traceback.format_exc()
@@ -1720,6 +1722,20 @@ def get_weekly_report(request, week_start_date_str=None, person_id=None):
     try:
         from datetime import datetime as dt
         from .services.weekly_report_generator import get_weekly_report_generator
+        from accounts.models import UserProfile
+        
+        # Check if user has birth date (required for weekly reports)
+        if not person_id:
+            try:
+                user_profile = UserProfile.objects.get(user=user)
+                if not user_profile.date_of_birth:
+                    return Response({
+                        'error': 'Birth date is required. Please update your profile with your birth date.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            except UserProfile.DoesNotExist:
+                return Response({
+                    'error': 'User profile not found. Please complete your profile first.'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
         # Parse week start date
         today = date.today()
@@ -1774,6 +1790,8 @@ def get_weekly_report(request, week_start_date_str=None, person_id=None):
     except ValueError as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
+        import traceback
+        logger.error(f'Error generating weekly report: {str(e)}\n{traceback.format_exc()}')
         return Response({
             'error': 'Error generating weekly report',
             'message': str(e)
