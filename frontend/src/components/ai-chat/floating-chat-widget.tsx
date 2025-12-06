@@ -20,15 +20,22 @@ export function FloatingChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Don't show on landing page or auth pages
+  // Don't show on landing page or auth pages, but allow it if chat is explicitly opened
   const hideOnPages = ['/', '/login', '/register', '/reset-password'];
-  const shouldHide = hideOnPages.some(page => pathname.startsWith(page)) || !user;
+  const shouldHide = (hideOnPages.some(page => pathname.startsWith(page)) || !user) && !isOpen;
 
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isOpen]);
+
+  // Auto-focus input when chat opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
