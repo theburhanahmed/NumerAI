@@ -43,15 +43,8 @@ export default function AuspiciousDatesPage() {
         start_date: startDate,
         end_date: endDate,
       });
-      // Handle different response formats
-      const datesArray = Array.isArray(data) 
-        ? data 
-        : Array.isArray(data.results) 
-        ? data.results 
-        : Array.isArray(data.dates)
-        ? data.dates
-        : [];
-      setDates(datesArray);
+      // getAuspiciousDates always returns an array
+      setDates(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error('Failed to fetch auspicious dates:', error);
       toast.error(error.response?.data?.error || 'Failed to load auspicious dates');
