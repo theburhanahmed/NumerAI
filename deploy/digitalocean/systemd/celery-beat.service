@@ -1,0 +1,36 @@
+[Unit]
+Description=Celery Beat Scheduler for NumerAI
+After=network.target docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=numerai
+Group=numerai
+WorkingDirectory=/opt/numerai
+EnvironmentFile=/opt/numerai/.env.production
+
+# Start the container
+ExecStart=/usr/bin/docker-compose -f /opt/numerai/docker-compose.yml -f /opt/numerai/docker-compose.prod.yml run -d --rm --name numerai-celery-beat backend celery -A numerai beat -l info
+
+# Stop the container
+ExecStop=/usr/bin/docker stop numerai-celery-beat || true
+ExecStopPost=/usr/bin/docker rm numerai-celery-beat || true
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=celery-beat
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

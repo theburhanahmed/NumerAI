@@ -1,6 +1,6 @@
 """
 Django production settings for NumerAI project.
-Optimized for Render.com deployment.
+Optimized for production deployment (DigitalOcean, Render.com, etc.).
 """
 from .base import *
 import dj_database_url
@@ -10,13 +10,31 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
-# Database - Use dj-database-url for Render.com
-DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+# Database - Support both DATABASE_URL and individual DB settings
+# Priority: DATABASE_URL > individual settings
+if config('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Use individual database settings (for Docker Compose)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='numerai'),
+            'USER': config('DB_USER', default='numerai'),
+            'PASSWORD': config('DB_PASSWORD', default='numerai'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'connect_timeout': 10,
+            }
+        }
+    }
 
 # CORS Settings for production
 # Default to frontend URL if not specified in environment
@@ -68,13 +86,23 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
-# Static files configuration for Render.com
+# Static files configuration
+# When using nginx to serve static files, WhiteNoise can still be used as fallback
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use WhiteNoise for serving static files (works with nginx as primary)
+# nginx will serve static files directly, WhiteNoise is fallback
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# WhiteNoise middleware for serving static files
+# WhiteNoise middleware for serving static files (fallback if nginx fails)
+# Note: nginx should be configured to serve /static/ and /media/ directly
+# WhiteNoise will handle any requests that reach Django
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Media files configuration
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email backend for production
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
