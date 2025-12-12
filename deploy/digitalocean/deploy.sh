@@ -2,7 +2,7 @@
 # NumerAI Deployment Script for DigitalOcean
 # This script deploys the application to a production server
 
-set -e  # Exit on error
+set -e  # Exit on error (but we'll handle env file loading separately)
 
 # Colors for output
 RED='\033[0;31m'
@@ -42,6 +42,13 @@ if [ ! -f "${ENV_FILE}" ]; then
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
+else
+    # Check for syntax issues in .env.production (informational only)
+    # We don't source it, but docker-compose will read it via --env-file
+    if head -2 "${ENV_FILE}" | tail -1 | grep -q "(" 2>/dev/null; then
+        echo -e "${YELLOW}Note: .env.production line 2 may have special characters${NC}"
+        echo -e "${YELLOW}This is fine - we use --env-file instead of sourcing${NC}"
+    fi
 fi
 
 # Pull latest code
@@ -52,21 +59,26 @@ else
     echo -e "${YELLOW}Not a git repository. Skipping git pull.${NC}"
 fi
 
-# Load environment variables (optional - docker-compose will use --env-file)
-# We try to load them for shell variable substitutions, but don't fail if it doesn't work
+# Validate .env.production file syntax (check for common issues)
 if [ -f "${ENV_FILE}" ]; then
-    echo -e "${GREEN}Loading environment variables...${NC}"
-    # Try to source the file, but don't fail if there are syntax errors
-    # docker-compose will handle the file directly via --env-file
-    set +e  # Temporarily disable exit on error
-    set -a
-    source "${ENV_FILE}" 2>/dev/null || {
-        echo -e "${YELLOW}Note: Could not source .env.production (may have special characters)${NC}"
-        echo -e "${YELLOW}This is okay - docker-compose will read it directly via --env-file${NC}"
-    }
-    set +a
-    set -e  # Re-enable exit on error
-    echo -e "${GREEN}Environment file will be used by docker-compose${NC}"
+    # Check if file has syntax issues that would break bash
+    if grep -q "(" "${ENV_FILE}" 2>/dev/null && ! grep -q "^[^#]*=.*\".*(" "${ENV_FILE}" 2>/dev/null; then
+        echo -e "${YELLOW}Warning: .env.production may have unquoted parentheses${NC}"
+        echo -e "${YELLOW}This is okay - docker-compose will handle it via --env-file${NC}"
+    fi
+fi
+
+# Load environment variables (optional - docker-compose will use --env-file)
+# We skip sourcing to avoid syntax errors - docker-compose reads the file directly
+if [ -f "${ENV_FILE}" ]; then
+    echo -e "${GREEN}Environment file found - docker-compose will use --env-file${NC}"
+    # Extract specific variables we need in the script (if any)
+    # For now, we don't need to source since docker-compose handles it
+    # If we need shell variables, we can extract them individually:
+    # DB_USER=$(grep "^DB_USER=" "${ENV_FILE}" 2>/dev/null | cut -d'=' -f2 | tr -d '"' | tr -d "'" || echo "numerai")
+else
+    echo -e "${YELLOW}Warning: ${ENV_FILE} not found${NC}"
+    echo -e "${YELLOW}Docker-compose commands will run without --env-file${NC}"
 fi
 
 # Build Docker images
