@@ -52,30 +52,62 @@ else
     echo -e "${YELLOW}Not a git repository. Skipping git pull.${NC}"
 fi
 
-# Load environment variables
+# Load environment variables (optional - docker-compose will use --env-file)
+# We try to load them for shell variable substitutions, but don't fail if it doesn't work
 if [ -f "${ENV_FILE}" ]; then
+    echo -e "${GREEN}Loading environment variables...${NC}"
+    # Try to source the file, but don't fail if there are syntax errors
+    # docker-compose will handle the file directly via --env-file
+    set +e  # Temporarily disable exit on error
     set -a
-    source "${ENV_FILE}"
+    source "${ENV_FILE}" 2>/dev/null || {
+        echo -e "${YELLOW}Note: Could not source .env.production (may have special characters)${NC}"
+        echo -e "${YELLOW}This is okay - docker-compose will read it directly via --env-file${NC}"
+    }
     set +a
+    set -e  # Re-enable exit on error
+    echo -e "${GREEN}Environment file will be used by docker-compose${NC}"
 fi
 
 # Build Docker images
 echo -e "${GREEN}[2/7] Building Docker images...${NC}"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache
+if [ -f "${ENV_FILE}" ]; then
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file "${ENV_FILE}" build --no-cache
+else
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache
+fi
 
 # Stop existing containers
 echo -e "${GREEN}[3/7] Stopping existing containers...${NC}"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+if [ -f "${ENV_FILE}" ]; then
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file "${ENV_FILE}" down
+else
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+fi
 
 # Start database and redis first
 echo -e "${GREEN}[4/7] Starting database and Redis...${NC}"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d postgres redis
+if [ -f "${ENV_FILE}" ]; then
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file "${ENV_FILE}" up -d postgres redis
+else
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d postgres redis
+fi
 
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
 sleep 10
 for i in {1..30}; do
-    if docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec -T postgres pg_isready -U ${DB_USER:-numerai} > /dev/null 2>&1; then
+    # Get DB_USER from env file or use default
+    DB_USER_VAL=${DB_USER:-numerai}
+    if [ -f "${ENV_FILE}" ]; then
+        DB_USER_FROM_FILE=$(grep "^DB_USER=" "${ENV_FILE}" 2>/dev/null | cut -d'=' -f2 | tr -d '"' | tr -d "'" | head -1)
+        if [ -n "${DB_USER_FROM_FILE}" ]; then
+            DB_USER_VAL="${DB_USER_FROM_FILE}"
+        fi
+    fi
+    COMPOSE_CMD_CHECK="docker-compose -f docker-compose.yml -f docker-compose.prod.yml"
+    [ -f "${ENV_FILE}" ] && COMPOSE_CMD_CHECK="${COMPOSE_CMD_CHECK} --env-file ${ENV_FILE}"
+    if ${COMPOSE_CMD_CHECK} exec -T postgres pg_isready -U ${DB_USER_VAL} > /dev/null 2>&1; then
         echo "Database is ready!"
         break
     fi
@@ -88,11 +120,19 @@ done
 
 # Run database migrations
 echo -e "${GREEN}[5/7] Running database migrations...${NC}"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend python manage.py migrate --no-input
+if [ -f "${ENV_FILE}" ]; then
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file "${ENV_FILE}" run --rm backend python manage.py migrate --no-input
+else
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend python manage.py migrate --no-input
+fi
 
 # Collect static files
 echo -e "${GREEN}[6/7] Collecting static files...${NC}"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend python manage.py collectstatic --no-input
+if [ -f "${ENV_FILE}" ]; then
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file "${ENV_FILE}" run --rm backend python manage.py collectstatic --no-input
+else
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend python manage.py collectstatic --no-input
+fi
 
 # Copy static files to nginx directory
 if [ -d "${APP_DIR}/backend/staticfiles" ]; then
@@ -103,7 +143,11 @@ fi
 
 # Start all services
 echo -e "${GREEN}[7/7] Starting all services...${NC}"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+if [ -f "${ENV_FILE}" ]; then
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file "${ENV_FILE}" up -d
+else
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+fi
 
 # Restart Celery services (via systemd)
 echo "Restarting Celery services..."
@@ -118,28 +162,34 @@ sleep 15
 echo -e "${GREEN}Verifying deployment...${NC}"
 
 # Check backend health
-if docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps backend | grep -q "Up"; then
+if [ -f "${ENV_FILE}" ]; then
+    COMPOSE_CMD="docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file ${ENV_FILE}"
+else
+    COMPOSE_CMD="docker-compose -f docker-compose.yml -f docker-compose.prod.yml"
+fi
+
+if ${COMPOSE_CMD} ps backend | grep -q "Up"; then
     echo -e "${GREEN}✓ Backend is running${NC}"
 else
     echo -e "${RED}✗ Backend is not running${NC}"
 fi
 
 # Check frontend
-if docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps frontend | grep -q "Up"; then
+if ${COMPOSE_CMD} ps frontend | grep -q "Up"; then
     echo -e "${GREEN}✓ Frontend is running${NC}"
 else
     echo -e "${RED}✗ Frontend is not running${NC}"
 fi
 
 # Check database
-if docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps postgres | grep -q "Up"; then
+if ${COMPOSE_CMD} ps postgres | grep -q "Up"; then
     echo -e "${GREEN}✓ Database is running${NC}"
 else
     echo -e "${RED}✗ Database is not running${NC}"
 fi
 
 # Check Redis
-if docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps redis | grep -q "Up"; then
+if ${COMPOSE_CMD} ps redis | grep -q "Up"; then
     echo -e "${GREEN}✓ Redis is running${NC}"
 else
     echo -e "${RED}✗ Redis is not running${NC}"
@@ -148,7 +198,7 @@ fi
 # Show container status
 echo ""
 echo "Container status:"
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
+${COMPOSE_CMD} ps
 
 echo ""
 echo -e "${GREEN}=========================================="
@@ -158,5 +208,5 @@ echo ""
 echo "Next steps:"
 echo "1. Verify nginx configuration is correct"
 echo "2. Test the application: curl http://localhost/api/v1/health/"
-echo "3. Check logs: docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs"
+echo "3. Check logs: ${COMPOSE_CMD} logs"
 echo ""
