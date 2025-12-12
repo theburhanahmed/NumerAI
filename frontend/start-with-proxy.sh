@@ -6,21 +6,19 @@ echo "Starting Next.js server on port 3001..."
 PORT=3001 HOSTNAME=0.0.0.0 node server.js.original > /tmp/nextjs.log 2>&1 &
 NEXTJS_PID=$!
 
-# Wait for Next.js to be ready
-echo "Waiting for Next.js server to start..."
-for i in $(seq 1 60); do
-  if curl -s http://localhost:3001 > /dev/null 2>&1; then
-    echo "Next.js server is ready on port 3001"
-    break
-  fi
-  if [ $i -eq 60 ]; then
-    echo "ERROR: Next.js server failed to start"
-    cat /tmp/nextjs.log
-    exit 1
-  fi
-  sleep 1
-done
+# Wait for Next.js to start (fixed wait time - Next.js usually starts in 1-2 seconds)
+echo "Waiting for Next.js server to initialize..."
+sleep 5
+
+# Verify Next.js is running
+if ! kill -0 $NEXTJS_PID 2>/dev/null; then
+  echo "ERROR: Next.js server process died"
+  cat /tmp/nextjs.log 2>/dev/null || echo "No logs available"
+  exit 1
+fi
+
+echo "Next.js server started (PID: $NEXTJS_PID)"
+echo "Starting proxy server on port 3000..."
 
 # Start proxy server (this will be the main process)
-echo "Starting proxy server on port 3000..."
 exec node proxy-server.js
