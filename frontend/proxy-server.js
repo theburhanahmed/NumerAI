@@ -32,10 +32,24 @@ proxy.on('error', (err, req, res) => {
 
 // Create HTTP server with proper keep-alive settings
 const server = http.createServer((req, res) => {
-  // Ensure Connection header is preserved
+  // Ensure Connection header is preserved for keep-alive
   if (!req.headers.connection) {
     req.headers.connection = 'keep-alive';
   }
+  
+  // Intercept response to ensure keep-alive
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function(statusCode, statusMessage, headers) {
+    if (!headers) {
+      headers = statusMessage;
+      statusMessage = undefined;
+    }
+    if (headers && typeof headers === 'object') {
+      // Force keep-alive connection
+      headers['Connection'] = 'keep-alive';
+    }
+    return originalWriteHead.call(this, statusCode, statusMessage, headers);
+  };
   
   // Proxy the request
   proxy.web(req, res, {
@@ -45,7 +59,8 @@ const server = http.createServer((req, res) => {
       console.error('Proxy error:', err.message);
       if (!res.headersSent) {
         res.writeHead(502, {
-          'Content-Type': 'text/plain'
+          'Content-Type': 'text/plain',
+          'Connection': 'keep-alive'
         });
         res.end('Bad Gateway');
       }
