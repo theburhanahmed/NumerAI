@@ -7,15 +7,13 @@ version: '3.8'
 services:
   postgres:
     restart: unless-stopped
-    # Ports exposed internally only (nginx will proxy, no external access needed)
-    # ports:
-    #   - "127.0.0.1:5432:5432"
+    ports:
+      - "127.0.0.1:5432:5432"  # Expose to host for nginx/management
 
   redis:
     restart: unless-stopped
-    # Ports exposed internally only (nginx will proxy, no external access needed)
-    # ports:
-    #   - "127.0.0.1:6379:6379"
+    ports:
+      - "127.0.0.1:6379:6379"  # Expose to host for nginx/management
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
 
   backend:
@@ -24,9 +22,8 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    # Port exposed internally (nginx will proxy)
-    # ports:
-    #   - "127.0.0.1:8000:8000"
+    ports:
+      - "127.0.0.1:8000:8000"  # Only bind to localhost (nginx will proxy)
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY}
@@ -70,7 +67,7 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     ports:
-      - "127.0.0.1:3000:3000"  # Only bind to localhost (nginx will proxy)
+      - "127.0.0.1:3000:3000"  # Expose to host for nginx
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
