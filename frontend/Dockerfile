@@ -43,11 +43,17 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Backup original server.js
-RUN if [ -f server.js ]; then mv server.js server.js.original; fi
-
 # Install http-proxy in runner stage (needed for proxy server)
-RUN npm install http-proxy
+# Use npm install from the standalone build's node_modules if available, otherwise install fresh
+RUN if [ -d "node_modules" ]; then \
+      npm install http-proxy || true; \
+    else \
+      npm init -y && npm install http-proxy; \
+    fi
+
+# Backup original server.js if it exists (standalone mode creates it)
+# This must be done after copying the standalone build
+RUN if [ -f server.js ]; then cp server.js server.js.original; echo "Backed up server.js to server.js.original"; else echo "WARNING: server.js not found in standalone build"; fi
 
 # Copy proxy server and start script
 COPY --chown=nextjs:nodejs proxy-server.js ./proxy-server.js

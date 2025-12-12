@@ -1,9 +1,15 @@
 #!/bin/sh
 set -e
 
+# Determine which server.js to use
+SERVER_JS="server.js"
+if [ -f "server.js.original" ]; then
+  SERVER_JS="server.js.original"
+fi
+
 # Start Next.js server in background on port 3001
-echo "Starting Next.js server on port 3001..."
-PORT=3001 HOSTNAME=0.0.0.0 node server.js.original > /tmp/nextjs.log 2>&1 &
+echo "Starting Next.js server on port 3001 using $SERVER_JS..."
+PORT=3001 HOSTNAME=0.0.0.0 node $SERVER_JS > /tmp/nextjs.log 2>&1 &
 NEXTJS_PID=$!
 
 # Wait for Next.js to start (fixed wait time - Next.js usually starts in 1-2 seconds)
