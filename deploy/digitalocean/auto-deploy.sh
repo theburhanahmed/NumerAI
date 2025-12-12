@@ -182,20 +182,104 @@ fi
 # Accept SSH host key
 ssh-keyscan -H "$DROPLET_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-# Copy deployment files to server
-echo -e "${GREEN}[6/10] Copying deployment files to server...${NC}"
-ssh root@"$DROPLET_IP" "mkdir -p /tmp/numerai-deploy"
-scp -r "${PROJECT_ROOT}/deploy" root@"$DROPLET_IP":/tmp/numerai-deploy/
-scp -r "${PROJECT_ROOT}/docker-compose.yml" root@"$DROPLET_IP":/tmp/numerai-deploy/
-scp -r "${PROJECT_ROOT}/docker-compose.prod.yml" root@"$DROPLET_IP":/tmp/numerai-deploy/ 2>/dev/null || true
+# Fix any dpkg issues first
+echo -e "${GREEN}[6/10] Fixing system package issues...${NC}"
+ssh root@"$DROPLET_IP" "dpkg --configure -a || true; pkill -9 apt-get || true; pkill -9 apt || true; sleep 2"
 
-# Run server setup
+# Run server setup (will clone repo and set up everything)
 echo -e "${GREEN}[7/10] Running server setup...${NC}"
-ssh root@"$DROPLET_IP" "cd /tmp/numerai-deploy && chmod +x deploy/digitalocean/*.sh && bash deploy/digitalocean/setup-server.sh"
+ssh root@"$DROPLET_IP" "bash -s" << 'REMOTE_SETUP'
+set -e
 
-# Clone repository and move to production directory
-echo -e "${GREEN}[8/10] Cloning repository...${NC}"
-ssh root@"$DROPLET_IP" "rm -rf ${APP_DIR} && git clone -b ${GIT_BRANCH} ${GIT_REPO} ${APP_DIR} && chown -R ${APP_USER}:${APP_USER} ${APP_DIR}"
+# Fix dpkg if needed
+dpkg --configure -a || true
+while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+    echo "Waiting for apt to finish..."
+    sleep 2
+done
+
+# Update system packages
+apt-get update
+apt-get upgrade -y
+
+# Install essential packages
+apt-get install -y curl wget git ufw fail2ban unattended-upgrades apt-transport-https ca-certificates gnupg lsb-release software-properties-common
+
+# Install Docker
+if ! command -v docker &> /dev/null; then
+    apt-get remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    systemctl start docker
+    systemctl enable docker
+fi
+
+# Install Docker Compose (standalone)
+if ! command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_VERSION="v2.24.0"
+    curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+fi
+
+# Install nginx
+if ! command -v nginx &> /dev/null; then
+    apt-get install -y nginx
+    systemctl start nginx
+    systemctl enable nginx
+fi
+
+# Configure firewall
+ufw --force enable
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw reload
+
+# Create application user and directories
+if ! id "numerai" &>/dev/null; then
+    useradd -m -s /bin/bash numerai
+    usermod -aG docker numerai
+fi
+
+APP_DIR="/opt/numerai"
+mkdir -p ${APP_DIR}
+mkdir -p ${APP_DIR}/logs
+mkdir -p ${APP_DIR}/backups
+mkdir -p /var/www/numerai/static
+mkdir -p /var/www/numerai/media
+chown -R numerai:numerai ${APP_DIR}
+chown -R numerai:numerai /var/www/numerai
+
+# Set up log rotation
+cat > /etc/logrotate.d/numerai << 'LOGROTATE_EOF'
+/opt/numerai/logs/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 numerai numerai
+    sharedscripts
+    postrotate
+        docker-compose -f /opt/numerai/docker-compose.yml -f /opt/numerai/docker-compose.prod.yml restart backend frontend || true
+    endscript
+}
+LOGROTATE_EOF
+
+echo "Server setup completed!"
+REMOTE_SETUP
+
+# Clone repository directly from GitHub
+echo -e "${GREEN}[8/10] Cloning repository from GitHub...${NC}"
+ssh root@"$DROPLET_IP" "rm -rf ${APP_DIR} && git clone -b ${GIT_BRANCH} ${GIT_REPO} ${APP_DIR} && chown -R ${APP_USER}:${APP_USER} ${APP_DIR} && chmod +x ${APP_DIR}/deploy/digitalocean/*.sh"
 
 # Generate secrets if not provided
 if [ -z "$SECRET_KEY" ] || [ "$SECRET_KEY" == "generate-if-empty" ]; then
@@ -245,13 +329,41 @@ EOF
 chmod 600 ${APP_DIR}/.env.production
 chown ${APP_USER}:${APP_USER} ${APP_DIR}/.env.production"
 
-# Configure nginx
+# Configure nginx (without SSL first, will be added after SSL setup)
 echo -e "${GREEN}Configuring nginx...${NC}"
-ssh root@"$DROPLET_IP" "cp ${APP_DIR}/deploy/digitalocean/nginx/numerai.conf /etc/nginx/sites-available/numerai.conf && \
-sed -i 's/server_name _;/server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};/g' /etc/nginx/sites-available/numerai.conf && \
-ln -sf /etc/nginx/sites-available/numerai.conf /etc/nginx/sites-enabled/ && \
-rm -f /etc/nginx/sites-enabled/default && \
-nginx -t && systemctl reload nginx"
+ssh root@"$DROPLET_IP" "bash -s" << NGINX_SETUP
+set -e
+cp ${APP_DIR}/deploy/digitalocean/nginx/numerai.conf /etc/nginx/sites-available/numerai.conf
+
+# Update domain name
+sed -i 's/server_name _;/server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};/g' /etc/nginx/sites-available/numerai.conf
+
+# Comment out SSL lines until certificates are installed
+sed -i 's/^    ssl_certificate/#    ssl_certificate/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_certificate_key/#    ssl_certificate_key/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_protocols/#    ssl_protocols/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_ciphers/#    ssl_ciphers/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_prefer_server_ciphers/#    ssl_prefer_server_ciphers/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_session_cache/#    ssl_session_cache/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_session_timeout/#    ssl_session_timeout/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_session_tickets/#    ssl_session_tickets/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_stapling/#    ssl_stapling/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_stapling_verify/#    ssl_stapling_verify/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    ssl_trusted_certificate/#    ssl_trusted_certificate/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    resolver/#    resolver/g' /etc/nginx/sites-available/numerai.conf
+sed -i 's/^    resolver_timeout/#    resolver_timeout/g' /etc/nginx/sites-available/numerai.conf
+
+# Comment out HTTPS server block, keep only HTTP for now
+sed -i '/^# HTTPS server/,/^}$/s/^/#/' /etc/nginx/sites-available/numerai.conf || true
+
+# Enable site
+ln -sf /etc/nginx/sites-available/numerai.conf /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+
+# Test and reload
+nginx -t
+systemctl reload nginx
+NGINX_SETUP
 
 # Deploy application
 echo -e "${GREEN}[10/10] Deploying application...${NC}"

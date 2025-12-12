@@ -22,6 +22,8 @@ fi
 
 # Update system packages
 echo -e "${GREEN}[1/8] Updating system packages...${NC}"
+# Fix any dpkg issues first
+dpkg --configure -a || true
 # Wait for any existing apt processes to finish
 while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
     echo "Waiting for apt to finish..."

@@ -1,0 +1,9 @@
+[0;32mCompleting NumerAI Deployment...[0m
+[0;32m[1/4] Configuring nginx...[0m
+nginx: [emerg] cannot load certificate "/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /etc/nginx/nginx.conf test failed
+[0;32mCompleting NumerAI Deployment...[0m
+[0;32m[1/4] Verifying nginx configuration...[0m
+nginx needs configuration, fixing...
+nginx: [emerg] cannot load certificate "/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /etc/nginx/nginx.conf test failed
