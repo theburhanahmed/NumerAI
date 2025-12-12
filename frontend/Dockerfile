@@ -43,15 +43,16 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Backup original server.js and modify it to ensure keepAliveTimeout is set
+# Backup original server.js
 RUN if [ -f server.js ]; then mv server.js server.js.original; fi
 
-# Modify server.js.original to ensure keepAliveTimeout is always 65000
-RUN sed -i 's/let keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10)/let keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10) || 65000/' server.js.original && \
-    sed -i 's/if (.*keepAliveTimeout.*)/if (Number.isNaN(keepAliveTimeout) || !Number.isFinite(keepAliveTimeout) || keepAliveTimeout < 0) { keepAliveTimeout = 65000; }/' server.js.original
+# Install http-proxy in runner stage
+RUN npm install http-proxy
 
-# Copy custom wrapper
-COPY --chown=nextjs:nodejs server.js ./server.js
+# Copy proxy server and start script
+COPY --chown=nextjs:nodejs proxy-server.js ./proxy-server.js
+COPY --chown=nextjs:nodejs start-with-proxy.sh ./start-with-proxy.sh
+RUN chmod +x start-with-proxy.sh
 
 USER nextjs
 
@@ -64,4 +65,4 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
 
-CMD ["node", "server.js"]
+CMD ["./start-with-proxy.sh"]
