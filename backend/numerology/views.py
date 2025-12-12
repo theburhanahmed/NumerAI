@@ -152,6 +152,11 @@ def calculate_numerology_profile(request):
 @permission_classes([IsAuthenticated])
 def get_numerology_profile(request):
     """Get user's numerology profile."""
+    # #region agent log
+    user_id = str(request.user.id) if hasattr(request.user, 'id') else 'anonymous'
+    auth_header = request.META.get('HTTP_AUTHORIZATION', 'none')
+    logger.info(f'numerology_profile_get_request', extra={'user_id': user_id, 'auth_header_present': bool(auth_header and auth_header != 'none'), 'auth_header_prefix': auth_header[:20] if auth_header != 'none' else 'none', 'is_authenticated': request.user.is_authenticated})
+    # #endregion
     user = request.user
     
     # Check cache first

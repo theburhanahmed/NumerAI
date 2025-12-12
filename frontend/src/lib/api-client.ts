@@ -14,11 +14,27 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // #region agent log
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token');
+      const hasToken = !!token;
+      const tokenLength = token ? token.length : 0;
+      const url = config.url ? `${config.baseURL || ''}${config.url}` : 'unknown';
+      fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api-client.ts:19',message:'API request starting',data:{method:config.method,url,hasToken,tokenLength,hasAuthHeader:!!config.headers?.Authorization},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    }
+    // #endregion
     // Only access localStorage in browser environment
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('access_token');
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api-client.ts:26',message:'Auth token added to headers',data:{authHeaderPrefix:config.headers.Authorization?.substring(0,10)||'none'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+      } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api-client.ts:30',message:'No token found in localStorage',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
       }
     }
     return config;
@@ -37,7 +53,14 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // Handle 401 Unauthorized (Token Refresh)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Also handle 400 errors that might be authentication-related
+    const isAuthError = error.response?.status === 401 || 
+                       (error.response?.status === 400 && 
+                        (error.response?.data?.error?.message?.toLowerCase().includes('authentication') ||
+                         error.response?.data?.error?.message?.toLowerCase().includes('token') ||
+                         error.response?.data?.error?.message?.toLowerCase().includes('unauthorized')));
+    
+    if (isAuthError && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -88,6 +111,13 @@ apiClient.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       const data = error.response.data as any;
+
+      // #region agent log
+      const requestUrl = originalRequest?.url ? `${originalRequest.baseURL || ''}${originalRequest.url}` : 'unknown';
+      const authHeader = originalRequest?.headers?.Authorization || 'none';
+      const errorDataStr = typeof data === 'object' ? JSON.stringify(data).substring(0,500) : String(data).substring(0,500);
+      fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api-client.ts:91',message:'API error response received',data:{status,url:requestUrl,errorData:errorDataStr,hasAuthHeader:!!authHeader,authHeaderPrefix:authHeader.substring(0,20),method:originalRequest?.method},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
 
       // Don't show toast for 401 as it's handled above (or redirects)
       if (status !== 401) {

@@ -26,19 +26,37 @@ const server = http.createServer((req, res) => {
   // Forward request to Next.js
   const proxyReq = http.request(options, (proxyRes) => {
     // Copy headers and force keep-alive
-    const headers = { ...proxyRes.headers };
+    const headers = {};
+    Object.keys(proxyRes.headers).forEach(key => {
+      headers[key] = proxyRes.headers[key];
+    });
     headers['connection'] = 'keep-alive';
-    delete headers['content-length']; // Let Node.js calculate this
     
-    // Set response headers with keep-alive
+    // Set response headers with keep-alive BEFORE piping
     res.writeHead(proxyRes.statusCode, headers);
     
-    // Pipe response and handle end
+    // Handle data chunks
+    proxyRes.on('data', (chunk) => {
+      if (!res.headersSent) {
+        res.writeHead(proxyRes.statusCode, headers);
+      }
+      res.write(chunk);
+    });
+    
     proxyRes.on('end', () => {
       res.end();
     });
     
-    proxyRes.pipe(res, { end: false });
+    proxyRes.on('error', (err) => {
+      console.error('Proxy response error:', err.message);
+      if (!res.headersSent) {
+        res.writeHead(502, {
+          'Content-Type': 'text/plain',
+          'Connection': 'keep-alive'
+        });
+      }
+      res.end('Bad Gateway');
+    });
   });
 
   // Handle proxy request errors

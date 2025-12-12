@@ -468,10 +468,34 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         # Type checker issues are suppressed with # type: ignore comments
-        return self.request.user.profile  # type: ignore
+        # #region agent log
+        user_id = str(self.request.user.id) if hasattr(self.request.user, 'id') else 'anonymous'
+        has_profile_attr = hasattr(self.request.user, 'profile')
+        logger.info(f'get_object called', extra={'user_id': user_id, 'has_profile_attr': has_profile_attr, 'is_authenticated': self.request.user.is_authenticated})
+        # #endregion
+        # Safely get profile, creating one if it doesn't exist
+        try:
+            profile = self.request.user.profile  # type: ignore
+        except UserProfile.DoesNotExist:
+            # #region agent log
+            logger.warning(f'profile_does_not_exist_creating', extra={'user_id': user_id})
+            # #endregion
+            # Create profile if it doesn't exist
+            profile = UserProfile.objects.create(user=self.request.user)
+        except AttributeError:
+            # #region agent log
+            logger.error(f'user_missing_profile_attr', extra={'user_id': user_id, 'user_type': type(self.request.user).__name__})
+            # #endregion
+            raise UserProfile.DoesNotExist("User profile relationship does not exist")
+        return profile
     
     def get(self, request, *args, **kwargs):
         """Retrieve user profile with consistent response format."""
+        # #region agent log
+        user_id = str(request.user.id) if hasattr(request.user, 'id') else 'anonymous'
+        auth_header = request.META.get('HTTP_AUTHORIZATION', 'none')
+        logger.info(f'profile_get_request', extra={'user_id': user_id, 'auth_header_present': bool(auth_header and auth_header != 'none'), 'auth_header_prefix': auth_header[:20] if auth_header != 'none' else 'none', 'is_authenticated': request.user.is_authenticated})
+        # #endregion
         try:
             profile = self.get_object()
             serializer = self.get_serializer(profile)
