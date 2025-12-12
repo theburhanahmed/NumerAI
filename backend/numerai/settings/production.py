@@ -11,8 +11,26 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # ALLOWED_HOSTS: Allow backend service name for internal Docker networking
 # and the domain from environment variable for external access
 default_allowed_hosts = 'backend,localhost,127.0.0.1'
-env_allowed_hosts = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
-ALLOWED_HOSTS = list(set(env_allowed_hosts + [s.strip() for s in default_allowed_hosts.split(',') if s.strip()]))
+env_allowed_hosts_raw = config('ALLOWED_HOSTS', default='', cast=str)
+# Clean up the ALLOWED_HOSTS string: remove backslashes, strip whitespace, filter empty
+env_allowed_hosts = [
+    host.strip().replace('\\', '').replace('/', '') 
+    for host in env_allowed_hosts_raw.split(',') 
+    if host.strip() and host.strip().replace('\\', '').replace('/', '')
+]
+# Add backend subdomain if main domain is provided
+backend_subdomains = []
+for host in env_allowed_hosts:
+    if host and '.' in host and not host.startswith('backend.'):
+        # Extract domain (e.g., numerobuddy.com from www.numerobuddy.com)
+        parts = host.split('.')
+        if len(parts) >= 2:
+            domain = '.'.join(parts[-2:])  # Get last two parts (e.g., numerobuddy.com)
+            backend_subdomain = f'backend.{domain}'
+            if backend_subdomain not in env_allowed_hosts:
+                backend_subdomains.append(backend_subdomain)
+
+ALLOWED_HOSTS = list(set(env_allowed_hosts + backend_subdomains + [s.strip() for s in default_allowed_hosts.split(',') if s.strip()]))
 
 # Database - Support both DATABASE_URL and individual DB settings
 # Priority: DATABASE_URL > individual settings
