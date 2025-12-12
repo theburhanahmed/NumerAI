@@ -43,8 +43,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy custom server.js to override the standalone one
-COPY --chown=nextjs:nodejs server.js ./server.js
+# Backup original server.js and replace with custom one
+RUN mv server.js server.js.original 2>/dev/null || true
+COPY --chown=nextjs:nodejs server.js ./server-custom.js
+
+# Create wrapper that sets keep-alive and loads original
+RUN echo 'process.env.KEEP_ALIVE_TIMEOUT = "65000"; require("./server.js.original");' > server.js
 
 USER nextjs
 
