@@ -54,11 +54,15 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized (Token Refresh)
     // Also handle 400 errors that might be authentication-related
+    const errorData = error.response?.data as any;
+    const errorMessage = errorData?.error?.message || errorData?.message || '';
     const isAuthError = error.response?.status === 401 || 
                        (error.response?.status === 400 && 
-                        (error.response?.data?.error?.message?.toLowerCase().includes('authentication') ||
-                         error.response?.data?.error?.message?.toLowerCase().includes('token') ||
-                         error.response?.data?.error?.message?.toLowerCase().includes('unauthorized')));
+                        (typeof errorMessage === 'string' && (
+                         errorMessage.toLowerCase().includes('authentication') ||
+                         errorMessage.toLowerCase().includes('token') ||
+                         errorMessage.toLowerCase().includes('unauthorized')
+                        )));
     
     if (isAuthError && !originalRequest._retry) {
       originalRequest._retry = true;
