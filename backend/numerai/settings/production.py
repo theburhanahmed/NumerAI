@@ -8,7 +8,11 @@ import dj_database_url
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+# ALLOWED_HOSTS: Allow backend service name for internal Docker networking
+# and the domain from environment variable for external access
+default_allowed_hosts = 'backend,localhost,127.0.0.1'
+env_allowed_hosts = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+ALLOWED_HOSTS = list(set(env_allowed_hosts + [s.strip() for s in default_allowed_hosts.split(',') if s.strip()]))
 
 # Database - Support both DATABASE_URL and individual DB settings
 # Priority: DATABASE_URL > individual settings
@@ -38,7 +42,7 @@ else:
 
 # CORS Settings for production
 # Default to frontend URL if not specified in environment
-default_frontend_url = 'https://numerai-frontend.onrender.com'
+default_frontend_url = 'https://numerobuddy.com'
 cors_origins = config('CORS_ALLOWED_ORIGINS', default=default_frontend_url, cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 CORS_ALLOWED_ORIGINS = cors_origins if cors_origins else [default_frontend_url]
 CORS_ALLOW_CREDENTIALS = True

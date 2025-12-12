@@ -63,8 +63,24 @@ def register(request):
             # #region agent log
             logger.error(f'register_user_creation_failed', extra={'error': str(e), 'error_type': type(e).__name__}, exc_info=True)
             # #endregion
+            # Check for specific database errors
+            error_message = str(e)
+            if 'unique constraint' in error_message.lower() or 'duplicate key' in error_message.lower():
+                if 'email' in error_message.lower():
+                    error_message = 'An account with this email already exists'
+                elif 'phone' in error_message.lower():
+                    error_message = 'An account with this phone number already exists'
+                return Response({
+                    'error': {
+                        'message': error_message,
+                        'details': {'field': 'email' if 'email' in error_message.lower() else 'phone'}
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST)
             return Response({
-                'error': f'Registration failed: {str(e)}'
+                'error': {
+                    'message': f'Registration failed: {error_message}',
+                    'details': str(e)
+                }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     # #region agent log
     logger.warning(f'register_validation_failed', extra={'errors': serializer.errors})

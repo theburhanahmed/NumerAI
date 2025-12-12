@@ -10,11 +10,11 @@ from .models import User, UserProfile, OTPCode, RefreshToken, DeviceToken, Notif
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration."""
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=6)  # Match frontend validation
     confirm_password = serializers.CharField(write_only=True)
     
     # Profile fields
-    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    date_of_birth = serializers.DateField(required=False, allow_null=True, input_formats=['%Y-%m-%d', '%Y/%m/%d', 'iso-8601'])
     gender = serializers.ChoiceField(
         choices=UserProfile.GENDER_CHOICES,
         required=False,
@@ -22,6 +22,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
     timezone = serializers.CharField(max_length=50, required=False, default='Asia/Kolkata')
     location = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+    
+    def to_internal_value(self, data):
+        """Handle date_of_birth as string from frontend."""
+        # Handle empty string for date_of_birth
+        if 'date_of_birth' in data and data['date_of_birth'] == '':
+            data = data.copy()
+            data['date_of_birth'] = None
+        return super().to_internal_value(data)
     
     class Meta:
         model = User
@@ -32,12 +40,26 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     def validate(self, attrs):
         """Validate registration data."""
+        import logging
+        logger = logging.getLogger(__name__)
+        # #region agent log
+        logger.info(f'registration_validate_started', extra={'has_email': bool(attrs.get('email')), 'has_phone': bool(attrs.get('phone')), 'has_password': bool(attrs.get('password')), 'has_confirm_password': bool(attrs.get('confirm_password'))})
+        # #endregion
         if not attrs.get('email') and not attrs.get('phone'):
+            # #region agent log
+            logger.warning(f'registration_validate_no_email_or_phone')
+            # #endregion
             raise serializers.ValidationError("Either email or phone is required")
         
         if attrs['password'] != attrs['confirm_password']:
+            # #region agent log
+            logger.warning(f'registration_validate_passwords_mismatch')
+            # #endregion
             raise serializers.ValidationError("Passwords do not match")
         
+        # #region agent log
+        logger.info(f'registration_validate_passed')
+        # #endregion
         return attrs
     
     def create(self, validated_data):
@@ -106,10 +128,20 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             )
             
             if user.email:
-                # #region agent log
-                email_sent = send_otp_email(user.email, otp_code)
-                logger.info(f'registration_otp_email_sent', extra={'email': user.email, 'success': email_sent})
-                # #endregion
+                try:
+                    # #region agent log
+                    email_sent = send_otp_email(user.email, otp_code)
+                    logger.info(f'registration_otp_email_sent', extra={'email': user.email, 'success': email_sent})
+                    # #endregion
+                    # Don't fail registration if email sending fails - user can resend OTP
+                    if not email_sent:
+                        logger.warning(f'registration_otp_email_failed_but_continuing', extra={'email': user.email, 'user_id': str(user.id)})
+                except Exception as email_error:
+                    # #region agent log
+                    logger.error(f'registration_otp_email_exception', extra={'email': user.email, 'error': str(email_error)}, exc_info=True)
+                    # #endregion
+                    # Don't fail registration if email sending fails - user can resend OTP
+                    logger.warning(f'registration_otp_email_exception_but_continuing', extra={'email': user.email, 'user_id': str(user.id), 'error': str(email_error)})
             else:
                 # #region agent log
                 logger.warning(f'registration_no_email_for_otp', extra={'user_id': str(user.id)})
