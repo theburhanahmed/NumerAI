@@ -43,8 +43,14 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Backup original server.js and replace with custom one that sets keep-alive
+# Backup original server.js and modify it to ensure keepAliveTimeout is set
 RUN if [ -f server.js ]; then mv server.js server.js.original; fi
+
+# Modify server.js.original to ensure keepAliveTimeout is always 65000
+RUN sed -i 's/let keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10)/let keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10) || 65000/' server.js.original && \
+    sed -i 's/if (.*keepAliveTimeout.*)/if (Number.isNaN(keepAliveTimeout) || !Number.isFinite(keepAliveTimeout) || keepAliveTimeout < 0) { keepAliveTimeout = 65000; }/' server.js.original
+
+# Copy custom wrapper
 COPY --chown=nextjs:nodejs server.js ./server.js
 
 USER nextjs
