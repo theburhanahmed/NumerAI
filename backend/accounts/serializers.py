@@ -42,52 +42,85 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         """Create user, profile, and send OTP."""
-        # Extract profile fields
-        profile_data = {
-            'date_of_birth': validated_data.pop('date_of_birth', None),
-            'gender': validated_data.pop('gender', None),
-            'timezone': validated_data.pop('timezone', 'Asia/Kolkata'),
-            'location': validated_data.pop('location', None),
-        }
-        
-        # Extract password and confirm_password
-        validated_data.pop('confirm_password')
-        password = validated_data.pop('password')
-        
-        # Create user
-        user = User.objects.create(**validated_data)
-        user.set_password(password)
-        user.save()
-        
-        # Create user profile with provided details
-        # The signal will create an empty profile, so we update it with the provided data
-        profile, created = UserProfile.objects.get_or_create(user=user)
-        for key, value in profile_data.items():
-            if value is not None:
-                setattr(profile, key, value)
-        profile.save()
-        
-        # Mark profile as completed if date_of_birth is provided
-        if profile.date_of_birth:
-            profile.profile_completed_at = timezone.now()
+        import logging
+        logger = logging.getLogger(__name__)
+        # #region agent log
+        logger.info(f'registration_serializer_create_started', extra={'has_email': bool(validated_data.get('email')), 'has_phone': bool(validated_data.get('phone')), 'has_full_name': bool(validated_data.get('full_name'))})
+        # #endregion
+        try:
+            # Extract profile fields
+            profile_data = {
+                'date_of_birth': validated_data.pop('date_of_birth', None),
+                'gender': validated_data.pop('gender', None),
+                'timezone': validated_data.pop('timezone', 'Asia/Kolkata'),
+                'location': validated_data.pop('location', None),
+            }
+            
+            # Extract password and confirm_password
+            validated_data.pop('confirm_password')
+            password = validated_data.pop('password')
+            
+            # #region agent log
+            logger.info(f'registration_creating_user', extra={'email': validated_data.get('email'), 'has_password': bool(password)})
+            # #endregion
+            
+            # Create user
+            user = User.objects.create(**validated_data)
+            user.set_password(password)
+            user.save()
+            
+            # #region agent log
+            logger.info(f'registration_user_created', extra={'user_id': str(user.id)})
+            # #endregion
+            
+            # Create user profile with provided details
+            # The signal will create an empty profile, so we update it with the provided data
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            # #region agent log
+            logger.info(f'registration_profile_handled', extra={'profile_created': created, 'profile_id': str(profile.id)})
+            # #endregion
+            for key, value in profile_data.items():
+                if value is not None:
+                    setattr(profile, key, value)
             profile.save()
-        
-        # Generate and send OTP
-        from .utils import generate_otp, send_otp_email
-        otp_code = generate_otp()
-        otp_type = 'email' if user.email else 'phone'
-        
-        OTPCode.objects.create(
-            user=user,
-            code=otp_code,
-            type=otp_type,
-            expires_at=timezone.now() + timedelta(minutes=10)
-        )
-        
-        if user.email:
-            send_otp_email(user.email, otp_code)
-        
-        return user
+            
+            # Mark profile as completed if date_of_birth is provided
+            if profile.date_of_birth:
+                profile.profile_completed_at = timezone.now()
+                profile.save()
+            
+            # Generate and send OTP
+            from .utils import generate_otp, send_otp_email
+            otp_code = generate_otp()
+            otp_type = 'email' if user.email else 'phone'
+            
+            # #region agent log
+            logger.info(f'registration_creating_otp', extra={'otp_type': otp_type, 'user_email': user.email})
+            # #endregion
+            
+            OTPCode.objects.create(
+                user=user,
+                code=otp_code,
+                type=otp_type,
+                expires_at=timezone.now() + timedelta(minutes=10)
+            )
+            
+            if user.email:
+                # #region agent log
+                email_sent = send_otp_email(user.email, otp_code)
+                logger.info(f'registration_otp_email_sent', extra={'email': user.email, 'success': email_sent})
+                # #endregion
+            else:
+                # #region agent log
+                logger.warning(f'registration_no_email_for_otp', extra={'user_id': str(user.id)})
+                # #endregion
+            
+            return user
+        except Exception as e:
+            # #region agent log
+            logger.error(f'registration_create_failed', extra={'error': str(e), 'error_type': type(e).__name__}, exc_info=True)
+            # #endregion
+            raise
 
 
 class OTPVerificationSerializer(serializers.Serializer):

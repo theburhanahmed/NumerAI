@@ -32,20 +32,43 @@ logger = logging.getLogger(__name__)
 @permission_classes([AllowAny])
 def register(request):
     """Register a new user."""
+    # #region agent log
+    import json
+    request_data_str = json.dumps(request.data) if request.data else '{}'
+    logger.info(f'register_request_received', extra={
+        'has_data': bool(request.data),
+        'data_keys': list(request.data.keys()) if request.data else [],
+        'data_preview': request_data_str[:200] if request_data_str else 'none'
+    })
+    # #endregion
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.save()
-        response_data = {
-            'message': 'Registration successful. Please check your email for OTP.',
-            'user_id': str(getattr(user, 'id', '')),
-        }
-        email = getattr(user, 'email', None)
-        if email:
-            response_data['email'] = email
-        phone = getattr(user, 'phone', None)
-        if phone:
-            response_data['phone'] = phone
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        try:
+            user = serializer.save()
+            # #region agent log
+            logger.info(f'register_user_created', extra={'user_id': str(user.id), 'email': getattr(user, 'email', None)})
+            # #endregion
+            response_data = {
+                'message': 'Registration successful. Please check your email for OTP.',
+                'user_id': str(getattr(user, 'id', '')),
+            }
+            email = getattr(user, 'email', None)
+            if email:
+                response_data['email'] = email
+            phone = getattr(user, 'phone', None)
+            if phone:
+                response_data['phone'] = phone
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # #region agent log
+            logger.error(f'register_user_creation_failed', extra={'error': str(e), 'error_type': type(e).__name__}, exc_info=True)
+            # #endregion
+            return Response({
+                'error': f'Registration failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # #region agent log
+    logger.warning(f'register_validation_failed', extra={'errors': serializer.errors})
+    # #endregion
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
