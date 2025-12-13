@@ -23,6 +23,11 @@ ingress:
           prefix: /media
       component:
         name: backend
+    - match:
+        path:
+          prefix: /
+      component:
+        name: frontend
 
 services:
   # Django Backend Service
