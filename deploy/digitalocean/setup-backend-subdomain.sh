@@ -83,8 +83,14 @@ else
     echo -e "${YELLOW}⚠ .env.production not found at ${ENV_FILE}${NC}"
 fi
 
-# Step 7: Reload nginx and restart backend
-echo -e "\n[7/7] Reloading services..."
+# Step 7: Ensure certbot directory exists
+echo -e "\n[7/8] Ensuring certbot directory exists..."
+sudo mkdir -p /var/www/certbot
+sudo chown -R www-data:www-data /var/www/certbot
+echo -e "${GREEN}✓ Certbot directory ready${NC}"
+
+# Step 8: Reload nginx and restart backend
+echo -e "\n[8/8] Reloading services..."
 if sudo systemctl reload nginx; then
     echo -e "${GREEN}✓ Nginx reloaded${NC}"
 else
