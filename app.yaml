@@ -1,6 +1,29 @@
 name: numerai
 region: nyc
 
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: backend
+    - match:
+        path:
+          prefix: /admin
+      component:
+        name: backend
+    - match:
+        path:
+          prefix: /static
+      component:
+        name: backend
+    - match:
+        path:
+          prefix: /media
+      component:
+        name: backend
+
 services:
   # Django Backend Service
   - name: backend
@@ -15,11 +38,6 @@ services:
     instance_count: 1
     instance_size_slug: basic-xxs
     http_port: 8000
-    routes:
-      - path: /api
-      - path: /admin
-      - path: /static
-      - path: /media
     health_check:
       http_path: /api/v1/health/
       initial_delay_seconds: 60
@@ -133,8 +151,6 @@ services:
       timeout_seconds: 5
       success_threshold: 1
       failure_threshold: 3
-    routes:
-      - path: /
     envs:
       - key: NODE_ENV
         value: production
@@ -144,6 +160,7 @@ services:
       - key: PORT
         value: "3000"
 
+workers:
   # PostgreSQL Database Container Service
   - name: postgres
     image:
@@ -172,7 +189,6 @@ services:
     instance_size_slug: basic-xxs
     run_command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
 
-workers:
   # Celery Worker Service
   - name: celery-worker
     github:
