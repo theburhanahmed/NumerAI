@@ -2,39 +2,8 @@ name: numerai
 region: nyc
 
 services:
-  # PostgreSQL Database Container Service
-  - name: postgres
-    type: worker
-    image:
-      registry_type: DOCKER_HUB
-      repository: postgres
-      tag: "14-alpine"
-    instance_count: 1
-    instance_size_slug: basic-xxs
-    run_command: postgres -c max_connections=100
-    envs:
-      - key: POSTGRES_DB
-        value: numerai
-      - key: POSTGRES_USER
-        value: numerai
-      - key: POSTGRES_PASSWORD
-        scope: RUN_TIME
-        type: SECRET
-
-  # Redis Container Service
-  - name: redis
-    type: worker
-    image:
-      registry_type: DOCKER_HUB
-      repository: redis
-      tag: "7-alpine"
-    instance_count: 1
-    instance_size_slug: basic-xxs
-    run_command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-
   # Django Backend Service
   - name: backend
-    type: web
     github:
       repo: theburhanahmed/NumerAI
       branch: main
@@ -46,6 +15,11 @@ services:
     instance_count: 1
     instance_size_slug: basic-xxs
     http_port: 8000
+    routes:
+      - path: /api
+      - path: /admin
+      - path: /static
+      - path: /media
     health_check:
       http_path: /api/v1/health/
       initial_delay_seconds: 60
@@ -53,11 +27,6 @@ services:
       timeout_seconds: 5
       success_threshold: 1
       failure_threshold: 3
-    routes:
-      - path: /api
-      - path: /admin
-      - path: /static
-      - path: /media
     envs:
       - key: DJANGO_SETTINGS_MODULE
         value: numerai.settings.production
@@ -146,7 +115,6 @@ services:
 
   # Next.js Frontend Service
   - name: frontend
-    type: web
     github:
       repo: theburhanahmed/NumerAI
       branch: main
@@ -176,9 +144,37 @@ services:
       - key: PORT
         value: "3000"
 
+  # PostgreSQL Database Container Service
+  - name: postgres
+    image:
+      registry_type: DOCKER_HUB
+      repository: postgres
+      tag: "14-alpine"
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    run_command: postgres -c max_connections=100
+    envs:
+      - key: POSTGRES_DB
+        value: numerai
+      - key: POSTGRES_USER
+        value: numerai
+      - key: POSTGRES_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+
+  # Redis Container Service
+  - name: redis
+    image:
+      registry_type: DOCKER_HUB
+      repository: redis
+      tag: "7-alpine"
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    run_command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+workers:
   # Celery Worker Service
   - name: celery-worker
-    type: worker
     github:
       repo: theburhanahmed/NumerAI
       branch: main
@@ -277,7 +273,6 @@ services:
 
   # Celery Beat Service
   - name: celery-beat
-    type: worker
     github:
       repo: theburhanahmed/NumerAI
       branch: main
@@ -373,4 +368,3 @@ services:
       - key: APPLE_TEAM_ID
         scope: RUN_TIME
         type: SECRET
-

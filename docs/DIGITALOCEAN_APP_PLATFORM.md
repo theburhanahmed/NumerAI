@@ -75,7 +75,11 @@ doctl auth init
 
 ## Creating the App
 
+**Quick Start**: If you see "No components detected" error, this is normal! Your `package.json` and `requirements.txt` are in subdirectories. Use one of the methods below to proceed.
+
 ### Option A: Using the App Spec File (Recommended)
+
+**Important**: When DigitalOcean tries to auto-detect components, it looks for `package.json` or `requirements.txt` in the root directory. Since these are in subdirectories, you'll need to bypass auto-detection.
 
 1. **Navigate to App Platform**:
    - Go to https://cloud.digitalocean.com/apps
@@ -86,28 +90,113 @@ doctl auth init
    - Authorize DigitalOcean to access your repositories
    - Select `theburhanahmed/NumerAI`
    - Select `main` branch
+   - Click **"Next"**
 
-3. **Configure App Spec**:
-   - Choose **"Edit App Spec"** or **"Upload YAML"**
-   - The `app.yaml` file in the repository root will be automatically detected
-   - **Note**: You may need to adjust the spec format based on DigitalOcean's current API. If you encounter errors, use the dashboard method (Option B) or export the spec from a working app to see the correct format.
+3. **Bypass Auto-Detection**:
+   - When you see "No components detected", **DO NOT** click "Edit Plan"
+   - Instead, look for **"Edit App Spec"** button or **"Upload YAML"** option
+   - If you don't see these options, click **"Skip"** or **"Continue"** to proceed to the spec editor
+
+4. **Upload or Edit App Spec**:
+   - Click **"Edit App Spec"** or **"Upload YAML"**
+   - Copy the contents of `app.yaml` from your repository
+   - Paste it into the spec editor
+   - **OR** if there's an upload option, upload the `app.yaml` file directly
    - Review the configuration
 
-4. **Review and Create**:
+5. **Review and Create**:
    - Review all services and configurations
-   - Click **"Create Resources"**
+   - Click **"Create Resources"** or **"Deploy"**
 
-### Option B: Using the Dashboard
+**Alternative**: If the above doesn't work, you can also:
+- Create the app manually using Option B below
+- Then export the spec to see the correct format
+- Update your `app.yaml` accordingly
+
+### Option B: Using the Dashboard (If Spec File Doesn't Work)
+
+If you encounter issues with the app spec file, use the dashboard method:
 
 1. **Create App**:
    - Go to https://cloud.digitalocean.com/apps
    - Click **"Create App"**
    - Connect your GitHub repository
+   - When you see "No components detected", click **"Edit Plan"** or look for **"Add Component"**
 
-2. **Add Services Manually**:
-   - Add each service (backend, frontend, postgres, redis, celery-worker, celery-beat)
-   - Configure build and run commands
-   - Set environment variables
+2. **Add Backend Service**:
+   - Click **"Add Component"** → **"Web Service"**
+   - **Name**: `backend`
+   - **Source Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Run Command**: `python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120 numerai.wsgi:application`
+   - **HTTP Port**: `8000`
+   - **Health Check Path**: `/api/v1/health/`
+   - **Environment**: Python
+   - Add routes: `/api`, `/admin`, `/static`, `/media`
+
+3. **Add Frontend Service**:
+   - Click **"Add Component"** → **"Web Service"**
+   - **Name**: `frontend`
+   - **Source Directory**: `frontend`
+   - **Build Command**: `npm ci && npm run build`
+   - **Run Command**: `npm start`
+   - **HTTP Port**: `3000`
+   - **Environment**: Node.js
+   - Add route: `/`
+
+4. **Add PostgreSQL Container**:
+   - Click **"Add Component"** → **"Worker"**
+   - **Name**: `postgres`
+   - **Docker Image**: `postgres:14-alpine`
+   - **Run Command**: (leave default or empty)
+   - Add environment variables: `POSTGRES_DB=numerai`, `POSTGRES_USER=numerai`, `POSTGRES_PASSWORD` (set as secret)
+
+5. **Add Redis Container**:
+   - Click **"Add Component"** → **"Worker"**
+   - **Name**: `redis`
+   - **Docker Image**: `redis:7-alpine`
+   - **Run Command**: `redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru`
+
+6. **Add Celery Worker**:
+   - Click **"Add Component"** → **"Worker"**
+   - **Name**: `celery-worker`
+   - **Source Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Run Command**: `celery -A numerai worker -l info`
+   - **Environment**: Python
+
+7. **Add Celery Beat**:
+   - Click **"Add Component"** → **"Worker"**
+   - **Name**: `celery-beat`
+   - **Source Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Run Command**: `celery -A numerai beat -l info`
+   - **Environment**: Python
+
+8. **Configure Environment Variables**:
+   - For each service, go to **"Settings"** → **"Environment Variables"**
+   - Add all required variables (see Environment Variables section)
+
+9. **Review and Deploy**:
+   - Review all configurations
+   - Click **"Create Resources"** or **"Deploy"**
+
+### Option C: Using doctl CLI
+
+If you have `doctl` installed:
+
+```bash
+# Authenticate
+doctl auth init
+
+# Create app from spec file
+doctl apps create --spec app.yaml
+
+# Or create app and then update spec
+doctl apps create --spec app.yaml --wait
+```
+
+This method bypasses the web UI auto-detection entirely.
 
 ---
 
@@ -358,6 +447,26 @@ For PostgreSQL container:
 ---
 
 ## Troubleshooting
+
+### "No components detected" Error
+
+This error occurs when DigitalOcean tries to auto-detect components from your repository root. Since `package.json` and `requirements.txt` are in subdirectories, auto-detection fails.
+
+**Solution 1: Use App Spec Directly**
+1. When you see "No components detected", look for **"Edit App Spec"** or **"Upload YAML"** button
+2. Click it and paste your `app.yaml` content
+3. This bypasses auto-detection
+
+**Solution 2: Use Dashboard Method**
+1. Instead of using the spec file, use Option B (Dashboard Method) below
+2. Manually configure each service through the UI
+3. DigitalOcean will create the spec automatically
+
+**Solution 3: Create App via doctl CLI**
+```bash
+# Create app from spec file
+doctl apps create --spec app.yaml
+```
 
 ### Application Won't Start
 
