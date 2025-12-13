@@ -175,6 +175,7 @@ workers:
       - key: POSTGRES_USER
         value: numerai
       - key: POSTGRES_PASSWORD
+        value: changeme123
         scope: RUN_TIME
         type: SECRET
 
