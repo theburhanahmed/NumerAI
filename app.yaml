@@ -169,7 +169,6 @@ workers:
       tag: "14-alpine"
     instance_count: 1
     instance_size_slug: basic-xxs
-    run_command: postgres -c max_connections=100
     envs:
       - key: POSTGRES_DB
         value: numerai
