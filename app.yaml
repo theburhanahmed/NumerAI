@@ -170,6 +170,8 @@ workers:
       tag: "14-alpine"
     instance_count: 1
     instance_size_slug: basic-xxs
+    internal_ports:
+      - 5432
     envs:
       - key: POSTGRES_DB
         value: numerai
@@ -188,6 +190,8 @@ workers:
       tag: "7-alpine"
     instance_count: 1
     instance_size_slug: basic-xxs
+    internal_ports:
+      - 6379
     run_command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
 
   # Celery Worker Service
