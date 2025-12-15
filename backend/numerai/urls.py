@@ -27,6 +27,8 @@ urlpatterns = [
     path('api/v1/matchmaking/', include('matchmaking.urls')),
     path('api/v1/rewards/', include('rewards.urls')),
     path('api/v1/developer/', include('developer_api.urls')),
+    path('api/v1/', include('feature_flags.urls')),
+    path('api/v1/', include('meus.urls')),
     
     # Django Allauth
     path('accounts/', include('allauth.urls')),

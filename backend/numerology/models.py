@@ -3,6 +3,7 @@ Numerology models for NumerAI application.
 """
 import uuid
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class NumerologyProfile(models.Model):
@@ -643,3 +644,396 @@ class DetailedReading(models.Model):
     
     def __str__(self):
         return f"Detailed {self.get_reading_type_display()} Reading for {self.user} (Number {self.number})"
+
+
+class HealthNumerologyProfile(models.Model):
+    """Health Numerology profile for a user."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, related_name='health_numerology_profile')
+    
+    # Health numbers
+    stress_number = models.IntegerField(help_text="Number indicating stress patterns")
+    vitality_number = models.IntegerField(help_text="Number indicating vitality and energy")
+    health_cycle_number = models.IntegerField(help_text="Current health cycle number")
+    
+    # Health cycles
+    health_cycles = models.JSONField(default=dict, help_text="9-year and 7-year health cycles")
+    current_cycle = models.JSONField(default=dict, help_text="Current health cycle details")
+    
+    # Medical timing
+    medical_timing = models.JSONField(default=dict, help_text="Optimal timing for medical procedures")
+    health_windows = models.JSONField(default=list, help_text="Yearly health windows")
+    
+    # Risk periods
+    risk_periods = models.JSONField(default=list, help_text="Identified health risk periods")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'health_numerology_profiles'
+        verbose_name = 'Health Numerology Profile'
+        verbose_name_plural = 'Health Numerology Profiles'
+    
+    def __str__(self):
+        return f"Health Numerology Profile of {self.user}"
+
+
+class NameCorrection(models.Model):
+    """Name correction analysis and suggestions."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='name_corrections')
+    
+    # Name information
+    original_name = models.CharField(max_length=200)
+    name_type = models.CharField(
+        max_length=20,
+        choices=[('birth', 'Birth'), ('current', 'Current'), ('nickname', 'Nickname')],
+        default='current'
+    )
+    
+    # Analysis results
+    current_expression = models.IntegerField()
+    target_expression = models.IntegerField(null=True, blank=True)
+    cultural_context = models.CharField(max_length=50, default='western')
+    
+    # Suggestions and analysis
+    suggestions = models.JSONField(default=list)
+    phonetic_analysis = models.JSONField(default=dict)
+    cultural_analysis = models.JSONField(default=dict)
+    recommendations = models.JSONField(default=list)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'name_corrections'
+        verbose_name = 'Name Correction'
+        verbose_name_plural = 'Name Corrections'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Name Correction for {self.user}: {self.original_name}"
+
+
+class SpiritualNumerologyProfile(models.Model):
+    """Spiritual Numerology profile for a user."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, related_name='spiritual_numerology_profile')
+    
+    # Spiritual data
+    soul_contracts = models.JSONField(default=list)
+    karmic_cycles = models.JSONField(default=list)
+    rebirth_cycles = models.JSONField(default=list)
+    divine_gifts = models.JSONField(default=list)
+    spiritual_alignment = models.JSONField(default=dict)
+    past_life_connections = models.JSONField(default=dict)
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'spiritual_numerology_profiles'
+        verbose_name = 'Spiritual Numerology Profile'
+        verbose_name_plural = 'Spiritual Numerology Profiles'
+    
+    def __str__(self):
+        return f"Spiritual Numerology Profile of {self.user}"
+
+
+class PredictiveCycle(models.Model):
+    """Predictive Numerology cycle for a user."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='predictive_cycles')
+    
+    # Cycle data
+    cycle_type = models.CharField(max_length=50, choices=[
+        ('nine_year', '9-Year Cycle'),
+        ('breakthrough', 'Breakthrough Year'),
+        ('crisis', 'Crisis Year'),
+        ('opportunity', 'Opportunity Period')
+    ])
+    year = models.IntegerField()
+    cycle_data = models.JSONField(default=dict)
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'predictive_cycles'
+        verbose_name = 'Predictive Cycle'
+        verbose_name_plural = 'Predictive Cycles'
+        ordering = ['year']
+        indexes = [
+            models.Index(fields=['user', 'year']),
+            models.Index(fields=['cycle_type']),
+        ]
+    
+    def __str__(self):
+        return f"Predictive Cycle for {self.user} - {self.cycle_type} ({self.year})"
+
+
+class GenerationalAnalysis(models.Model):
+    """Family generational numerology analysis."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='generational_analyses')
+    
+    # Family unit identification
+    family_unit_hash = models.CharField(max_length=64, db_index=True, help_text="Hash of family member IDs for uniqueness")
+    
+    # Generational number
+    generational_number = models.IntegerField(help_text="Calculated generational number for the family unit")
+    
+    # Analysis data
+    analysis_data = models.JSONField(default=dict, help_text="Detailed generational analysis including patterns, cycles, etc.")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'generational_analyses'
+        verbose_name = 'Generational Analysis'
+        verbose_name_plural = 'Generational Analyses'
+        unique_together = [['user', 'family_unit_hash']]
+        indexes = [
+            models.Index(fields=['user', 'calculated_at']),
+            models.Index(fields=['generational_number']),
+        ]
+    
+    def __str__(self):
+        return f"Generational Analysis for {self.user} - Number {self.generational_number}"
+
+
+class KarmicContract(models.Model):
+    """Parent-child karmic contract analysis."""
+    
+    CONTRACT_TYPE_CHOICES = [
+        ('teaching', 'Teaching Contract'),
+        ('learning', 'Learning Contract'),
+        ('healing', 'Healing Contract'),
+        ('karmic_debt', 'Karmic Debt Contract'),
+        ('soul_evolution', 'Soul Evolution Contract'),
+        ('neutral', 'Neutral Relationship'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='karmic_contracts')
+    
+    # Parent and child relationships
+    parent_person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='karmic_contracts_as_parent')
+    child_person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='karmic_contracts_as_child')
+    
+    # Contract analysis
+    contract_type = models.CharField(max_length=50, choices=CONTRACT_TYPE_CHOICES, null=True, blank=True)
+    karmic_lessons = models.JSONField(default=list, help_text="List of karmic lessons to be learned")
+    compatibility_score = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Compatibility score 0-100"
+    )
+    
+    # Analysis data
+    analysis_data = models.JSONField(default=dict, help_text="Detailed karmic contract analysis")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'karmic_contracts'
+        verbose_name = 'Karmic Contract'
+        verbose_name_plural = 'Karmic Contracts'
+        unique_together = [['user', 'parent_person', 'child_person']]
+        indexes = [
+            models.Index(fields=['user', 'calculated_at']),
+            models.Index(fields=['parent_person', 'child_person']),
+            models.Index(fields=['contract_type']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(parent_person=models.F('child_person')),
+                name='different_parent_child'
+            )
+        ]
+    
+    def __str__(self):
+        return f"Karmic Contract: {self.parent_person.name} → {self.child_person.name} ({self.contract_type or 'Unknown'})"
+
+
+class FengShuiAnalysis(models.Model):
+    """Feng Shui × Numerology hybrid analysis."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='feng_shui_analyses')
+    
+    # Property information
+    property_address = models.CharField(max_length=500, blank=True)
+    house_number = models.CharField(max_length=50, help_text="House/flat number")
+    
+    # Feng Shui data
+    feng_shui_data = models.JSONField(default=dict, help_text="Feng Shui analysis data (directions, elements, etc.)")
+    
+    # Numerology vibration
+    numerology_vibration = models.IntegerField(help_text="Calculated numerology vibration number for the property")
+    
+    # Hybrid analysis
+    hybrid_score = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Overall compatibility score 0-100"
+    )
+    
+    # Recommendations
+    recommendations = models.JSONField(default=list, help_text="Space optimization and improvement recommendations")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'feng_shui_analyses'
+        verbose_name = 'Feng Shui Analysis'
+        verbose_name_plural = 'Feng Shui Analyses'
+        indexes = [
+            models.Index(fields=['user', 'calculated_at']),
+            models.Index(fields=['numerology_vibration']),
+        ]
+    
+    def __str__(self):
+        return f"Feng Shui Analysis for {self.user} - {self.house_number}"
+
+
+class SpaceOptimization(models.Model):
+    """Space optimization recommendations for Feng Shui × Numerology."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    analysis = models.ForeignKey(FengShuiAnalysis, on_delete=models.CASCADE, related_name='space_optimizations')
+    
+    # Room information
+    room_name = models.CharField(max_length=200, help_text="Name of the room/space")
+    room_number = models.CharField(max_length=50, null=True, blank=True, help_text="Room number if applicable")
+    direction = models.CharField(max_length=50, null=True, blank=True, help_text="Direction/orientation of the room")
+    
+    # Recommendations
+    color_recommendations = models.JSONField(default=list, help_text="Recommended colors for this space")
+    number_combinations = models.JSONField(default=list, help_text="Favorable number combinations")
+    energy_flow_score = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Energy flow score 0-100"
+    )
+    
+    # Additional recommendations
+    layout_suggestions = models.JSONField(default=list, help_text="Layout and arrangement suggestions")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'space_optimizations'
+        verbose_name = 'Space Optimization'
+        verbose_name_plural = 'Space Optimizations'
+        indexes = [
+            models.Index(fields=['analysis', 'room_name']),
+        ]
+    
+    def __str__(self):
+        return f"Space Optimization: {self.room_name} for {self.analysis}"
+
+
+class MentalStateTracking(models.Model):
+    """Tracks emotional state over time for Mental State AI analysis."""
+    
+    EMOTIONAL_STATE_CHOICES = [
+        ('very_positive', 'Very Positive'),
+        ('positive', 'Positive'),
+        ('neutral', 'Neutral'),
+        ('negative', 'Negative'),
+        ('very_negative', 'Very Negative'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='mental_state_trackings')
+    
+    # Tracking data
+    date = models.DateField(db_index=True)
+    emotional_state = models.CharField(max_length=20, choices=EMOTIONAL_STATE_CHOICES)
+    stress_level = models.IntegerField(
+        help_text="Stress level 0-100",
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    mood_score = models.IntegerField(
+        help_text="Mood score 0-100",
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    
+    # Numerology context
+    numerology_cycle = models.CharField(max_length=50, null=True, blank=True, help_text="Current numerology cycle (e.g., 'Personal Year 7')")
+    
+    # Notes
+    notes = models.TextField(blank=True, help_text="User notes about their state")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'mental_state_trackings'
+        verbose_name = 'Mental State Tracking'
+        verbose_name_plural = 'Mental State Trackings'
+        unique_together = [['user', 'date']]
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['emotional_state']),
+            models.Index(fields=['date']),
+        ]
+    
+    def __str__(self):
+        return f"Mental State Tracking for {self.user} on {self.date}"
+
+
+class MentalStateAnalysis(models.Model):
+    """AI-generated mental state analysis based on numerology."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='mental_state_analyses')
+    
+    # Analysis period
+    period_start = models.DateField()
+    period_end = models.DateField()
+    
+    # Analysis results
+    stress_patterns = models.JSONField(default=dict, help_text="Identified stress patterns and correlations")
+    wellbeing_recommendations = models.JSONField(default=list, help_text="AI-generated wellbeing recommendations")
+    mood_predictions = models.JSONField(default=dict, help_text="Predicted mood cycles based on numerology")
+    
+    # Additional insights
+    emotional_compatibility = models.JSONField(default=dict, help_text="Emotional compatibility analysis with others")
+    numerology_correlations = models.JSONField(default=dict, help_text="Correlations between numerology cycles and mental state")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'mental_state_analyses'
+        verbose_name = 'Mental State Analysis'
+        verbose_name_plural = 'Mental State Analyses'
+        indexes = [
+            models.Index(fields=['user', 'period_start', 'period_end']),
+            models.Index(fields=['calculated_at']),
+        ]
+    
+    def __str__(self):
+        return f"Mental State Analysis for {self.user} ({self.period_start} to {self.period_end})"

@@ -154,3 +154,5 @@ echo "2. Wait for DNS propagation (5-15 minutes)"
 echo "3. Run certbot: sudo certbot --nginx -d numerobuddy.com -d www.numerobuddy.com -d backend.numerobuddy.com"
 echo "4. Verify: curl http://backend.numerobuddy.com/api/v1/health/"
 
+
+

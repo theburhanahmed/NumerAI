@@ -220,10 +220,19 @@ export default function Dashboard() {
                       <AnimatedNumber number={numerologyProfile.personality_number?.toString() || '-'} label="Personality" delay={0.6} />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                      <div className="text-center">
-                        <p className="text-white/60 text-sm">Calculate your profile to see your numbers</p>
-                      </div>
+                    <div className="col-span-2 md:col-span-4">
+                      <GlassCard variant="subtle" className="p-4 md:p-6 text-center">
+                        <p className="text-white/80 text-sm md:text-base mb-4">
+                          Your numerology profile is not available yet. Calculate it to see your numbers and unlock personalized insights.
+                        </p>
+                        <GlassButton 
+                          variant="primary" 
+                          size="sm" 
+                          onClick={() => router.push('/numerology-report')}
+                        >
+                          Calculate My Profile
+                        </GlassButton>
+                      </GlassCard>
                     </div>
                   )}
                 </div>
@@ -323,10 +332,19 @@ export default function Dashboard() {
                     </div>
                   </>
                 ) : (
-                  <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6">
-                    <p className="text-center text-gray-600 dark:text-gray-400">
-                      {dataLoading ? 'Loading your daily reading...' : 'No daily reading available. Calculate your profile first.'}
+                  <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6 text-center">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {dataLoading ? 'Loading your daily reading...' : 'Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.'}
                     </p>
+                    {!dataLoading && (
+                      <GlassButton 
+                        variant="primary" 
+                        size="sm" 
+                        onClick={() => router.push('/numerology-report')}
+                      >
+                        Calculate Profile
+                      </GlassButton>
+                    )}
                   </GlassCard>
                 )}
               </GlassCard>
@@ -387,11 +405,13 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                      {dataLoading ? 'Loading weekly insights...' : 'Calculate your profile to see weekly insights.'}
+                      {dataLoading ? 'Loading weekly insights...' : 'Your weekly insights are not available yet. Calculate your numerology profile first to get personalized weekly forecasts.'}
                     </p>
-                    <GlassButton variant="primary" size="sm" className="w-full" onClick={() => router.push('/weekly-report')}>
-                      View Weekly Report
-                    </GlassButton>
+                    {!dataLoading && (
+                      <GlassButton variant="primary" size="sm" className="w-full" onClick={() => router.push('/numerology-report')}>
+                        Calculate Profile
+                      </GlassButton>
+                    )}
                   </>
                 )}
               </GlassCard>

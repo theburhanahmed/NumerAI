@@ -5,7 +5,8 @@ from rest_framework import serializers
 from .models import (
     NumerologyProfile, DailyReading, CompatibilityCheck, Remedy, RemedyTracking,
     Person, PersonNumerologyProfile, RajYogDetection, Explanation, NameReport,
-    WeeklyReport, YearlyReport, PhoneReport
+    WeeklyReport, YearlyReport, PhoneReport, HealthNumerologyProfile, NameCorrection,
+    SpiritualNumerologyProfile, PredictiveCycle
 )
 
 
@@ -306,3 +307,72 @@ class PhoneNumerologyGenerateSerializer(serializers.Serializer):
     persist = serializers.BooleanField(default=True)
     force_refresh = serializers.BooleanField(default=False)
     convert_vanity = serializers.BooleanField(default=False)
+
+
+class LoShuGridComparisonSerializer(serializers.Serializer):
+    """Serializer for Lo Shu Grid comparison request."""
+    person1_id = serializers.CharField(required=True, help_text="Person 1 ID or 'self' for current user")
+    person2_id = serializers.CharField(required=True, help_text="Person 2 ID or 'self' for current user")
+
+
+class HealthNumerologyProfileSerializer(serializers.ModelSerializer):
+    """Serializer for Health Numerology profile."""
+    
+    class Meta:
+        model = HealthNumerologyProfile
+        fields = [
+            'id', 'stress_number', 'vitality_number', 'health_cycle_number',
+            'health_cycles', 'current_cycle', 'medical_timing', 'health_windows',
+            'risk_periods', 'calculated_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'calculated_at', 'updated_at']
+
+
+class NameCorrectionSerializer(serializers.ModelSerializer):
+    """Serializer for Name Correction."""
+    
+    class Meta:
+        model = NameCorrection
+        fields = [
+            'id', 'original_name', 'name_type', 'current_expression',
+            'target_expression', 'cultural_context', 'suggestions',
+            'phonetic_analysis', 'cultural_analysis', 'recommendations',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class NameCorrectionRequestSerializer(serializers.Serializer):
+    """Serializer for name correction request."""
+    name = serializers.CharField(required=True, max_length=200)
+    name_type = serializers.ChoiceField(
+        choices=[('birth', 'Birth'), ('current', 'Current'), ('nickname', 'Nickname')],
+        default='current'
+    )
+    target_number = serializers.IntegerField(required=False, allow_null=True, min_value=1, max_value=9)
+    cultural_context = serializers.CharField(max_length=50, default='western')
+
+
+class SpiritualNumerologyProfileSerializer(serializers.ModelSerializer):
+    """Serializer for Spiritual Numerology profile."""
+    
+    class Meta:
+        model = SpiritualNumerologyProfile
+        fields = [
+            'id', 'soul_contracts', 'karmic_cycles', 'rebirth_cycles',
+            'divine_gifts', 'spiritual_alignment', 'past_life_connections',
+            'calculated_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'calculated_at', 'updated_at']
+
+
+class PredictiveCycleSerializer(serializers.ModelSerializer):
+    """Serializer for Predictive Cycle."""
+    
+    class Meta:
+        model = PredictiveCycle
+        fields = [
+            'id', 'cycle_type', 'year', 'cycle_data',
+            'calculated_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'calculated_at', 'updated_at']

@@ -96,10 +96,13 @@ export default function LifePathAnalysis() {
           } finally {
             setAnalysisLoading(false);
           }
+        } else {
+          // Profile is null or doesn't have life_path_number
+          setSelectedPath(null);
         }
       } catch (error) {
         console.error('Failed to fetch numerology profile:', error);
-        toast.error('Failed to load your life path. Please calculate your profile first.');
+        setSelectedPath(null);
       } finally {
         setLoading(false);
       }
@@ -156,10 +159,10 @@ export default function LifePathAnalysis() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
           <GlassCard className="p-8 text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Please calculate your numerology profile first to see your life path.
+              Your life path is not available yet. Calculate your numerology profile first to discover your life path number and unlock personalized insights.
             </p>
-            <GlassButton onClick={() => router.push('/dashboard')}>
-              Go to Dashboard
+            <GlassButton onClick={() => router.push('/numerology-report')}>
+              Calculate My Profile
             </GlassButton>
           </GlassCard>
         </div>

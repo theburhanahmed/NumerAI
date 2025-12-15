@@ -1,21 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { StarIcon, SparklesIcon, TrendingUpIcon, HeartIcon, BriefcaseIcon, CalendarIcon } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 import { MagneticCard } from '@/components/ui/magnetic-card';
+import { GlassButton } from '@/components/ui/glass-button';
 import { numerologyAPI } from '@/lib/numerology-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
 
 export default function DailyReadings() {
+  const router = useRouter();
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [reading, setReading] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [softError, setSoftError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReading = async () => {
@@ -23,11 +27,37 @@ export default function DailyReadings() {
       
       try {
         setLoading(true);
+        setSoftError(null);
         const data = await numerologyAPI.getDailyReading(selectedDate);
-        setReading(data);
+        if (data) {
+          setReading(data);
+        } else {
+          // API returned null - profile not calculated yet
+          setReading(null);
+          setSoftError('Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.');
+        }
       } catch (error: any) {
         console.error('Failed to fetch daily reading:', error);
-        toast.error('Failed to load daily reading. Using default content.');
+        setReading(null);
+        const backendMessage = error?.response?.data?.error as string | undefined;
+
+        if (backendMessage) {
+          const msg = backendMessage.toLowerCase();
+
+          // New user cases: missing DOB or numerology profile
+          if (msg.includes('birth date is required') || msg.includes('complete your profile')) {
+            setSoftError('Please complete your profile with your birth date so we can generate your personalized daily reading.');
+            return;
+          }
+
+          if (msg.includes('profile not found') || msg.includes('calculate your profile')) {
+            setSoftError('You have not generated your numerology profile yet. Calculate it to unlock personalized daily readings.');
+            return;
+          }
+        }
+
+        // Fallback for unexpected errors
+        setSoftError('Unable to load your daily reading. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -86,6 +116,7 @@ export default function DailyReadings() {
     number: 9,
     energy: 'medium'
   }];
+
   return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
       <AmbientParticles />
       <FloatingOrbs />
@@ -117,6 +148,24 @@ export default function DailyReadings() {
             </div>
           </div>
         </motion.div>
+
+        {softError && (
+          <div className="mb-6">
+            <GlassCard className="p-4 border border-amber-300 bg-amber-50/70 dark:bg-amber-950/40">
+              <p className="text-sm text-amber-900 dark:text-amber-100 mb-3">
+                {softError}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <GlassButton size="sm" onClick={() => router.push('/profile')}>
+                  Complete Profile
+                </GlassButton>
+                <GlassButton size="sm" variant="primary" onClick={() => router.push('/numerology-report')}>
+                  Calculate My Profile
+                </GlassButton>
+              </div>
+            </GlassCard>
+          </div>
+        )}
 
         {/* Date Selector */}
         <motion.div initial={{
@@ -194,12 +243,12 @@ export default function DailyReadings() {
                     <div className="flex items-center justify-center py-4">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
                     </div>
-                  ) : (
+                  ) : reading ? (
                     <>
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                         {todayReading.message}
                       </p>
-                      {reading?.llm_explanation && (
+                      {reading.llm_explanation && (
                         <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
                           <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">AI-Generated Insight</p>
                           <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -208,6 +257,19 @@ export default function DailyReadings() {
                         </div>
                       )}
                     </>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.
+                      </p>
+                      <GlassButton 
+                        variant="primary" 
+                        size="sm" 
+                        onClick={() => router.push('/numerology-report')}
+                      >
+                        Calculate My Profile
+                      </GlassButton>
+                    </div>
                   )}
                 </div>
               </MagneticCard>

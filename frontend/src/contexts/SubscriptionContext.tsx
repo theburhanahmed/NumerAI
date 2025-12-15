@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { featureFlagsAPI } from '@/lib/numerology-api';
 
-export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
+export type SubscriptionTier = 'free' | 'basic' | 'premium' | 'elite';
 
 interface UsageLimits {
   monthlyReports: {
@@ -16,6 +17,13 @@ interface UsageLimits {
   };
 }
 
+interface FeatureAccess {
+  [featureName: string]: {
+    hasAccess: boolean;
+    limits?: Record<string, any>;
+  };
+}
+
 interface SubscriptionContextType {
   tier: SubscriptionTier;
   setTier: (tier: SubscriptionTier) => void;
@@ -23,6 +31,9 @@ interface SubscriptionContextType {
   usageLimits: UsageLimits;
   canUseFeature: (feature: string) => boolean;
   incrementUsage: (feature: string) => void;
+  featureAccess: FeatureAccess;
+  refreshFeatures: () => Promise<void>;
+  isLoadingFeatures: boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -66,6 +77,48 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const { user } = useAuth();
   const [tier, setTierState] = useState<SubscriptionTier>('free');
   const [usageLimits, setUsageLimits] = useState<UsageLimits>(tierLimits.free);
+  const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({});
+  const [isLoadingFeatures, setIsLoadingFeatures] = useState<boolean>(false);
+
+  const refreshFeatures = useCallback(async () => {
+    if (!user) {
+      setFeatureAccess({});
+      return;
+    }
+
+    try {
+      setIsLoadingFeatures(true);
+      const data = await featureFlagsAPI.getUserFeatures();
+      
+      // Map features to featureAccess object
+      const access: FeatureAccess = {};
+      data.features.forEach((feature: any) => {
+        access[feature.feature_name] = {
+          hasAccess: feature.has_access || false,
+          limits: feature.limits || {},
+        };
+      });
+      setFeatureAccess(access);
+      
+      // Update tier from backend
+      const backendTier = data.subscription_tier || 'free';
+      const userTier = mapBackendTierToFrontend(backendTier);
+      setTierState(userTier);
+      setUsageLimits(tierLimits[userTier]);
+    } catch (error) {
+      console.error('Error fetching user features:', error);
+      // Fallback to user data
+      if (user) {
+        const userTier = mapBackendTierToFrontend(
+          (user as any).subscription_plan || ((user as any).is_premium ? 'premium' : 'free')
+        );
+        setTierState(userTier);
+        setUsageLimits(tierLimits[userTier]);
+      }
+    } finally {
+      setIsLoadingFeatures(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     // Check user's actual subscription from backend
@@ -76,10 +129,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       );
       setTierState(userTier);
       setUsageLimits(tierLimits[userTier]);
+      
+      // Fetch feature flags from API
+      refreshFeatures();
     } else {
       // No user, default to free
       setTierState('free');
       setUsageLimits(tierLimits.free);
+      setFeatureAccess({});
     }
 
     // Load usage from localStorage
@@ -92,7 +149,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         // Ignore parse errors
       }
     }
-  }, [user]);
+  }, [user, refreshFeatures]);
 
   const setTier = useCallback((newTier: SubscriptionTier) => {
     setTierState(newTier);
@@ -102,15 +159,22 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const hasAccess = useCallback(
     (feature: string): boolean => {
+      // First check feature flags API result
+      if (featureAccess[feature]) {
+        return featureAccess[feature].hasAccess;
+      }
+      
+      // Fallback to tier-based check
       const requiredTier = featureTierMap[feature] || 'free';
       const tierHierarchy: Record<SubscriptionTier, number> = {
         free: 0,
-        premium: 1,
-        enterprise: 2,
+        basic: 1,
+        premium: 2,
+        elite: 3,
       };
-      return tierHierarchy[tier] >= tierHierarchy[requiredTier];
+      return tierHierarchy[tier] >= tierHierarchy[requiredTier as SubscriptionTier] || false;
     },
-    [tier]
+    [tier, featureAccess]
   );
 
   const canUseFeature = useCallback(
@@ -152,6 +216,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         usageLimits,
         canUseFeature,
         incrementUsage,
+        featureAccess,
+        refreshFeatures,
+        isLoadingFeatures,
       }}
     >
       {children}

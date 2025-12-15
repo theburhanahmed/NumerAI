@@ -47,6 +47,7 @@ export default function BirthChart() {
           setBirthChart(chart);
         } catch (error) {
           console.error('Failed to fetch birth chart:', error);
+          setBirthChart(null);
         }
 
         // Fetch user profile for name
@@ -167,10 +168,10 @@ export default function BirthChart() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
           <GlassCard className="p-8 text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Please calculate your numerology profile first to see your birth chart.
+              Your birth chart is not available yet. Calculate your numerology profile first to see your personalized birth chart with all your core numbers.
             </p>
-            <GlassButton onClick={() => router.push('/dashboard')}>
-              Go to Dashboard
+            <GlassButton onClick={() => router.push('/numerology-report')}>
+              Calculate My Profile
             </GlassButton>
           </GlassCard>
         </div>

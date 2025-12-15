@@ -6,8 +6,8 @@ databases:
     engine: PG
     version: "14"
     production: false
-    db_name: numerai
-    db_user: numerai
+    db_name: postgres
+    db_user: postgres
 
 ingress:
   rules:
@@ -129,7 +129,8 @@ services:
         scope: RUN_TIME
         type: SECRET
 
-  # Redis Container Service (as service for discoverability)
+  # Redis Container Service
+  # Note: Redis uses TCP port 6379, not HTTP. http_port is set for service discovery.
   - name: redis
     image:
       registry_type: DOCKER_HUB

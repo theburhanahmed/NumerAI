@@ -29,12 +29,21 @@ export default function WeeklyReportPage() {
       const data = await numerologyAPI.getWeeklyReport(weekStartStr);
       setReport(data);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.error || 'Failed to load weekly report',
-        variant: 'destructive',
-      });
-      setReport(null);
+      const status = error?.response?.status;
+      const backendMessage = error?.response?.data?.error as string | undefined;
+
+      // For first-time users without DOB/profile or existing weekly data,
+      // treat this as a soft empty state instead of a hard error toast.
+      if (status === 400 || status === 404) {
+        setReport(null);
+      } else {
+        toast({
+          title: 'Error',
+          description: backendMessage || 'Failed to load weekly report',
+          variant: 'destructive',
+        });
+        setReport(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -264,7 +273,15 @@ export default function WeeklyReportPage() {
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">No weekly report available for this week</p>
+            <p className="text-muted-foreground mb-4">
+              Your weekly report is not available yet. Calculate your numerology profile first to get personalized weekly forecasts and insights.
+            </p>
+            <Button 
+              onClick={() => router.push('/numerology-report')}
+              className="mt-4"
+            >
+              Calculate My Profile
+            </Button>
           </CardContent>
         </Card>
       )}

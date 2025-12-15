@@ -13,7 +13,9 @@ from datetime import timedelta, date, datetime
 from .models import (
     NumerologyProfile, DailyReading, CompatibilityCheck, Remedy, RemedyTracking,
     Person, PersonNumerologyProfile, RajYogDetection, Explanation, NameReport,
-    WeeklyReport, YearlyReport, PhoneReport
+    WeeklyReport, YearlyReport, PhoneReport, HealthNumerologyProfile, NameCorrection,
+    SpiritualNumerologyProfile, PredictiveCycle, GenerationalAnalysis, KarmicContract,
+    FengShuiAnalysis, SpaceOptimization, MentalStateTracking, MentalStateAnalysis
 )
 from .serializers import (
     NumerologyProfileSerializer, DailyReadingSerializer, BirthChartSerializer,
@@ -21,7 +23,8 @@ from .serializers import (
     PersonSerializer, PersonNumerologyProfileSerializer, NumerologyReportSerializer,
     RajYogDetectionSerializer, ExplanationSerializer, NameNumerologyGenerateSerializer, NameReportSerializer,
     WeeklyReportSerializer, YearlyReportSerializer, PhoneNumerologyGenerateSerializer, PhoneReportSerializer,
-    FullNumerologyReportSerializer
+    FullNumerologyReportSerializer, HealthNumerologyProfileSerializer, NameCorrectionSerializer,
+    NameCorrectionRequestSerializer, SpiritualNumerologyProfileSerializer, PredictiveCycleSerializer
 )
 from .utils import generate_otp, send_otp_email, generate_secure_token
 from .numerology import NumerologyCalculator, validate_name, validate_birth_date
@@ -32,6 +35,14 @@ from .cache import NumerologyCache
 from .name_numerology import compute_name_numbers
 from .tasks import generate_name_report, generate_phone_report
 from .phone_numerology import sanitize_and_validate_phone, compute_phone_numerology, compute_compatibility_score
+from .services.lo_shu_service import LoShuGridService
+from .services.health_numerology import HealthNumerologyService
+from .services.asset_numerology import AssetNumerologyService
+from .services.relationship_numerology import RelationshipNumerologyService
+from .services.timing_numerology import TimingNumerologyService
+from .services.name_correction import NameCorrectionService
+from .services.spiritual_numerology import SpiritualNumerologyService
+from .services.predictive_numerology import PredictiveNumerologyService
 import os
 import traceback
 from reportlab.pdfgen import canvas
@@ -226,8 +237,10 @@ def get_birth_chart(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_lo_shu_grid(request):
-    """Get Lo Shu Grid for user."""
+    """Get Lo Shu Grid for user with enhanced visualization."""
     from .subscription_utils import can_access_feature
     
     user = request.user
@@ -243,33 +256,159 @@ def get_lo_shu_grid(request):
     try:
         profile = NumerologyProfile.objects.get(user=user)
         
-        if not profile.lo_shu_grid:
-            # Calculate if not already stored
-            user_full_name = None
-            if hasattr(user, 'full_name') and user.full_name:
-                user_full_name = user.full_name
-            elif hasattr(user, 'profile') and hasattr(user.profile, 'full_name') and user.profile.full_name:
-                user_full_name = user.profile.full_name
-            
-            if not user_full_name or not user.profile.date_of_birth:
+        # Get user info
+        user_full_name = None
+        if hasattr(user, 'full_name') and user.full_name:
+            user_full_name = user.full_name
+        elif hasattr(user, 'profile') and hasattr(user.profile, 'full_name') and user.profile.full_name:
+            user_full_name = user.profile.full_name
+        
+        if not user_full_name or not user.profile.date_of_birth:
+            return Response({
+                'error': 'Full name and birth date are required for Lo Shu Grid calculation.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if enhanced visualization is requested
+        enhanced = request.query_params.get('enhanced', 'false').lower() == 'true'
+        
+        if enhanced:
+            # Use enhanced service with arrows
+            if not can_access_feature(user, 'numerology_lo_shu_visualization'):
                 return Response({
-                    'error': 'Full name and birth date are required for Lo Shu Grid calculation.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                    'error': 'Enhanced Lo Shu Grid visualization is available for Premium plan and above.',
+                    'required_tier': 'premium',
+                    'feature': 'numerology_lo_shu_visualization'
+                }, status=status.HTTP_403_FORBIDDEN)
             
+            service = LoShuGridService(profile.calculation_system)
+            lo_shu_grid = service.calculate_enhanced_grid(user_full_name, user.profile.date_of_birth)
+        else:
+            # Use basic calculation
             calculator = NumerologyCalculator(profile.calculation_system)
             lo_shu_grid = calculator.calculate_lo_shu_grid(user_full_name, user.profile.date_of_birth)
-            
-            # Save to profile
-            profile.lo_shu_grid = lo_shu_grid
+        
+        # Save to profile (store basic version)
+        if not profile.lo_shu_grid:
+            profile.lo_shu_grid = {
+                'grid': lo_shu_grid.get('grid', {}),
+                'missing_numbers': lo_shu_grid.get('missing_numbers', []),
+                'strong_numbers': lo_shu_grid.get('strong_numbers', []),
+                'number_frequency': lo_shu_grid.get('number_frequency', {}),
+                'interpretation': lo_shu_grid.get('interpretation', '')
+            }
             profile.save()
-        else:
-            lo_shu_grid = profile.lo_shu_grid
         
         return Response(lo_shu_grid, status=status.HTTP_200_OK)
     
     except NumerologyProfile.DoesNotExist:
         return Response({
             'error': 'Profile not found. Please calculate your profile first.'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def compare_lo_shu_grids(request):
+    """Compare Lo Shu Grids between two people."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'numerology_lo_shu_visualization'):
+        return Response({
+            'error': 'Grid comparison is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_lo_shu_visualization'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    person1_id = request.data.get('person1_id')
+    person2_id = request.data.get('person2_id')
+    
+    if not person1_id or not person2_id:
+        return Response({
+            'error': 'Both person1_id and person2_id are required.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Get person 1 (can be user or a Person)
+        if person1_id == 'self':
+            profile1 = NumerologyProfile.objects.get(user=user)
+            person1_name = user.full_name or user.email
+        else:
+            person1 = Person.objects.get(id=person1_id, user=user, is_active=True)
+            profile1 = PersonNumerologyProfile.objects.get(person=person1)
+            person1_name = person1.name
+        
+        # Get person 2
+        if person2_id == 'self':
+            profile2 = NumerologyProfile.objects.get(user=user)
+            person2_name = user.full_name or user.email
+        else:
+            person2 = Person.objects.get(id=person2_id, user=user, is_active=True)
+            profile2 = PersonNumerologyProfile.objects.get(person=person2)
+            person2_name = person2.name
+        
+        # Get grid data
+        grid1_data = profile1.lo_shu_grid if hasattr(profile1, 'lo_shu_grid') and profile1.lo_shu_grid else None
+        grid2_data = profile2.lo_shu_grid if hasattr(profile2, 'lo_shu_grid') and profile2.lo_shu_grid else None
+        
+        # Calculate grids if not stored
+        service = LoShuGridService(profile1.calculation_system)
+        
+        if not grid1_data:
+            # Need to calculate grid1
+            if person1_id == 'self':
+                user_full_name = user.full_name or (user.profile.full_name if hasattr(user, 'profile') else None)
+                user_birth_date = user.profile.date_of_birth if hasattr(user, 'profile') else None
+            else:
+                user_full_name = person1.name
+                user_birth_date = person1.birth_date
+            
+            if not user_full_name or not user_birth_date:
+                return Response({
+                    'error': 'Person 1 name and birth date are required.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            grid1_data = service.calculate_enhanced_grid(user_full_name, user_birth_date)
+        
+        if not grid2_data:
+            # Need to calculate grid2
+            if person2_id == 'self':
+                user_full_name = user.full_name or (user.profile.full_name if hasattr(user, 'profile') else None)
+                user_birth_date = user.profile.date_of_birth if hasattr(user, 'profile') else None
+            else:
+                user_full_name = person2.name
+                user_birth_date = person2.birth_date
+            
+            if not user_full_name or not user_birth_date:
+                return Response({
+                    'error': 'Person 2 name and birth date are required.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            grid2_data = service.calculate_enhanced_grid(user_full_name, user_birth_date)
+        
+        # Compare grids
+        comparison = service.compare_grids(
+            grid1_data,
+            grid2_data,
+            person1_name,
+            person2_name
+        )
+        
+        return Response(comparison, status=status.HTTP_200_OK)
+    
+    except NumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'One or both profiles not found. Please calculate profiles first.'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Person.DoesNotExist:
+        return Response({
+            'error': 'One or both persons not found.'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except PersonNumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'One or both person profiles not found. Please calculate profiles first.'
         }, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -2442,3 +2581,1813 @@ def check_phone_compatibility(request):
             'error': f'Compatibility check failed: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_essence_cycles(request):
+    """Get essence cycles for user."""
+    try:
+        user = request.user
+        if not user.date_of_birth:
+            return Response({
+                'error': 'Date of birth required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        from .services.essence_cycles import EssenceCycleCalculator
+        calculator = EssenceCycleCalculator()
+        
+        essence_cycles = calculator.calculate_essence_cycles(
+            user.full_name,
+            user.date_of_birth
+        )
+        
+        return Response(essence_cycles)
+    except Exception as e:
+        logger.error(f"Error calculating essence cycles: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate essence cycles: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_cycle_timeline(request):
+    """Get complete cycle timeline visualization."""
+    try:
+        user = request.user
+        if not user.date_of_birth:
+            return Response({
+                'error': 'Date of birth required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        start_year = int(request.query_params.get('start_year', date.today().year))
+        end_year = int(request.query_params.get('end_year', start_year + 9))
+        
+        from .services.cycle_visualization import CycleVisualizationService
+        service = CycleVisualizationService()
+        
+        timeline = service.generate_cycle_timeline(
+            user.full_name,
+            user.date_of_birth,
+            start_year,
+            end_year
+        )
+        
+        return Response(timeline)
+    except Exception as e:
+        logger.error(f"Error generating cycle timeline: {str(e)}")
+        return Response({
+            'error': f'Failed to generate timeline: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_universal_cycles(request):
+    """Get universal year, month, and day cycles."""
+    try:
+        from .services.universal_cycles import UniversalCycleCalculator
+        calculator = UniversalCycleCalculator()
+        
+        year = int(request.query_params.get('year', date.today().year))
+        month = int(request.query_params.get('month', date.today().month))
+        day = int(request.query_params.get('day', date.today().day))
+        
+        universal_year = calculator.calculate_universal_year(year)
+        universal_month = calculator.calculate_universal_month(year, month)
+        universal_day = calculator.calculate_universal_day(year, month, day)
+        
+        return Response({
+            'universal_year': universal_year,
+            'universal_month': universal_month,
+            'universal_day': universal_day
+        })
+    except Exception as e:
+        logger.error(f"Error calculating universal cycles: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate universal cycles: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_cycle_compatibility(request):
+    """Calculate cycle compatibility between two profiles."""
+    try:
+        from .services.cycle_visualization import CycleVisualizationService
+        service = CycleVisualizationService()
+        
+        profile_1_name = request.data.get('profile_1_name')
+        profile_1_dob = request.data.get('profile_1_dob')
+        profile_2_name = request.data.get('profile_2_name')
+        profile_2_dob = request.data.get('profile_2_dob')
+        target_year = int(request.data.get('target_year', date.today().year))
+        
+        if not all([profile_1_name, profile_1_dob, profile_2_name, profile_2_dob]):
+            return Response({
+                'error': 'All profile fields required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Parse dates
+        dob1 = datetime.strptime(profile_1_dob, '%Y-%m-%d').date()
+        dob2 = datetime.strptime(profile_2_dob, '%Y-%m-%d').date()
+        
+        compatibility = service.calculate_cycle_compatibility(
+            {'name': profile_1_name, 'birth_date': dob1},
+            {'name': profile_2_name, 'birth_date': dob2},
+            target_year
+        )
+        
+        return Response(compatibility)
+    except Exception as e:
+        logger.error(f"Error calculating cycle compatibility: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate cycle compatibility: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Asset Numerology Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_vehicle_numerology(request):
+    """Calculate numerology for a vehicle."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_vehicle'):
+        return Response({
+            'error': 'Vehicle numerology is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_vehicle'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    license_plate = request.data.get('license_plate')
+    if not license_plate:
+        return Response({
+            'error': 'License plate is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        service = AssetNumerologyService()
+        user_profile = getattr(user, 'numerology_profile', None)
+        
+        owner_life_path = None
+        if user_profile:
+            owner_life_path = user_profile.life_path_number
+        
+        owner_dob = None
+        if hasattr(user, 'profile') and user.profile.date_of_birth:
+            owner_dob = user.profile.date_of_birth
+        
+        result = service.calculate_vehicle_numerology(
+            license_plate,
+            owner_dob,
+            owner_life_path
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating vehicle numerology: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate vehicle numerology: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_property_numerology(request):
+    """Calculate numerology for a property."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_property'):
+        return Response({
+            'error': 'Property numerology is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_property'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    house_number = request.data.get('house_number')
+    if not house_number:
+        return Response({
+            'error': 'House number is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        service = AssetNumerologyService()
+        user_profile = getattr(user, 'numerology_profile', None)
+        
+        owner_life_path = None
+        if user_profile:
+            owner_life_path = user_profile.life_path_number
+        
+        owner_dob = None
+        if hasattr(user, 'profile') and user.profile.date_of_birth:
+            owner_dob = user.profile.date_of_birth
+        
+        floor_number = request.data.get('floor_number')
+        if floor_number:
+            floor_number = int(floor_number)
+        
+        result = service.calculate_property_numerology(
+            str(house_number),
+            floor_number,
+            owner_dob,
+            owner_life_path
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating property numerology: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate property numerology: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_business_numerology(request):
+    """Calculate numerology for a business."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_business'):
+        return Response({
+            'error': 'Business numerology is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_business'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    business_name = request.data.get('business_name')
+    if not business_name:
+        return Response({
+            'error': 'Business name is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        service = AssetNumerologyService()
+        
+        registration_number = request.data.get('registration_number')
+        launch_date_str = request.data.get('launch_date')
+        
+        launch_date = None
+        if launch_date_str:
+            launch_date = datetime.strptime(launch_date_str, '%Y-%m-%d').date()
+        
+        owner_dob = None
+        if hasattr(user, 'profile') and user.profile.date_of_birth:
+            owner_dob = user.profile.date_of_birth
+        
+        result = service.calculate_business_numerology(
+            business_name,
+            registration_number,
+            launch_date,
+            owner_dob
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating business numerology: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate business numerology: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_phone_numerology_asset(request):
+    """Calculate numerology for a phone number (asset version)."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_phone'):
+        return Response({
+            'error': 'Phone numerology is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_phone'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    phone_number = request.data.get('phone_number')
+    if not phone_number:
+        return Response({
+            'error': 'Phone number is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        service = AssetNumerologyService()
+        user_profile = getattr(user, 'numerology_profile', None)
+        
+        owner_life_path = None
+        if user_profile:
+            owner_life_path = user_profile.life_path_number
+        
+        owner_dob = None
+        if hasattr(user, 'profile') and user.profile.date_of_birth:
+            owner_dob = user.profile.date_of_birth
+        
+        result = service.calculate_phone_numerology(
+            phone_number,
+            owner_dob,
+            owner_life_path
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating phone numerology: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate phone numerology: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Relationship Numerology Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_enhanced_compatibility(request):
+    """Calculate enhanced relationship compatibility."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_relationships'):
+        return Response({
+            'error': 'Enhanced relationship numerology is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_relationships'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    profile_1_data = request.data.get('profile_1')
+    profile_2_data = request.data.get('profile_2')
+    relationship_type = request.data.get('relationship_type', 'romantic')
+    
+    if not profile_1_data or not profile_2_data:
+        return Response({
+            'error': 'Both profile_1 and profile_2 are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        service = RelationshipNumerologyService()
+        result = service.calculate_enhanced_compatibility(
+            profile_1_data,
+            profile_2_data,
+            relationship_type
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating enhanced compatibility: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate compatibility: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def compare_multiple_partners(request):
+    """Compare user with multiple partners."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_multi_partner'):
+        return Response({
+            'error': 'Multi-partner comparison is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_multi_partner'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    user_profile_data = request.data.get('user_profile')
+    partner_profiles = request.data.get('partner_profiles', [])
+    
+    if not user_profile_data or not partner_profiles:
+        return Response({
+            'error': 'user_profile and partner_profiles are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        service = RelationshipNumerologyService()
+        result = service.compare_multiple_partners(
+            user_profile_data,
+            partner_profiles
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error comparing partners: {str(e)}")
+        return Response({
+            'error': f'Failed to compare partners: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_marriage_harmony_cycles(request):
+    """Calculate marriage harmony cycles."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_marriage_harmony'):
+        return Response({
+            'error': 'Marriage harmony cycles are available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_marriage_harmony'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    profile_1_data = request.data.get('profile_1')
+    profile_2_data = request.data.get('profile_2')
+    marriage_date_str = request.data.get('marriage_date')
+    
+    if not profile_1_data or not profile_2_data:
+        return Response({
+            'error': 'Both profile_1 and profile_2 are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    marriage_date = None
+    if marriage_date_str:
+        marriage_date = datetime.strptime(marriage_date_str, '%Y-%m-%d').date()
+    
+    try:
+        service = RelationshipNumerologyService()
+        result = service.calculate_marriage_harmony_cycles(
+            profile_1_data,
+            profile_2_data,
+            marriage_date
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating marriage harmony: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate marriage harmony: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Timing Numerology Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def find_best_dates(request):
+    """Find best dates for an event."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_timing_optimization'):
+        return Response({
+            'error': 'Timing optimization is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_timing_optimization'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    user_birth_date_str = request.data.get('birth_date')
+    event_type = request.data.get('event_type')
+    start_date_str = request.data.get('start_date')
+    end_date_str = request.data.get('end_date')
+    limit = int(request.data.get('limit', 10))
+    
+    if not all([user_birth_date_str, event_type, start_date_str, end_date_str]):
+        return Response({
+            'error': 'birth_date, event_type, start_date, and end_date are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user_birth_date = datetime.strptime(user_birth_date_str, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        
+        service = TimingNumerologyService()
+        result = service.find_best_dates(
+            user_birth_date,
+            event_type,
+            start_date,
+            end_date,
+            limit
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error finding best dates: {str(e)}")
+        return Response({
+            'error': f'Failed to find best dates: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def find_danger_dates(request):
+    """Find danger dates to avoid."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_danger_dates'):
+        return Response({
+            'error': 'Danger dates identification is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_danger_dates'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    user_birth_date_str = request.data.get('birth_date')
+    start_date_str = request.data.get('start_date')
+    end_date_str = request.data.get('end_date')
+    
+    if not all([user_birth_date_str, start_date_str, end_date_str]):
+        return Response({
+            'error': 'birth_date, start_date, and end_date are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user_birth_date = datetime.strptime(user_birth_date_str, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        
+        service = TimingNumerologyService()
+        result = service.find_danger_dates(
+            user_birth_date,
+            start_date,
+            end_date
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error finding danger dates: {str(e)}")
+        return Response({
+            'error': f'Failed to find danger dates: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def optimize_event_timing(request):
+    """Optimize timing for an event."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_timing_optimization'):
+        return Response({
+            'error': 'Event timing optimization is available for Premium plan and above.',
+            'required_tier': 'premium',
+            'feature': 'numerology_timing_optimization'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    user_birth_date_str = request.data.get('birth_date')
+    event_type = request.data.get('event_type')
+    preferred_month = request.data.get('preferred_month')
+    preferred_year = request.data.get('preferred_year')
+    
+    if not user_birth_date_str or not event_type:
+        return Response({
+            'error': 'birth_date and event_type are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user_birth_date = datetime.strptime(user_birth_date_str, '%Y-%m-%d').date()
+        
+        if preferred_month:
+            preferred_month = int(preferred_month)
+        if preferred_year:
+            preferred_year = int(preferred_year)
+        
+        service = TimingNumerologyService()
+        result = service.optimize_event_timing(
+            user_birth_date,
+            event_type,
+            preferred_month,
+            preferred_year
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error optimizing event timing: {str(e)}")
+        return Response({
+            'error': f'Failed to optimize timing: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Health Numerology Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_health_cycles(request):
+    """Calculate health cycles and risk periods."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_health'):
+        return Response({
+            'error': 'Health numerology is available for Elite plan and above.',
+            'required_tier': 'elite',
+            'feature': 'numerology_health'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    birth_date_str = request.data.get('birth_date')
+    full_name = request.data.get('full_name')
+    start_year = request.data.get('start_year')
+    end_year = request.data.get('end_year')
+    
+    if not birth_date_str or not full_name:
+        # Try to get from user profile
+        if hasattr(user, 'profile') and user.profile.date_of_birth:
+            birth_date_str = user.profile.date_of_birth.isoformat()
+        if hasattr(user, 'full_name') and user.full_name:
+            full_name = user.full_name
+        
+        if not birth_date_str or not full_name:
+            return Response({
+                'error': 'birth_date and full_name are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+        
+        if start_year:
+            start_year = int(start_year)
+        if end_year:
+            end_year = int(end_year)
+        
+        service = HealthNumerologyService()
+        result = service.calculate_health_cycles(
+            birth_date,
+            full_name,
+            start_year,
+            end_year
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating health cycles: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate health cycles: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_medical_timing(request):
+    """Calculate optimal timing for medical procedures."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_medical_timing'):
+        return Response({
+            'error': 'Medical timing is available for Elite plan and above.',
+            'required_tier': 'elite',
+            'feature': 'numerology_medical_timing'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    birth_date_str = request.data.get('birth_date')
+    procedure_type = request.data.get('procedure_type')
+    start_date_str = request.data.get('start_date')
+    end_date_str = request.data.get('end_date')
+    
+    if not all([birth_date_str, procedure_type, start_date_str, end_date_str]):
+        return Response({
+            'error': 'birth_date, procedure_type, start_date, and end_date are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        
+        service = HealthNumerologyService()
+        result = service.calculate_medical_timing(
+            birth_date,
+            procedure_type,
+            start_date,
+            end_date
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating medical timing: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate medical timing: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def calculate_emotional_vulnerabilities(request):
+    """Calculate emotional vulnerabilities."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    if not can_access_feature(user, 'numerology_health'):
+        return Response({
+            'error': 'Emotional vulnerability analysis is available for Elite plan and above.',
+            'required_tier': 'elite',
+            'feature': 'numerology_health'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    birth_date_str = request.data.get('birth_date')
+    full_name = request.data.get('full_name')
+    
+    if not birth_date_str or not full_name:
+        # Try to get from user profile
+        if hasattr(user, 'profile') and user.profile.date_of_birth:
+            birth_date_str = user.profile.date_of_birth.isoformat()
+        if hasattr(user, 'full_name') and user.full_name:
+            full_name = user.full_name
+        
+        if not birth_date_str or not full_name:
+            return Response({
+                'error': 'birth_date and full_name are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+        
+        service = HealthNumerologyService()
+        result = service.calculate_emotional_vulnerabilities(
+            birth_date,
+            full_name
+        )
+        
+        return Response(result, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error calculating emotional vulnerabilities: {str(e)}")
+        return Response({
+            'error': f'Failed to calculate emotional vulnerabilities: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Generational Numerology Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generational_family_analysis(request):
+    """Analyze family generational numerology."""
+    from feature_flags.services import FeatureFlagService
+    from .models import GenerationalAnalysis
+    from .services.generational import GenerationalAnalyzer
+    
+    user = request.user
+    
+    # Check feature flag
+    if not FeatureFlagService.can_access(user, 'numerology_generational'):
+        return Response({
+            'error': 'Generational Numerology feature is not available for your subscription tier'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        person_ids = request.data.get('person_ids', [])
+        if not person_ids:
+            return Response({
+                'error': 'At least one person ID is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get family members
+        family_members = Person.objects.filter(
+            id__in=person_ids,
+            user=user,
+            is_active=True
+        )
+        
+        if not family_members.exists():
+            return Response({
+                'error': 'No valid family members found'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Analyze
+        analyzer = GenerationalAnalyzer()
+        analysis_result = analyzer.calculate_family_generational_number(list(family_members))
+        
+        # Generate family unit hash
+        family_unit_hash = GenerationalAnalyzer.generate_family_unit_hash(
+            [str(p.id) for p in family_members]
+        )
+        
+        # Save or update analysis
+        analysis, created = GenerationalAnalysis.objects.update_or_create(
+            user=user,
+            family_unit_hash=family_unit_hash,
+            defaults={
+                'generational_number': analysis_result['generational_number'],
+                'analysis_data': analysis_result
+            }
+        )
+        
+        return Response({
+            'success': True,
+            'analysis': analysis_result,
+            'analysis_id': str(analysis.id),
+            'created': created
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error in generational family analysis: {str(e)}")
+        return Response({
+            'error': f'Failed to analyze family: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_generational_family_analysis(request):
+    """Get existing family generational analysis."""
+    from feature_flags.services import FeatureFlagService
+    from .models import GenerationalAnalysis
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_generational'):
+        return Response({
+            'error': 'Generational Numerology feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        analyses = GenerationalAnalysis.objects.filter(user=user).order_by('-calculated_at')
+        
+        results = []
+        for analysis in analyses:
+            results.append({
+                'id': str(analysis.id),
+                'generational_number': analysis.generational_number,
+                'analysis_data': analysis.analysis_data,
+                'calculated_at': analysis.calculated_at.isoformat()
+            })
+        
+        return Response({
+            'success': True,
+            'analyses': results
+        })
+    except Exception as e:
+        logger.error(f"Error getting generational analysis: {str(e)}")
+        return Response({
+            'error': f'Failed to get analysis: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generational_karmic_contract(request):
+    """Analyze parent-child karmic contract."""
+    from feature_flags.services import FeatureFlagService
+    from .models import KarmicContract
+    from .services.generational import GenerationalAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_generational'):
+        return Response({
+            'error': 'Generational Numerology feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        parent_id = request.data.get('parent_id')
+        child_id = request.data.get('child_id')
+        
+        if not parent_id or not child_id:
+            return Response({
+                'error': 'Both parent_id and child_id are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get persons
+        parent = Person.objects.get(id=parent_id, user=user, is_active=True)
+        child = Person.objects.get(id=child_id, user=user, is_active=True)
+        
+        # Analyze
+        analyzer = GenerationalAnalyzer()
+        contract_result = analyzer.analyze_parent_child_karmic_contract(parent, child)
+        
+        # Save contract
+        contract, created = KarmicContract.objects.update_or_create(
+            user=user,
+            parent_person=parent,
+            child_person=child,
+            defaults={
+                'contract_type': contract_result.get('contract_type'),
+                'karmic_lessons': contract_result.get('karmic_lessons', []),
+                'compatibility_score': contract_result.get('compatibility_score'),
+                'analysis_data': contract_result
+            }
+        )
+        
+        return Response({
+            'success': True,
+            'contract': contract_result,
+            'contract_id': str(contract.id),
+            'created': created
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        
+    except Person.DoesNotExist:
+        return Response({
+            'error': 'Parent or child not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error analyzing karmic contract: {str(e)}")
+        return Response({
+            'error': f'Failed to analyze contract: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_karmic_contracts(request):
+    """Get all karmic contracts for user."""
+    from feature_flags.services import FeatureFlagService
+    from .models import KarmicContract
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_generational'):
+        return Response({
+            'error': 'Generational Numerology feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        contracts = KarmicContract.objects.filter(user=user).order_by('-calculated_at')
+        
+        results = []
+        for contract in contracts:
+            results.append({
+                'id': str(contract.id),
+                'parent': {
+                    'id': str(contract.parent_person.id),
+                    'name': contract.parent_person.name
+                },
+                'child': {
+                    'id': str(contract.child_person.id),
+                    'name': contract.child_person.name
+                },
+                'contract_type': contract.contract_type,
+                'compatibility_score': contract.compatibility_score,
+                'karmic_lessons': contract.karmic_lessons,
+                'analysis_data': contract.analysis_data,
+                'calculated_at': contract.calculated_at.isoformat()
+            })
+        
+        return Response({
+            'success': True,
+            'contracts': results
+        })
+    except Exception as e:
+        logger.error(f"Error getting karmic contracts: {str(e)}")
+        return Response({
+            'error': f'Failed to get contracts: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_generational_patterns(request):
+    """Get generational patterns for family."""
+    from feature_flags.services import FeatureFlagService
+    from .services.generational import GenerationalAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_generational'):
+        return Response({
+            'error': 'Generational Numerology feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        person_ids = request.query_params.getlist('person_ids')
+        
+        if not person_ids:
+            # Get all family members
+            family_members = Person.objects.filter(
+                user=user,
+                is_active=True,
+                relationship__in=['parent', 'child', 'sibling', 'spouse']
+            )
+        else:
+            family_members = Person.objects.filter(
+                id__in=person_ids,
+                user=user,
+                is_active=True
+            )
+        
+        if not family_members.exists():
+            return Response({
+                'error': 'No family members found'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        analyzer = GenerationalAnalyzer()
+        patterns = analyzer.identify_generational_patterns(list(family_members))
+        
+        return Response({
+            'success': True,
+            'patterns': patterns
+        })
+    except Exception as e:
+        logger.error(f"Error identifying generational patterns: {str(e)}")
+        return Response({
+            'error': f'Failed to identify patterns: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_family_compatibility_matrix(request):
+    """Get family compatibility matrix."""
+    from feature_flags.services import FeatureFlagService
+    from .services.generational import GenerationalAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_generational'):
+        return Response({
+            'error': 'Generational Numerology feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        person_ids = request.query_params.getlist('person_ids')
+        
+        if not person_ids:
+            family_members = Person.objects.filter(user=user, is_active=True)
+        else:
+            family_members = Person.objects.filter(
+                id__in=person_ids,
+                user=user,
+                is_active=True
+            )
+        
+        if not family_members.exists():
+            return Response({
+                'error': 'No family members found'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        analyzer = GenerationalAnalyzer()
+        matrix = analyzer.generate_family_compatibility_matrix(list(family_members))
+        
+        return Response({
+            'success': True,
+            'matrix': matrix
+        })
+    except Exception as e:
+        logger.error(f"Error generating compatibility matrix: {str(e)}")
+        return Response({
+            'error': f'Failed to generate matrix: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Feng Shui × Numerology Hybrid Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def feng_shui_analyze(request):
+    """Analyze property using Feng Shui × Numerology."""
+    from feature_flags.services import FeatureFlagService
+    from .models import FengShuiAnalysis
+    from .services.feng_shui_hybrid import FengShuiHybridAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_feng_shui'):
+        return Response({
+            'error': 'Feng Shui Hybrid feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        house_number = request.data.get('house_number')
+        property_address = request.data.get('property_address', '')
+        
+        if not house_number:
+            return Response({
+                'error': 'House number is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get user's numerology profile
+        try:
+            profile = NumerologyProfile.objects.get(user=user)
+        except NumerologyProfile.DoesNotExist:
+            return Response({
+                'error': 'Please calculate your numerology profile first'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Analyze
+        analyzer = FengShuiHybridAnalyzer()
+        house_analysis = analyzer.analyze_house_vibration(house_number, profile)
+        
+        # Combine with numerology
+        hybrid_result = analyzer.combine_feng_shui_numerology(
+            house_analysis,
+            {'life_path_number': profile.life_path_number}
+        )
+        
+        # Save analysis
+        analysis = FengShuiAnalysis.objects.create(
+            user=user,
+            property_address=property_address,
+            house_number=house_number,
+            feng_shui_data={},
+            numerology_vibration=house_analysis['vibration_number'],
+            hybrid_score=hybrid_result['hybrid_score'],
+            recommendations=hybrid_result.get('recommendations', [])
+        )
+        
+        return Response({
+            'success': True,
+            'analysis': {
+                'house_vibration': house_analysis,
+                'hybrid_analysis': hybrid_result
+            },
+            'analysis_id': str(analysis.id)
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        logger.error(f"Error in Feng Shui analysis: {str(e)}")
+        return Response({
+            'error': f'Failed to analyze property: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_feng_shui_analysis(request, analysis_id):
+    """Get Feng Shui analysis by ID."""
+    from feature_flags.services import FeatureFlagService
+    from .models import FengShuiAnalysis
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_feng_shui'):
+        return Response({
+            'error': 'Feng Shui Hybrid feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        analysis = FengShuiAnalysis.objects.get(id=analysis_id, user=user)
+        
+        return Response({
+            'success': True,
+            'analysis': {
+                'id': str(analysis.id),
+                'property_address': analysis.property_address,
+                'house_number': analysis.house_number,
+                'numerology_vibration': analysis.numerology_vibration,
+                'hybrid_score': analysis.hybrid_score,
+                'recommendations': analysis.recommendations,
+                'calculated_at': analysis.calculated_at.isoformat()
+            }
+        })
+    except FengShuiAnalysis.DoesNotExist:
+        return Response({
+            'error': 'Analysis not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error getting Feng Shui analysis: {str(e)}")
+        return Response({
+            'error': f'Failed to get analysis: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def feng_shui_optimize_space(request):
+    """Get space optimization recommendations."""
+    from feature_flags.services import FeatureFlagService
+    from .models import FengShuiAnalysis, SpaceOptimization
+    from .services.feng_shui_hybrid import FengShuiHybridAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_space_optimization'):
+        return Response({
+            'error': 'Space Optimization feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        analysis_id = request.data.get('analysis_id')
+        room_data = request.data.get('room_data', {})
+        
+        if not analysis_id:
+            return Response({
+                'error': 'Analysis ID is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        analysis = FengShuiAnalysis.objects.get(id=analysis_id, user=user)
+        
+        try:
+            profile = NumerologyProfile.objects.get(user=user)
+        except NumerologyProfile.DoesNotExist:
+            return Response({
+                'error': 'Please calculate your numerology profile first'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        analyzer = FengShuiHybridAnalyzer()
+        optimization = analyzer.optimize_space_layout(room_data, profile)
+        
+        # Save optimization
+        space_opt = SpaceOptimization.objects.create(
+            analysis=analysis,
+            room_name=room_data.get('room_name', 'Unknown'),
+            room_number=room_data.get('room_number'),
+            direction=room_data.get('direction'),
+            color_recommendations=optimization.get('color_recommendations', []),
+            number_combinations=optimization.get('number_combinations', []),
+            energy_flow_score=optimization.get('energy_flow_score'),
+            layout_suggestions=optimization.get('layout_suggestions', [])
+        )
+        
+        return Response({
+            'success': True,
+            'optimization': optimization,
+            'optimization_id': str(space_opt.id)
+        }, status=status.HTTP_201_CREATED)
+        
+    except FengShuiAnalysis.DoesNotExist:
+        return Response({
+            'error': 'Analysis not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error optimizing space: {str(e)}")
+        return Response({
+            'error': f'Failed to optimize space: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Mental State AI × Numerology Endpoints
+# ============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mental_state_track(request):
+    """Track emotional state."""
+    from feature_flags.services import FeatureFlagService
+    from .services.mental_state_ai import MentalStateAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_mental_state'):
+        return Response({
+            'error': 'Mental State AI feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        date_str = request.data.get('date')
+        if date_str:
+            track_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        else:
+            track_date = date.today()
+        
+        state_data = {
+            'emotional_state': request.data.get('emotional_state', 'neutral'),
+            'stress_level': int(request.data.get('stress_level', 50)),
+            'mood_score': int(request.data.get('mood_score', 50)),
+            'notes': request.data.get('notes', '')
+        }
+        
+        analyzer = MentalStateAnalyzer()
+        tracking = analyzer.track_emotional_state(user, track_date, state_data)
+        
+        return Response({
+            'success': True,
+            'tracking': {
+                'id': str(tracking.id),
+                'date': tracking.date.isoformat(),
+                'emotional_state': tracking.emotional_state,
+                'stress_level': tracking.stress_level,
+                'mood_score': tracking.mood_score,
+                'numerology_cycle': tracking.numerology_cycle
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        logger.error(f"Error tracking mental state: {str(e)}")
+        return Response({
+            'error': f'Failed to track mental state: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_mental_state_history(request):
+    """Get mental state tracking history."""
+    from feature_flags.services import FeatureFlagService
+    from .models import MentalStateTracking
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_mental_state'):
+        return Response({
+            'error': 'Mental State AI feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        trackings = MentalStateTracking.objects.filter(user=user)
+        
+        if start_date:
+            trackings = trackings.filter(date__gte=start_date)
+        if end_date:
+            trackings = trackings.filter(date__lte=end_date)
+        
+        trackings = trackings.order_by('-date')[:100]  # Limit to 100 most recent
+        
+        results = []
+        for tracking in trackings:
+            results.append({
+                'id': str(tracking.id),
+                'date': tracking.date.isoformat(),
+                'emotional_state': tracking.emotional_state,
+                'stress_level': tracking.stress_level,
+                'mood_score': tracking.mood_score,
+                'numerology_cycle': tracking.numerology_cycle,
+                'notes': tracking.notes
+            })
+        
+        return Response({
+            'success': True,
+            'trackings': results
+        })
+    except Exception as e:
+        logger.error(f"Error getting mental state history: {str(e)}")
+        return Response({
+            'error': f'Failed to get history: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mental_state_analyze(request):
+    """Generate mental state analysis."""
+    from feature_flags.services import FeatureFlagService
+    from .models import MentalStateAnalysis
+    from .services.mental_state_ai import MentalStateAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_mental_state'):
+        return Response({
+            'error': 'Mental State AI feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        period_start_str = request.data.get('period_start')
+        period_end_str = request.data.get('period_end')
+        
+        if not period_start_str or not period_end_str:
+            # Default to last 30 days
+            period_end = date.today()
+            period_start = period_end - timedelta(days=30)
+        else:
+            period_start = datetime.strptime(period_start_str, '%Y-%m-%d').date()
+            period_end = datetime.strptime(period_end_str, '%Y-%m-%d').date()
+        
+        analyzer = MentalStateAnalyzer()
+        
+        # Identify stress patterns
+        stress_patterns = analyzer.identify_stress_patterns(user, period_start, period_end)
+        
+        # Generate recommendations
+        try:
+            profile = NumerologyProfile.objects.get(user=user)
+        except NumerologyProfile.DoesNotExist:
+            return Response({
+                'error': 'Please calculate your numerology profile first'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        recommendations = analyzer.generate_wellbeing_recommendations(user, stress_patterns)
+        
+        # Predict mood cycles
+        mood_predictions = analyzer.predict_mood_cycles(user, profile)
+        
+        # Save analysis
+        analysis = MentalStateAnalysis.objects.create(
+            user=user,
+            period_start=period_start,
+            period_end=period_end,
+            stress_patterns=stress_patterns,
+            wellbeing_recommendations=recommendations,
+            mood_predictions=mood_predictions
+        )
+        
+        return Response({
+            'success': True,
+            'analysis': {
+                'id': str(analysis.id),
+                'period_start': period_start.isoformat(),
+                'period_end': period_end.isoformat(),
+                'stress_patterns': stress_patterns,
+                'wellbeing_recommendations': recommendations,
+                'mood_predictions': mood_predictions
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        logger.error(f"Error analyzing mental state: {str(e)}")
+        return Response({
+            'error': f'Failed to analyze mental state: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_stress_patterns(request):
+    """Get stress patterns."""
+    from feature_flags.services import FeatureFlagService
+    from .services.mental_state_ai import MentalStateAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_mental_state'):
+        return Response({
+            'error': 'Mental State AI feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        period_start_str = request.query_params.get('period_start')
+        period_end_str = request.query_params.get('period_end')
+        
+        if not period_start_str or not period_end_str:
+            period_end = date.today()
+            period_start = period_end - timedelta(days=30)
+        else:
+            period_start = datetime.strptime(period_start_str, '%Y-%m-%d').date()
+            period_end = datetime.strptime(period_end_str, '%Y-%m-%d').date()
+        
+        analyzer = MentalStateAnalyzer()
+        patterns = analyzer.identify_stress_patterns(user, period_start, period_end)
+        
+        return Response({
+            'success': True,
+            'patterns': patterns
+        })
+    except Exception as e:
+        logger.error(f"Error getting stress patterns: {str(e)}")
+        return Response({
+            'error': f'Failed to get patterns: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_wellbeing_recommendations(request):
+    """Get wellbeing recommendations."""
+    from feature_flags.services import FeatureFlagService
+    from .services.mental_state_ai import MentalStateAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_mental_state'):
+        return Response({
+            'error': 'Mental State AI feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        try:
+            profile = NumerologyProfile.objects.get(user=user)
+        except NumerologyProfile.DoesNotExist:
+            return Response({
+                'error': 'Please calculate your numerology profile first'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get recent stress patterns
+        period_end = date.today()
+        period_start = period_end - timedelta(days=30)
+        
+        analyzer = MentalStateAnalyzer()
+        stress_patterns = analyzer.identify_stress_patterns(user, period_start, period_end)
+        
+        recommendations = analyzer.generate_wellbeing_recommendations(user, stress_patterns)
+        
+        return Response({
+            'success': True,
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        logger.error(f"Error getting recommendations: {str(e)}")
+        return Response({
+            'error': f'Failed to get recommendations: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_mood_predictions(request):
+    """Get mood cycle predictions."""
+    from feature_flags.services import FeatureFlagService
+    from .services.mental_state_ai import MentalStateAnalyzer
+    
+    user = request.user
+    
+    if not FeatureFlagService.can_access(user, 'numerology_mental_state'):
+        return Response({
+            'error': 'Mental State AI feature is not available'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        try:
+            profile = NumerologyProfile.objects.get(user=user)
+        except NumerologyProfile.DoesNotExist:
+            return Response({
+                'error': 'Please calculate your numerology profile first'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        analyzer = MentalStateAnalyzer()
+        predictions = analyzer.predict_mood_cycles(user, profile)
+        
+        return Response({
+            'success': True,
+            'predictions': predictions
+        })
+    except Exception as e:
+        logger.error(f"Error getting mood predictions: {str(e)}")
+        return Response({
+            'error': f'Failed to get predictions: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def get_health_numerology(request):
+    """Get or calculate Health Numerology profile for user."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'numerology_health'):
+        return Response({
+            'error': 'Health Numerology is available for Elite plan subscribers.',
+            'required_tier': 'elite',
+            'feature': 'numerology_health'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        # Get user info
+        user_full_name = None
+        if hasattr(user, 'full_name') and user.full_name:
+            user_full_name = user.full_name
+        elif hasattr(user, 'profile') and hasattr(user.profile, 'full_name') and user.profile.full_name:
+            user_full_name = user.profile.full_name
+        
+        if not user_full_name or not user.profile.date_of_birth:
+            return Response({
+                'error': 'Full name and birth date are required for Health Numerology calculation.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get or create profile
+        profile, created = HealthNumerologyProfile.objects.get_or_create(
+            user=user,
+            defaults={}
+        )
+        
+        # Get numerology profile for calculation system
+        numerology_profile = NumerologyProfile.objects.get(user=user)
+        system = numerology_profile.calculation_system
+        
+        # Calculate health profile
+        service = HealthNumerologyService(system=system)
+        health_data = service.calculate_health_profile(
+            user_full_name,
+            user.profile.date_of_birth
+        )
+        
+        # Update profile
+        profile.stress_number = health_data['stress_number']
+        profile.vitality_number = health_data['vitality_number']
+        profile.health_cycle_number = health_data['health_cycle_number']
+        profile.health_cycles = health_data['health_cycles']
+        profile.current_cycle = health_data['current_cycle']
+        profile.medical_timing = health_data['medical_timing']
+        profile.health_windows = health_data['health_windows']
+        profile.risk_periods = health_data['risk_periods']
+        profile.save()
+        
+        # Serialize response
+        serializer = HealthNumerologyProfileSerializer(profile)
+        response_data = serializer.data
+        response_data['interpretation'] = health_data['interpretation']
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    except NumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Numerology profile not found. Please calculate your profile first.'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except HealthNumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Health Numerology profile not found.'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def analyze_name_correction(request):
+    """Analyze name and provide correction suggestions."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'numerology_name_correction'):
+        return Response({
+            'error': 'Name Correction is available for Elite plan subscribers.',
+            'required_tier': 'elite',
+            'feature': 'numerology_name_correction'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    serializer = NameCorrectionRequestSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    name = serializer.validated_data['name']
+    name_type = serializer.validated_data.get('name_type', 'current')
+    target_number = serializer.validated_data.get('target_number')
+    cultural_context = serializer.validated_data.get('cultural_context', 'western')
+    
+    try:
+        # Get numerology profile for calculation system
+        numerology_profile = NumerologyProfile.objects.get(user=user)
+        system = numerology_profile.calculation_system
+        
+        # Analyze name
+        service = NameCorrectionService(system=system)
+        analysis = service.analyze_name(name, target_number, cultural_context)
+        
+        # Save analysis
+        name_correction = NameCorrection.objects.create(
+            user=user,
+            original_name=name,
+            name_type=name_type,
+            current_expression=analysis['current_expression'],
+            target_expression=target_number,
+            cultural_context=cultural_context,
+            suggestions=analysis['suggestions'],
+            phonetic_analysis=analysis['phonetic_analysis'],
+            cultural_analysis=analysis['cultural_analysis'],
+            recommendations=analysis['recommendations']
+        )
+        
+        # Serialize response
+        response_serializer = NameCorrectionSerializer(name_correction)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+    
+    except NumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Numerology profile not found. Please calculate your profile first.'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def get_spiritual_numerology(request):
+    """Get or calculate Spiritual Numerology profile for user."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'numerology_spiritual'):
+        return Response({
+            'error': 'Spiritual Numerology is available for Elite plan subscribers.',
+            'required_tier': 'elite',
+            'feature': 'numerology_spiritual'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        # Get user info
+        user_full_name = None
+        if hasattr(user, 'full_name') and user.full_name:
+            user_full_name = user.full_name
+        elif hasattr(user, 'profile') and hasattr(user.profile, 'full_name') and user.profile.full_name:
+            user_full_name = user.profile.full_name
+        
+        if not user_full_name or not user.profile.date_of_birth:
+            return Response({
+                'error': 'Full name and birth date are required for Spiritual Numerology calculation.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get or create profile
+        profile, created = SpiritualNumerologyProfile.objects.get_or_create(
+            user=user,
+            defaults={}
+        )
+        
+        # Get numerology profile for calculation system
+        numerology_profile = NumerologyProfile.objects.get(user=user)
+        system = numerology_profile.calculation_system
+        
+        # Calculate spiritual profile
+        service = SpiritualNumerologyService(system=system)
+        spiritual_data = service.calculate_spiritual_profile(
+            user_full_name,
+            user.profile.date_of_birth
+        )
+        
+        # Update profile
+        profile.soul_contracts = spiritual_data['soul_contracts']
+        profile.karmic_cycles = spiritual_data['karmic_cycles']
+        profile.rebirth_cycles = spiritual_data['rebirth_cycles']
+        profile.divine_gifts = spiritual_data['divine_gifts']
+        profile.spiritual_alignment = spiritual_data['spiritual_alignment']
+        profile.past_life_connections = spiritual_data['past_life_connections']
+        profile.save()
+        
+        # Serialize response
+        serializer = SpiritualNumerologyProfileSerializer(profile)
+        response_data = serializer.data
+        response_data['interpretation'] = spiritual_data['interpretation']
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    except NumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Numerology profile not found. Please calculate your profile first.'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def get_predictive_numerology(request):
+    """Get or calculate Predictive Numerology profile for user."""
+    from .subscription_utils import can_access_feature
+    
+    user = request.user
+    
+    # Check subscription access
+    if not can_access_feature(user, 'numerology_predictive'):
+        return Response({
+            'error': 'Predictive Numerology is available for Elite plan subscribers.',
+            'required_tier': 'elite',
+            'feature': 'numerology_predictive'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        # Get user info
+        user_full_name = None
+        if hasattr(user, 'full_name') and user.full_name:
+            user_full_name = user.full_name
+        elif hasattr(user, 'profile') and hasattr(user.profile, 'full_name') and user.profile.full_name:
+            user_full_name = user.profile.full_name
+        
+        if not user_full_name or not user.profile.date_of_birth:
+            return Response({
+                'error': 'Full name and birth date are required for Predictive Numerology calculation.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get forecast years from request
+        forecast_years = int(request.query_params.get('forecast_years', 20))
+        forecast_years = min(max(forecast_years, 5), 30)  # Limit between 5 and 30 years
+        
+        # Get numerology profile for calculation system
+        numerology_profile = NumerologyProfile.objects.get(user=user)
+        system = numerology_profile.calculation_system
+        
+        # Calculate predictive profile
+        service = PredictiveNumerologyService(system=system)
+        predictive_data = service.calculate_predictive_profile(
+            user_full_name,
+            user.profile.date_of_birth,
+            forecast_years
+        )
+        
+        # Save cycles to database
+        PredictiveCycle.objects.filter(user=user).delete()  # Clear old cycles
+        
+        for cycle in predictive_data['nine_year_cycles']:
+            PredictiveCycle.objects.create(
+                user=user,
+                cycle_type='nine_year',
+                year=cycle['start_year'],
+                cycle_data=cycle
+            )
+        
+        for breakthrough in predictive_data['breakthrough_years']:
+            PredictiveCycle.objects.create(
+                user=user,
+                cycle_type='breakthrough',
+                year=breakthrough['year'],
+                cycle_data=breakthrough
+            )
+        
+        for crisis in predictive_data['crisis_years']:
+            PredictiveCycle.objects.create(
+                user=user,
+                cycle_type='crisis',
+                year=crisis['year'],
+                cycle_data=crisis
+            )
+        
+        for opportunity in predictive_data['opportunity_periods']:
+            PredictiveCycle.objects.create(
+                user=user,
+                cycle_type='opportunity',
+                year=opportunity['year'],
+                cycle_data=opportunity
+            )
+        
+        return Response(predictive_data, status=status.HTTP_200_OK)
+    
+    except NumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Numerology profile not found. Please calculate your profile first.'
+        }, status=status.HTTP_404_NOT_FOUND)

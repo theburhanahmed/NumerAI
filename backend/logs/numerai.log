@@ -148,3 +148,2125 @@ INFO 2025-11-26 10:40:31,536 autoreload Watching for file changes with StatReloa
 INFO 2025-11-26 10:40:31,536 autoreload Watching for file changes with StatReloader
 INFO 2025-11-26 10:40:31,725 autoreload Watching for file changes with StatReloader
 INFO 2025-11-26 10:40:31,725 autoreload Watching for file changes with StatReloader
+INFO 2025-12-15 13:43:58,482 tasks Deleted 0 expired OTP codes
+INFO 2025-12-15 13:43:58,487 tasks Sent 0 daily reading notifications, 0 errors
+INFO 2025-12-15 13:43:58,490 tasks Generated 0 daily readings, 0 errors
+WARNING 2025-12-15 13:44:04,453 log Not Found: /
+WARNING 2025-12-15 13:44:04,453 log Not Found: /
+WARNING 2025-12-15 13:44:04,587 log Not Found: /favicon.ico
+WARNING 2025-12-15 13:44:04,587 log Not Found: /favicon.ico
+ERROR 2025-12-15 13:47:15,308 log Internal Server Error: /admin/consultations/expertapplication/
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "expert_applications" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "expert_applications"
+                                          ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/options.py", line 688, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/options.py", line 1926, in changelist_view
+    cl = self.get_changelist_instance(request)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/options.py", line 836, in get_changelist_instance
+    return ChangeList(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/views/main.py", line 123, in __init__
+    self.get_results(request)
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/views/main.py", line 279, in get_results
+    result_count = paginator.count
+                   ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/paginator.py", line 93, in count
+    return c()
+           ^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 608, in count
+    return self.query.get_count(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 568, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 554, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+  File "/usr/local/lib/python3.11/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "expert_applications" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "expert_applications"
+                                          ^
+
+ERROR 2025-12-15 13:47:15,308 log Internal Server Error: /admin/consultations/expertapplication/
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "expert_applications" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "expert_applications"
+                                          ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/options.py", line 688, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/options.py", line 1926, in changelist_view
+    cl = self.get_changelist_instance(request)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/options.py", line 836, in get_changelist_instance
+    return ChangeList(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/views/main.py", line 123, in __init__
+    self.get_results(request)
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/views/main.py", line 279, in get_results
+    result_count = paginator.count
+                   ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/paginator.py", line 93, in count
+    return c()
+           ^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 608, in count
+    return self.query.get_count(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 568, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 554, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+  File "/usr/local/lib/python3.11/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "expert_applications" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "expert_applications"
+                                          ^
+
+WARNING 2025-12-15 14:27:32,470 log Not Found: /
+WARNING 2025-12-15 14:27:32,470 log Not Found: /
+WARNING 2025-12-15 14:27:33,075 log Not Found: /favicon.ico
+WARNING 2025-12-15 14:27:33,075 log Not Found: /favicon.ico
+INFO 2025-12-15 14:30:20,648 views profile_get_request
+INFO 2025-12-15 14:30:20,648 views profile_get_request
+INFO 2025-12-15 14:30:20,673 views get_object called
+INFO 2025-12-15 14:30:20,673 views get_object called
+WARNING 2025-12-15 14:30:20,677 views profile_does_not_exist_creating
+WARNING 2025-12-15 14:30:20,677 views profile_does_not_exist_creating
+INFO 2025-12-15 14:30:21,271 views numerology_profile_get_request
+INFO 2025-12-15 14:30:21,271 views numerology_profile_get_request
+WARNING 2025-12-15 14:30:21,313 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:30:21,313 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:30:21,600 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 14:30:21,600 log Bad Request: /api/v1/numerology/daily-reading/
+INFO 2025-12-15 14:30:21,611 views profile_get_request
+INFO 2025-12-15 14:30:21,611 views profile_get_request
+INFO 2025-12-15 14:30:21,653 views get_object called
+INFO 2025-12-15 14:30:21,653 views get_object called
+WARNING 2025-12-15 14:30:21,699 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+WARNING 2025-12-15 14:30:21,699 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+INFO 2025-12-15 14:30:22,246 views numerology_profile_get_request
+INFO 2025-12-15 14:30:22,246 views numerology_profile_get_request
+WARNING 2025-12-15 14:30:22,337 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:30:22,337 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:30:22,957 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 14:30:22,957 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 14:30:24,072 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+WARNING 2025-12-15 14:30:24,072 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+INFO 2025-12-15 14:31:11,374 views numerology_profile_get_request
+INFO 2025-12-15 14:31:11,374 views numerology_profile_get_request
+WARNING 2025-12-15 14:31:11,409 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:31:11,409 log Not Found: /api/v1/numerology/profile/
+INFO 2025-12-15 14:31:11,983 views numerology_profile_get_request
+INFO 2025-12-15 14:31:11,983 views numerology_profile_get_request
+WARNING 2025-12-15 14:31:12,391 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:31:12,391 log Not Found: /api/v1/numerology/profile/
+INFO 2025-12-15 14:31:15,752 views profile_get_request
+INFO 2025-12-15 14:31:15,752 views profile_get_request
+INFO 2025-12-15 14:31:15,789 views get_object called
+INFO 2025-12-15 14:31:15,789 views get_object called
+INFO 2025-12-15 14:31:15,843 views numerology_profile_get_request
+INFO 2025-12-15 14:31:15,843 views numerology_profile_get_request
+WARNING 2025-12-15 14:31:15,853 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:31:15,853 log Not Found: /api/v1/numerology/profile/
+INFO 2025-12-15 14:31:15,882 views profile_get_request
+INFO 2025-12-15 14:31:15,882 views profile_get_request
+WARNING 2025-12-15 14:31:15,913 log Bad Request: /api/v1/numerology/daily-reading/
+INFO 2025-12-15 14:31:15,913 views get_object called
+INFO 2025-12-15 14:31:15,913 views get_object called
+WARNING 2025-12-15 14:31:15,913 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 14:31:15,948 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+WARNING 2025-12-15 14:31:15,948 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+INFO 2025-12-15 14:31:15,992 views numerology_profile_get_request
+INFO 2025-12-15 14:31:15,992 views numerology_profile_get_request
+WARNING 2025-12-15 14:31:16,023 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:31:16,023 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 14:31:16,223 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 14:31:16,223 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 14:31:16,293 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+WARNING 2025-12-15 14:31:16,293 log Bad Request: /api/v1/numerology/weekly-report/2025-12-14/
+INFO 2025-12-15 14:34:20,213 views profile_get_request
+INFO 2025-12-15 14:34:20,213 views profile_get_request
+INFO 2025-12-15 14:34:20,406 views get_object called
+INFO 2025-12-15 14:34:20,406 views get_object called
+INFO 2025-12-15 14:34:21,467 views profile_get_request
+INFO 2025-12-15 14:34:21,467 views profile_get_request
+INFO 2025-12-15 14:34:21,489 views get_object called
+INFO 2025-12-15 14:34:21,489 views get_object called
+INFO 2025-12-15 14:47:39,033 tasks Deleted 0 expired OTP codes
+INFO 2025-12-15 16:05:32,605 tasks Deleted 0 expired OTP codes
+ERROR 2025-12-15 16:23:58,398 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,403 log Unauthorized: /api/v1/users/profile/
+WARNING 2025-12-15 16:23:58,403 log Unauthorized: /api/v1/users/profile/
+WARNING 2025-12-15 16:23:58,679 log Bad Request: /api/v1/auth/refresh-token/
+WARNING 2025-12-15 16:23:58,679 log Bad Request: /api/v1/auth/refresh-token/
+ERROR 2025-12-15 16:23:58,715 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,731 log Unauthorized: /api/v1/users/profile/
+ERROR 2025-12-15 16:23:58,735 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,731 log Unauthorized: /api/v1/users/profile/
+WARNING 2025-12-15 16:23:58,745 log Unauthorized: /api/v1/numerology/profile/
+WARNING 2025-12-15 16:23:58,745 log Unauthorized: /api/v1/numerology/profile/
+ERROR 2025-12-15 16:23:58,779 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,794 log Unauthorized: /api/v1/numerology/profile/
+ERROR 2025-12-15 16:23:58,809 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,794 log Unauthorized: /api/v1/numerology/profile/
+WARNING 2025-12-15 16:23:58,820 log Unauthorized: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 16:23:58,820 log Unauthorized: /api/v1/numerology/daily-reading/
+ERROR 2025-12-15 16:23:58,842 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,844 log Unauthorized: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 16:23:58,844 log Unauthorized: /api/v1/numerology/daily-reading/
+ERROR 2025-12-15 16:23:58,970 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:58,975 log Unauthorized: /api/v1/numerology/weekly-report/2025-12-14/
+WARNING 2025-12-15 16:23:58,975 log Unauthorized: /api/v1/numerology/weekly-report/2025-12-14/
+ERROR 2025-12-15 16:23:59,100 exceptions exception_handler_called
+WARNING 2025-12-15 16:23:59,102 log Unauthorized: /api/v1/numerology/weekly-report/2025-12-14/
+WARNING 2025-12-15 16:23:59,102 log Unauthorized: /api/v1/numerology/weekly-report/2025-12-14/
+INFO 2025-12-15 17:31:42,791 tasks Deleted 0 expired OTP codes
+INFO 2025-12-15 18:41:51,147 tasks Deleted 0 expired OTP codes
+INFO 2025-12-15 19:19:53,164 tasks Deleted 0 expired refresh tokens
+INFO 2025-12-15 19:41:52,007 tasks Deleted 0 expired OTP codes
+ERROR 2025-12-15 22:56:40,905 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7fc6058cf150>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:40,905 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7fc6058cf150>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:41,119 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f2498a831d0>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:41,119 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f2498a831d0>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:41,946 signal Signal handler <promise@0x7f2498aa4050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f2498a7ac10>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:41,946 signal Signal handler <promise@0x7f2498aa4050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f2498a7ac10>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:42,124 signal Signal handler <promise@0x7fc6058ec050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7fc6058c3a50>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:56:42,124 signal Signal handler <promise@0x7fc6058ec050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7fc6058c3a50>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:09,607 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7fe5929b71d0>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:09,607 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7fe5929b71d0>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:09,601 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f5115b0b150>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:09,601 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f5115b0b150>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 138, in validate_models
+    self.django_setup()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 134, in django_setup
+    django.setup()
+  File "/usr/local/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/local/lib/python3.11/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/local/lib/python3.11/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:10,412 signal Signal handler <promise@0x7fe5929d4050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7fe59296afd0>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:10,412 signal Signal handler <promise@0x7fe5929d4050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7fe59296afd0>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:10,520 signal Signal handler <promise@0x7f5115b28050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f5115ae6f50>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 22:59:10,520 signal Signal handler <promise@0x7f5115b28050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f5115ae6f50>>> raised: AttributeError("module 'django.db.models' has no attribute 'MinValueValidator'")
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 8, in <module>
+    from .models import DailyReading, NameReport, PhoneReport
+  File "/app/numerology/models.py", line 954, in <module>
+    class MentalStateTracking(models.Model):
+  File "/app/numerology/models.py", line 973, in MentalStateTracking
+    validators=[models.MinValueValidator(0), models.MaxValueValidator(100)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'django.db.models' has no attribute 'MinValueValidator'
+ERROR 2025-12-15 23:04:45,316 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f4ad7452f10>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 494, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:45,316 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f4ad7452f10>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 494, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:47,579 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7fbb57fc30d0>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 42, in check_url_namespaces_unique
+    all_namespaces = _load_all_namespaces(resolver)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 61, in _load_all_namespaces
+    url_patterns = getattr(resolver, "url_patterns", [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:47,739 signal Signal handler <promise@0x7f4ad7474050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f4ad744be90>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:47,739 signal Signal handler <promise@0x7f4ad7474050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f4ad744be90>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:47,579 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7fbb57fc30d0>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 42, in check_url_namespaces_unique
+    all_namespaces = _load_all_namespaces(resolver)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 61, in _load_all_namespaces
+    url_patterns = getattr(resolver, "url_patterns", [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:48,307 signal Signal handler <promise@0x7fbb57fe0050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7fbb57fb6c10>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:04:48,307 signal Signal handler <promise@0x7fbb57fe0050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7fbb57fb6c10>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,516 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f2be76df450>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 494, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,516 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f2be76df450>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 494, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,603 signal Signal handler <promise@0x7f2be7700050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f2be765d510>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,603 signal Signal handler <promise@0x7f2be7700050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f2be765d510>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,800 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f1aecd07150>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 42, in check_url_namespaces_unique
+    all_namespaces = _load_all_namespaces(resolver)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 61, in _load_all_namespaces
+    url_patterns = getattr(resolver, "url_patterns", [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,800 signal Signal handler <bound method DjangoFixup.on_import_modules of <celery.fixups.django.DjangoFixup object at 0x7f1aecd07150>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 100, in on_import_modules
+    self.worker_fixup.validate_models()
+  File "/usr/local/lib/python3.11/site-packages/celery/fixups/django.py", line 140, in validate_models
+    run_checks()
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 42, in check_url_namespaces_unique
+    all_namespaces = _load_all_namespaces(resolver)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/checks/urls.py", line 61, in _load_all_namespaces
+    url_patterns = getattr(resolver, "url_patterns", [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 715, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 708, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerai/urls.py", line 16, in <module>
+    path('api/v1/', include('numerology.urls')),
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/urls/conf.py", line 38, in include
+    urlconf_module = import_module(urlconf_module)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/urls.py", line 5, in <module>
+    from . import views
+  File "/app/numerology/views.py", line 36, in <module>
+    from .tasks import generate_name_report, generate_phone_report
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,873 signal Signal handler <promise@0x7f1aecd24050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f1aeccfb510>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+ERROR 2025-12-15 23:08:50,873 signal Signal handler <promise@0x7f1aecd24050 --> <bound method Celery._autodiscover_tasks of <Celery numerai at 0x7f1aeccfb510>>> raised: TypeError('Too many arguments for typing.Dict; actual 3, expected 2')
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/celery/utils/dispatch/signal.py", line 276, in send
+    response = receiver(signal=self, sender=sender, **named)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 161, in __call__
+    return self.throw()
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/vine/promises.py", line 158, in __call__
+    retval = fun(*final_args, **final_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 694, in _autodiscover_tasks
+    return self._autodiscover_tasks_from_fixups(related_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 703, in _autodiscover_tasks_from_fixups
+    return self._autodiscover_tasks_from_names([
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/app/base.py", line 698, in _autodiscover_tasks_from_names
+    return self.loader.autodiscover_tasks(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 220, in autodiscover_tasks
+    mod.__name__ for mod in autodiscover_tasks(packages or (),
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in autodiscover_tasks
+    return [find_related_module(pkg, related_name) for pkg in packages]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 246, in <listcomp>
+    return [find_related_module(pkg, related_name) for pkg in packages]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/celery/loaders/base.py", line 270, in find_related_module
+    return importlib.import_module(module_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/numerology/tasks.py", line 12, in <module>
+    from .services.name_explainer import generate_name_explanation
+  File "/app/numerology/services/__init__.py", line 9, in <module>
+    from .relationship_numerology import RelationshipNumerologyService
+  File "/app/numerology/services/relationship_numerology.py", line 10, in <module>
+    class RelationshipNumerologyService:
+  File "/app/numerology/services/relationship_numerology.py", line 88, in RelationshipNumerologyService
+    partner_profiles: List[Dict[str, str, Any]]
+                           ~~~~^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 379, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/typing.py", line 1592, in __getitem__
+    _check_generic(self, params, self._nparams)
+  File "/usr/local/lib/python3.11/site-packages/typing_extensions.py", line 3136, in _check_generic
+    raise TypeError(f"Too {'many' if alen > elen else 'few'} arguments"
+TypeError: Too many arguments for typing.Dict; actual 3, expected 2
+INFO 2025-12-15 23:13:34,353 tasks Deleted 0 expired OTP codes
+INFO 2025-12-15 23:19:41,856 views profile_get_request
+INFO 2025-12-15 23:19:41,856 views profile_get_request
+INFO 2025-12-15 23:19:41,958 views get_object called
+INFO 2025-12-15 23:19:41,958 views get_object called
+INFO 2025-12-15 23:20:04,462 views profile_get_request
+INFO 2025-12-15 23:20:04,462 views profile_get_request
+INFO 2025-12-15 23:20:04,518 views get_object called
+INFO 2025-12-15 23:20:04,518 views get_object called
+INFO 2025-12-15 23:20:04,631 views numerology_profile_get_request
+INFO 2025-12-15 23:20:04,631 views numerology_profile_get_request
+WARNING 2025-12-15 23:20:05,182 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:20:05,182 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:20:05,782 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 23:20:05,782 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 23:20:06,448 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:20:06,448 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+INFO 2025-12-15 23:20:06,539 views profile_get_request
+INFO 2025-12-15 23:20:06,539 views profile_get_request
+INFO 2025-12-15 23:20:06,602 views get_object called
+INFO 2025-12-15 23:20:06,602 views get_object called
+INFO 2025-12-15 23:20:07,532 views numerology_profile_get_request
+INFO 2025-12-15 23:20:07,532 views numerology_profile_get_request
+WARNING 2025-12-15 23:20:11,146 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:20:11,146 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:20:11,954 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 23:20:11,954 log Bad Request: /api/v1/numerology/daily-reading/
+WARNING 2025-12-15 23:20:12,379 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:20:12,379 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+INFO 2025-12-15 23:20:20,962 views profile_get_request
+INFO 2025-12-15 23:20:20,962 views profile_get_request
+INFO 2025-12-15 23:20:21,292 views get_object called
+INFO 2025-12-15 23:20:21,292 views get_object called
+INFO 2025-12-15 23:21:41,086 views profile_get_request
+INFO 2025-12-15 23:21:41,086 views profile_get_request
+INFO 2025-12-15 23:21:41,232 views get_object called
+INFO 2025-12-15 23:21:41,232 views get_object called
+INFO 2025-12-15 23:21:41,615 views profile_get_request
+INFO 2025-12-15 23:21:41,615 views profile_get_request
+INFO 2025-12-15 23:21:41,700 views get_object called
+INFO 2025-12-15 23:21:41,700 views get_object called
+INFO 2025-12-15 23:22:17,129 views get_object called
+INFO 2025-12-15 23:22:17,129 views get_object called
+INFO 2025-12-15 23:22:18,103 views profile_update_started
+INFO 2025-12-15 23:22:18,103 views profile_update_started
+INFO 2025-12-15 23:22:18,522 views profile_update_success
+INFO 2025-12-15 23:22:18,522 views profile_update_success
+INFO 2025-12-15 23:22:19,407 views profile_get_request
+INFO 2025-12-15 23:22:19,407 views profile_get_request
+INFO 2025-12-15 23:22:19,507 views get_object called
+INFO 2025-12-15 23:22:19,507 views get_object called
+INFO 2025-12-15 23:22:19,893 views profile_get_request
+INFO 2025-12-15 23:22:19,893 views profile_get_request
+INFO 2025-12-15 23:22:19,912 views get_object called
+INFO 2025-12-15 23:22:19,912 views get_object called
+INFO 2025-12-15 23:22:47,027 views profile_get_request
+INFO 2025-12-15 23:22:47,027 views profile_get_request
+INFO 2025-12-15 23:22:47,173 views get_object called
+INFO 2025-12-15 23:22:47,173 views get_object called
+INFO 2025-12-15 23:22:47,301 views profile_get_request
+INFO 2025-12-15 23:22:47,301 views profile_get_request
+INFO 2025-12-15 23:22:47,309 views get_object called
+INFO 2025-12-15 23:22:47,309 views get_object called
+INFO 2025-12-15 23:22:47,333 views numerology_profile_get_request
+INFO 2025-12-15 23:22:47,333 views numerology_profile_get_request
+WARNING 2025-12-15 23:22:47,366 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:22:47,366 log Not Found: /api/v1/numerology/profile/
+INFO 2025-12-15 23:22:47,409 views numerology_profile_get_request
+INFO 2025-12-15 23:22:47,409 views numerology_profile_get_request
+WARNING 2025-12-15 23:22:49,269 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:22:49,269 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:22:49,286 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:22:49,286 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:22:49,746 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:22:49,746 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:22:50,710 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:22:50,710 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:22:50,725 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:22:50,725 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+INFO 2025-12-15 23:22:58,830 views profile_get_request
+INFO 2025-12-15 23:22:58,830 views profile_get_request
+INFO 2025-12-15 23:22:58,849 views get_object called
+INFO 2025-12-15 23:22:58,849 views get_object called
+INFO 2025-12-15 23:22:59,037 views profile_get_request
+INFO 2025-12-15 23:22:59,037 views profile_get_request
+INFO 2025-12-15 23:22:59,046 views get_object called
+INFO 2025-12-15 23:22:59,046 views get_object called
+INFO 2025-12-15 23:23:09,808 views profile_get_request
+INFO 2025-12-15 23:23:09,808 views profile_get_request
+INFO 2025-12-15 23:23:09,824 views get_object called
+INFO 2025-12-15 23:23:09,824 views get_object called
+INFO 2025-12-15 23:23:09,980 views profile_get_request
+INFO 2025-12-15 23:23:09,980 views profile_get_request
+INFO 2025-12-15 23:23:10,001 views get_object called
+INFO 2025-12-15 23:23:10,001 views get_object called
+INFO 2025-12-15 23:23:10,055 views numerology_profile_get_request
+INFO 2025-12-15 23:23:10,055 views numerology_profile_get_request
+WARNING 2025-12-15 23:23:10,234 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:23:10,234 log Not Found: /api/v1/numerology/profile/
+INFO 2025-12-15 23:23:10,416 views numerology_profile_get_request
+INFO 2025-12-15 23:23:10,416 views numerology_profile_get_request
+WARNING 2025-12-15 23:23:11,164 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:23:11,164 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:23:11,194 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:23:11,194 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:23:13,226 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:23:13,226 log Not Found: /api/v1/numerology/profile/
+WARNING 2025-12-15 23:23:14,380 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:23:14,380 llm_service OPENAI_API_KEY not set. LLM features will not work.
+WARNING 2025-12-15 23:23:14,401 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/
+WARNING 2025-12-15 23:23:14,401 log Bad Request: /api/v1/numerology/weekly-report/2025-12-13/

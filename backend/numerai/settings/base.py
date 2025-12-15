@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     'matchmaking',
     'rewards',
     'developer_api',
+    'feature_flags',
+    'meus',
 ]
 
 MIDDLEWARE = [

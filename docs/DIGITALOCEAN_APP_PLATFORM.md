@@ -102,6 +102,8 @@ git commit -m "Prepare for App Platform deployment"
 git push origin main
 ```
 
+**Important**: The `app.yaml` file must be located at the **root of your repository** (not in the backend folder). DigitalOcean App Platform reads the app spec from the repository root when using GitHub integration. The `source_dir: backend` in the app.yaml specifies where the source code is located within the repository, not where the app.yaml should be.
+
 ### Step 2: Install DigitalOcean CLI (Optional)
 
 For easier management, install `doctl`:

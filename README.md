@@ -35,8 +35,10 @@ Install Docker Desktop from https://www.docker.com/products/docker-desktop
 Then run:
 ```bash
 cd /Users/burhanahmed/Desktop/NumerAI
-docker-compose up -d
+docker compose up -d
 ```
+
+**Note**: Use `docker compose` (with space) for Docker Compose v2+. If you have an older version, use `docker-compose` (with hyphen).
 
 ### 2. Backend Setup
 

@@ -35,6 +35,7 @@ urlpatterns = [
     
     # Lo Shu Grid
     path('numerology/lo-shu-grid/', views.get_lo_shu_grid, name='lo-shu-grid'),
+    path('numerology/lo-shu-grid/compare/', views.compare_lo_shu_grids, name='lo-shu-grid-compare'),
     
     # Raj Yog Detection
     path('numerology/raj-yog/', views.get_raj_yog_detection, name='raj-yog-detection'),
@@ -69,4 +70,64 @@ urlpatterns = [
     path('phone-numerology/<uuid:user_id>/<uuid:report_id>/', views.get_phone_report, name='get-phone-report'),
     path('phone-numerology/<uuid:user_id>/latest/', views.get_latest_phone_report, name='get-latest-phone-report'),
     path('phone-numerology/compatibility/', views.check_phone_compatibility, name='check-phone-compatibility'),
+    
+    # Enhanced Cycles endpoints
+    path('numerology/essence-cycles/', views.get_essence_cycles, name='essence-cycles'),
+    path('numerology/cycle-timeline/', views.get_cycle_timeline, name='cycle-timeline'),
+    path('numerology/universal-cycles/', views.get_universal_cycles, name='universal-cycles'),
+    path('numerology/cycle-compatibility/', views.calculate_cycle_compatibility, name='cycle-compatibility'),
+    
+    # Asset Numerology endpoints
+    path('numerology/vehicle/', views.calculate_vehicle_numerology, name='vehicle-numerology'),
+    path('numerology/property/', views.calculate_property_numerology, name='property-numerology'),
+    path('numerology/business/', views.calculate_business_numerology, name='business-numerology'),
+    path('numerology/phone-asset/', views.calculate_phone_numerology_asset, name='phone-asset-numerology'),
+    
+    # Relationship Numerology endpoints
+    path('numerology/relationship/enhanced-compatibility/', views.calculate_enhanced_compatibility, name='enhanced-compatibility'),
+    path('numerology/relationship/compare-partners/', views.compare_multiple_partners, name='compare-partners'),
+    path('numerology/relationship/marriage-harmony/', views.calculate_marriage_harmony_cycles, name='marriage-harmony'),
+    
+    # Timing Numerology endpoints
+    path('numerology/timing/best-dates/', views.find_best_dates, name='find-best-dates'),
+    path('numerology/timing/danger-dates/', views.find_danger_dates, name='find-danger-dates'),
+    path('numerology/timing/optimize/', views.optimize_event_timing, name='optimize-event-timing'),
+    
+    # Health Numerology endpoints
+    path('numerology/health/cycles/', views.calculate_health_cycles, name='health-cycles'),
+    path('numerology/health/medical-timing/', views.calculate_medical_timing, name='medical-timing'),
+    path('numerology/health/emotional-vulnerabilities/', views.calculate_emotional_vulnerabilities, name='emotional-vulnerabilities'),
+    
+    # Health Numerology endpoints
+    path('numerology/health/', views.get_health_numerology, name='health-numerology'),
+    
+    # Name Correction endpoints
+    path('numerology/name-correction/', views.analyze_name_correction, name='name-correction'),
+    
+    # Spiritual Numerology endpoints
+    path('numerology/spiritual/', views.get_spiritual_numerology, name='spiritual-numerology'),
+    
+    # Predictive Numerology endpoints
+    path('numerology/predictive/', views.get_predictive_numerology, name='predictive-numerology'),
+    
+    # Generational Numerology endpoints
+    path('numerology/generational/family-analysis/', views.generational_family_analysis, name='generational-family-analysis'),
+    path('numerology/generational/family-analysis/get/', views.get_generational_family_analysis, name='get-generational-family-analysis'),
+    path('numerology/generational/karmic-contract/', views.generational_karmic_contract, name='generational-karmic-contract'),
+    path('numerology/generational/karmic-contracts/', views.get_karmic_contracts, name='get-karmic-contracts'),
+    path('numerology/generational/patterns/', views.get_generational_patterns, name='get-generational-patterns'),
+    path('numerology/generational/compatibility-matrix/', views.get_family_compatibility_matrix, name='get-family-compatibility-matrix'),
+    
+    # Feng Shui × Numerology Hybrid endpoints
+    path('numerology/feng-shui/analyze/', views.feng_shui_analyze, name='feng-shui-analyze'),
+    path('numerology/feng-shui/analysis/<uuid:analysis_id>/', views.get_feng_shui_analysis, name='get-feng-shui-analysis'),
+    path('numerology/feng-shui/optimize-space/', views.feng_shui_optimize_space, name='feng-shui-optimize-space'),
+    
+    # Mental State AI × Numerology endpoints
+    path('numerology/mental-state/track/', views.mental_state_track, name='mental-state-track'),
+    path('numerology/mental-state/history/', views.get_mental_state_history, name='get-mental-state-history'),
+    path('numerology/mental-state/analyze/', views.mental_state_analyze, name='mental-state-analyze'),
+    path('numerology/mental-state/stress-patterns/', views.get_stress_patterns, name='get-stress-patterns'),
+    path('numerology/mental-state/wellbeing-recommendations/', views.get_wellbeing_recommendations, name='get-wellbeing-recommendations'),
+    path('numerology/mental-state/mood-predictions/', views.get_mood_predictions, name='get-mood-predictions'),
 ]
