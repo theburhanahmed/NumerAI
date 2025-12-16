@@ -2471,5 +2471,5 @@ export const knowledgeGraphAPI = {
       params: personIds ? { person_ids: personIds } : {}
     });
     return response.data;
-  },
-
+  }
+};
