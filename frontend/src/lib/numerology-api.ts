@@ -888,6 +888,84 @@ export const numerologyAPI = {
       reasoning: item.reasoning,
       score: item.score,
     }));
+  },
+
+  // ============================================================================
+  // Feng Shui × Numerology Hybrid API
+  // ============================================================================
+
+  /**
+   * Analyze property using Feng Shui × Numerology.
+   */
+  async analyzeFengShui(houseNumber: string, propertyAddress?: string): Promise<any> {
+    const response = await apiClient.post('/numerology/feng-shui/analyze/', {
+      house_number: houseNumber,
+      property_address: propertyAddress || ''
+    });
+    return response.data;
+  },
+
+  /**
+   * Get Feng Shui analysis by ID.
+   */
+  async getFengShuiAnalysis(analysisId: string): Promise<any> {
+    const response = await apiClient.get(`/numerology/feng-shui/analysis/${analysisId}/`);
+    return response.data;
+  },
+
+  /**
+   * Optimize space layout.
+   */
+  async optimizeSpace(analysisId: string, roomData: any): Promise<any> {
+    const response = await apiClient.post('/numerology/feng-shui/optimize-space/', {
+      analysis_id: analysisId,
+      room_data: roomData
+    });
+    return response.data;
+  },
+
+  // ============================================================================
+  // Mental State AI × Numerology API
+  // ============================================================================
+
+  /**
+   * Track emotional state.
+   */
+  async trackMentalState(data: {
+    emotional_state: string;
+    stress_level: number;
+    mood_score: number;
+    numerology_cycle?: string;
+    notes?: string;
+  }): Promise<any> {
+    const response = await apiClient.post('/numerology/mental-state/track/', data);
+    return response.data;
+  },
+
+  /**
+   * Get mental state history.
+   */
+  async getMentalStateHistory(limit?: number): Promise<any> {
+    const response = await apiClient.get('/numerology/mental-state/history/', {
+      params: limit ? { limit } : {}
+    });
+    return response.data;
+  },
+
+  /**
+   * Get wellbeing recommendations.
+   */
+  async getWellbeingRecommendations(): Promise<any> {
+    const response = await apiClient.get('/numerology/mental-state/wellbeing-recommendations/');
+    return response.data;
+  },
+
+  /**
+   * Get mood cycle predictions.
+   */
+  async getMoodPredictions(): Promise<any> {
+    const response = await apiClient.get('/numerology/mental-state/mood-predictions/');
+    return response.data;
   }
 };
 
@@ -2395,108 +2473,3 @@ export const knowledgeGraphAPI = {
     return response.data;
   },
 
-  // ============================================================================
-  // Feng Shui × Numerology Hybrid API
-  // ============================================================================
-
-  /**
-   * Analyze property using Feng Shui × Numerology.
-   */
-  async analyzeFengShui(houseNumber: string, propertyAddress?: string): Promise<any> {
-    const response = await apiClient.post('/numerology/feng-shui/analyze/', {
-      house_number: houseNumber,
-      property_address: propertyAddress || ''
-    });
-    return response.data;
-  },
-
-  /**
-   * Get Feng Shui analysis by ID.
-   */
-  async getFengShuiAnalysis(analysisId: string): Promise<any> {
-    const response = await apiClient.get(`/numerology/feng-shui/analysis/${analysisId}/`);
-    return response.data;
-  },
-
-  /**
-   * Optimize space layout.
-   */
-  async optimizeSpace(analysisId: string, roomData: any): Promise<any> {
-    const response = await apiClient.post('/numerology/feng-shui/optimize-space/', {
-      analysis_id: analysisId,
-      room_data: roomData
-    });
-    return response.data;
-  },
-
-  // ============================================================================
-  // Mental State AI × Numerology API
-  // ============================================================================
-
-  /**
-   * Track emotional state.
-   */
-  async trackMentalState(data: {
-    date?: string;
-    emotional_state: string;
-    stress_level: number;
-    mood_score: number;
-    notes?: string;
-  }): Promise<any> {
-    const response = await apiClient.post('/numerology/mental-state/track/', data);
-    return response.data;
-  },
-
-  /**
-   * Get mental state tracking history.
-   */
-  async getMentalStateHistory(startDate?: string, endDate?: string): Promise<any> {
-    const response = await apiClient.get('/numerology/mental-state/history/', {
-      params: {
-        start_date: startDate,
-        end_date: endDate
-      }
-    });
-    return response.data;
-  },
-
-  /**
-   * Generate mental state analysis.
-   */
-  async analyzeMentalState(periodStart?: string, periodEnd?: string): Promise<any> {
-    const response = await apiClient.post('/numerology/mental-state/analyze/', {
-      period_start: periodStart,
-      period_end: periodEnd
-    });
-    return response.data;
-  },
-
-  /**
-   * Get stress patterns.
-   */
-  async getStressPatterns(periodStart?: string, periodEnd?: string): Promise<any> {
-    const response = await apiClient.get('/numerology/mental-state/stress-patterns/', {
-      params: {
-        period_start: periodStart,
-        period_end: periodEnd
-      }
-    });
-    return response.data;
-  },
-
-  /**
-   * Get wellbeing recommendations.
-   */
-  async getWellbeingRecommendations(): Promise<any> {
-    const response = await apiClient.get('/numerology/mental-state/wellbeing-recommendations/');
-    return response.data;
-  },
-
-  /**
-   * Get mood cycle predictions.
-   */
-  async getMoodPredictions(): Promise<any> {
-    const response = await apiClient.get('/numerology/mental-state/mood-predictions/');
-    return response.data;
-  }
-};
