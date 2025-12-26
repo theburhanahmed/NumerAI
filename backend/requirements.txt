@@ -47,7 +47,7 @@ gunicorn==21.2.0
 whitenoise==6.6.0
 
 # Security and Cryptography
-cryptography==43.0.1
+cryptography==46.0.3
 PyJWT==2.9.0
 pycparser==2.22
 
