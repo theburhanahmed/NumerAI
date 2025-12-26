@@ -129,6 +129,149 @@ class NumerologyCalculator:
         total = birth_date.day + birth_date.month
         return self._reduce_to_single_digit(total, preserve_master=True)
     
+    def calculate_birthday_number(self, birth_date: date) -> int:
+        """
+        Calculate Birthday Number (Chaldean).
+        
+        The Birthday Number represents your inherent talents and abilities.
+        It's derived from the day of the month you were born.
+        
+        Args:
+            birth_date: Date of birth
+            
+        Returns:
+            Reduced birthday number (1-9, or 11, 22, 33 for master numbers)
+        """
+        return self._reduce_to_single_digit(birth_date.day, preserve_master=True)
+    
+    def calculate_driver_number(self, birth_date: date) -> int:
+        """
+        Calculate Driver Number (Chaldean Numerology).
+        
+        The Driver Number (also called Psychic Number) represents your inner self,
+        how you see yourself, and your basic nature. It's derived from the birth day.
+        
+        In Chaldean numerology, this number drives your personality and
+        indicates your inherent characteristics.
+        
+        Args:
+            birth_date: Date of birth
+            
+        Returns:
+            Driver number (1-9, master numbers not typically preserved)
+        """
+        return self._reduce_to_single_digit(birth_date.day, preserve_master=False)
+    
+    def calculate_conductor_number(self, birth_date: date) -> int:
+        """
+        Calculate Conductor Number (Chaldean Numerology).
+        
+        The Conductor Number (also called Destiny Number in Chaldean) represents
+        how others perceive you and your life's direction. It's derived from
+        the complete birth date (day + month + year).
+        
+        This number conducts the energies of your life path and determines
+        your destiny's direction.
+        
+        Args:
+            birth_date: Date of birth
+            
+        Returns:
+            Conductor number (1-9, or 11, 22, 33 for master numbers)
+        """
+        # Sum all digits of the complete birth date
+        digits = [int(d) for d in str(birth_date.day)] + \
+                 [int(d) for d in str(birth_date.month)] + \
+                 [int(d) for d in str(birth_date.year)]
+        total = sum(digits)
+        return self._reduce_to_single_digit(total, preserve_master=True)
+    
+    def calculate_driver_conductor_compatibility(self, birth_date: date) -> Dict[str, Any]:
+        """
+        Analyze the relationship between Driver and Conductor numbers.
+        
+        When Driver and Conductor are in harmony, life flows smoothly.
+        When they conflict, there may be internal struggles.
+        
+        Args:
+            birth_date: Date of birth
+            
+        Returns:
+            Dictionary with driver, conductor, compatibility analysis
+        """
+        driver = self.calculate_driver_number(birth_date)
+        conductor = self.calculate_conductor_number(birth_date)
+        
+        # Determine compatibility
+        # Compatible pairs: 1-1, 2-2, 3-3, etc. (same), and complementary pairs
+        compatible_pairs = {
+            (1, 1), (1, 3), (1, 5), (1, 9),
+            (2, 2), (2, 4), (2, 6), (2, 8),
+            (3, 3), (3, 1), (3, 5), (3, 9),
+            (4, 4), (4, 2), (4, 6), (4, 8),
+            (5, 5), (5, 1), (5, 3), (5, 7), (5, 9),
+            (6, 6), (6, 2), (6, 4), (6, 8), (6, 9),
+            (7, 7), (7, 5), (7, 9),
+            (8, 8), (8, 2), (8, 4), (8, 6),
+            (9, 9), (9, 1), (9, 3), (9, 5), (9, 6), (9, 7),
+        }
+        
+        # Reduce to single digits for comparison
+        driver_reduced = self._reduce_to_single_digit(driver, preserve_master=False)
+        conductor_reduced = self._reduce_to_single_digit(conductor, preserve_master=False)
+        
+        is_compatible = (driver_reduced, conductor_reduced) in compatible_pairs or \
+                       (conductor_reduced, driver_reduced) in compatible_pairs
+        
+        # Calculate harmony score
+        if driver_reduced == conductor_reduced:
+            harmony_score = 100
+            harmony_level = 'Perfect Harmony'
+        elif is_compatible:
+            harmony_score = 75
+            harmony_level = 'Good Harmony'
+        elif abs(driver_reduced - conductor_reduced) <= 2:
+            harmony_score = 50
+            harmony_level = 'Moderate Harmony'
+        else:
+            harmony_score = 25
+            harmony_level = 'Challenging - Growth Opportunity'
+        
+        return {
+            'driver_number': driver,
+            'conductor_number': conductor,
+            'is_compatible': is_compatible,
+            'harmony_score': harmony_score,
+            'harmony_level': harmony_level,
+            'analysis': self._get_driver_conductor_analysis(driver, conductor)
+        }
+    
+    def _get_driver_conductor_analysis(self, driver: int, conductor: int) -> str:
+        """Generate analysis text for driver-conductor relationship."""
+        driver_reduced = self._reduce_to_single_digit(driver, preserve_master=False)
+        conductor_reduced = self._reduce_to_single_digit(conductor, preserve_master=False)
+        
+        if driver_reduced == conductor_reduced:
+            return f"Your Driver ({driver}) and Conductor ({conductor}) are in perfect alignment. Your inner nature and outer destiny are unified, creating a clear and focused life path."
+        
+        # Specific combination insights
+        combination_insights = {
+            (1, 8): "Your independent nature (Driver 1) is directed toward material success and authority (Conductor 8). You're meant to lead with power.",
+            (8, 1): "Your ambitious nature (Driver 8) leads you toward pioneering new paths (Conductor 1). You're destined to be a trailblazer.",
+            (2, 7): "Your diplomatic nature (Driver 2) is guided toward spiritual wisdom (Conductor 7). You're meant to bring harmony through insight.",
+            (7, 2): "Your analytical nature (Driver 7) is directed toward partnership (Conductor 2). You're destined to use wisdom in relationships.",
+            (3, 6): "Your creative expression (Driver 3) is channeled into nurturing (Conductor 6). You're meant to inspire through care.",
+            (6, 3): "Your nurturing nature (Driver 6) leads to creative expression (Conductor 3). You're destined to create beauty through love.",
+            (4, 5): "Your stable nature (Driver 4) is directed toward freedom (Conductor 5). You're learning to build while embracing change.",
+            (5, 4): "Your adventurous spirit (Driver 5) is grounded by structure (Conductor 4). You're destined to bring innovation to systems.",
+        }
+        
+        specific = combination_insights.get((driver_reduced, conductor_reduced))
+        if specific:
+            return specific
+        
+        return f"Your Driver Number {driver} represents your inner nature, while Conductor Number {conductor} shows how destiny guides you. Integrating both energies is your life's work."
+    
     def calculate_maturity_number(self, life_path: int, destiny: int) -> int:
         """Calculate Maturity Number."""
         total = life_path + destiny
@@ -372,41 +515,28 @@ class NumerologyCalculator:
         
         Returns a dictionary with grid positions and interpretations.
         """
-        # Extract digits from birth date
+        # Extract digits from birth date - include all individual digits
         day = birth_date.day
         month = birth_date.month
         year = birth_date.year
         
-        # Calculate name number
-        name_number = self._sum_name(full_name)
-        name_digit = self._reduce_to_single_digit(name_number, preserve_master=False)
+        # Get all individual digits from birth date
+        date_digits = []
+        for d in str(day):
+            date_digits.append(int(d))
+        for d in str(month):
+            date_digits.append(int(d))
+        for d in str(year):
+            date_digits.append(int(d))
         
         # Standard Lo Shu Grid layout (Magic Square)
         # 4 9 2
         # 3 5 7
         # 8 1 6
         
-        # Calculate which numbers appear in the person's numerology
-        life_path = self.calculate_life_path_number(birth_date)
-        destiny = self.calculate_destiny_number(full_name)
-        soul_urge = self.calculate_soul_urge_number(full_name)
-        personality = self.calculate_personality_number(full_name)
-        
-        # Get all numbers (reduced to single digits)
-        numbers = [
-            self._reduce_to_single_digit(life_path, preserve_master=False),
-            self._reduce_to_single_digit(destiny, preserve_master=False),
-            self._reduce_to_single_digit(soul_urge, preserve_master=False),
-            self._reduce_to_single_digit(personality, preserve_master=False),
-            self._reduce_to_single_digit(day, preserve_master=False),
-            self._reduce_to_single_digit(month, preserve_master=False),
-            self._reduce_to_single_digit(year, preserve_master=False),
-            name_digit
-        ]
-        
-        # Count frequency of each number (1-9)
+        # Count frequency of each number (1-9) from birth date digits
         number_counts = {}
-        for num in numbers:
+        for num in date_digits:
             if 1 <= num <= 9:
                 number_counts[num] = number_counts.get(num, 0) + 1
         
@@ -435,13 +565,243 @@ class NumerologyCalculator:
         # Calculate strong numbers (appear 2+ times)
         strong_numbers = [n for n, count in number_counts.items() if count >= 2]
         
+        # Calculate repeating numbers (appear 3+ times - overemphasis)
+        repeating_numbers = [n for n, count in number_counts.items() if count >= 3]
+        
+        # Detect personality arrows
+        personality_arrows = self._detect_personality_arrows(number_counts)
+        
+        # Get detailed missing number meanings
+        missing_number_details = self._get_missing_number_details(missing_numbers)
+        
+        # Get detailed repeating number meanings
+        repeating_number_details = self._get_repeating_number_details(number_counts)
+        
         return {
             'grid': grid_data,
             'missing_numbers': missing_numbers,
+            'missing_number_details': missing_number_details,
             'strong_numbers': strong_numbers,
+            'repeating_numbers': repeating_numbers,
+            'repeating_number_details': repeating_number_details,
             'number_frequency': number_counts,
+            'personality_arrows': personality_arrows,
             'interpretation': self._get_lo_shu_interpretation(missing_numbers, strong_numbers)
         }
+    
+    def _detect_personality_arrows(self, number_counts: Dict[int, int]) -> List[Dict[str, Any]]:
+        """
+        Detect Personality Arrows in the Lo Shu Grid.
+        
+        Arrows are formed when all three numbers in a row, column, or diagonal
+        are either present or missing.
+        
+        Grid layout for reference:
+        4 9 2
+        3 5 7
+        8 1 6
+        """
+        arrows = []
+        
+        # Define all possible arrows (rows, columns, diagonals)
+        arrow_definitions = {
+            # Rows
+            'mental_plane': {'numbers': [4, 9, 2], 'type': 'row', 'position': 'top', 
+                            'present_meaning': 'Arrow of Planning - Strong mental abilities, good memory, analytical thinking',
+                            'absent_meaning': 'Arrow of Confusion - May struggle with planning, needs to develop mental clarity'},
+            'emotional_plane': {'numbers': [3, 5, 7], 'type': 'row', 'position': 'middle',
+                               'present_meaning': 'Arrow of Emotional Balance - Emotionally stable, good intuition, spiritual awareness',
+                               'absent_meaning': 'Arrow of Sensitivity - Highly sensitive, may experience emotional ups and downs'},
+            'practical_plane': {'numbers': [8, 1, 6], 'type': 'row', 'position': 'bottom',
+                               'present_meaning': 'Arrow of Practicality - Grounded, hardworking, good with material matters',
+                               'absent_meaning': 'Arrow of Impracticality - May struggle with practical matters, needs grounding'},
+            
+            # Columns
+            'thought_plane': {'numbers': [4, 3, 8], 'type': 'column', 'position': 'left',
+                             'present_meaning': 'Arrow of Thought - Strong analytical abilities, logical thinking',
+                             'absent_meaning': 'Arrow of Hesitation - May overthink or hesitate in decision-making'},
+            'will_plane': {'numbers': [9, 5, 1], 'type': 'column', 'position': 'center',
+                          'present_meaning': 'Arrow of Will - Strong determination, leadership abilities',
+                          'absent_meaning': 'Arrow of Weak Will - May need to develop stronger willpower'},
+            'action_plane': {'numbers': [2, 7, 6], 'type': 'column', 'position': 'right',
+                            'present_meaning': 'Arrow of Activity - Action-oriented, gets things done',
+                            'absent_meaning': 'Arrow of Passivity - May need motivation to take action'},
+            
+            # Diagonals
+            'determination': {'numbers': [4, 5, 6], 'type': 'diagonal', 'position': 'left-to-right',
+                             'present_meaning': 'Arrow of Determination - Persistent, achieves goals through dedication',
+                             'absent_meaning': 'Arrow of Frustration - May experience setbacks, needs patience'},
+            'spirituality': {'numbers': [2, 5, 8], 'type': 'diagonal', 'position': 'right-to-left',
+                            'present_meaning': 'Arrow of Spirituality - Spiritual awareness, intuitive abilities',
+                            'absent_meaning': 'Arrow of Skepticism - May be skeptical of spiritual matters'},
+        }
+        
+        for arrow_name, arrow_def in arrow_definitions.items():
+            numbers = arrow_def['numbers']
+            all_present = all(number_counts.get(n, 0) > 0 for n in numbers)
+            all_absent = all(number_counts.get(n, 0) == 0 for n in numbers)
+            
+            if all_present:
+                arrows.append({
+                    'name': arrow_name,
+                    'numbers': numbers,
+                    'type': arrow_def['type'],
+                    'position': arrow_def['position'],
+                    'status': 'present',
+                    'meaning': arrow_def['present_meaning'],
+                    'is_strength': True
+                })
+            elif all_absent:
+                arrows.append({
+                    'name': arrow_name,
+                    'numbers': numbers,
+                    'type': arrow_def['type'],
+                    'position': arrow_def['position'],
+                    'status': 'absent',
+                    'meaning': arrow_def['absent_meaning'],
+                    'is_strength': False
+                })
+        
+        return arrows
+    
+    def _get_missing_number_details(self, missing_numbers: List[int]) -> List[Dict[str, Any]]:
+        """Get detailed karmic lesson meanings for missing numbers."""
+        missing_meanings = {
+            1: {
+                'number': 1,
+                'lesson': 'Independence & Self-Confidence',
+                'description': 'You may need to develop greater self-reliance and confidence. Learning to stand on your own and trust your abilities is a key life lesson.',
+                'remedy': 'Practice making decisions independently. Take on leadership roles when possible.',
+                'element': 'Fire'
+            },
+            2: {
+                'number': 2,
+                'lesson': 'Cooperation & Patience',
+                'description': 'Developing patience and learning to work harmoniously with others is important. You may need to cultivate diplomacy and sensitivity.',
+                'remedy': 'Practice active listening. Engage in collaborative activities.',
+                'element': 'Water'
+            },
+            3: {
+                'number': 3,
+                'lesson': 'Self-Expression & Creativity',
+                'description': 'Expressing yourself creatively and communicating effectively may be challenging. Learning to share your ideas openly is important.',
+                'remedy': 'Engage in creative activities like writing, art, or music. Practice public speaking.',
+                'element': 'Fire'
+            },
+            4: {
+                'number': 4,
+                'lesson': 'Organization & Discipline',
+                'description': 'Building structure and maintaining discipline may require extra effort. Learning to create stable foundations is a key lesson.',
+                'remedy': 'Create routines and stick to them. Practice organization in daily life.',
+                'element': 'Earth'
+            },
+            5: {
+                'number': 5,
+                'lesson': 'Adaptability & Freedom',
+                'description': 'Embracing change and seeking new experiences may be challenging. Learning to be flexible and adventurous is important.',
+                'remedy': 'Try new activities regularly. Travel and explore different perspectives.',
+                'element': 'Air'
+            },
+            6: {
+                'number': 6,
+                'lesson': 'Responsibility & Love',
+                'description': 'Taking on responsibilities and nurturing others may require development. Learning to balance giving and receiving is key.',
+                'remedy': 'Volunteer or help others. Practice self-care while caring for loved ones.',
+                'element': 'Earth'
+            },
+            7: {
+                'number': 7,
+                'lesson': 'Introspection & Spirituality',
+                'description': 'Developing inner wisdom and spiritual awareness may need attention. Learning to trust your intuition is important.',
+                'remedy': 'Practice meditation or contemplation. Study philosophy or spirituality.',
+                'element': 'Water'
+            },
+            8: {
+                'number': 8,
+                'lesson': 'Material Mastery & Power',
+                'description': 'Managing material resources and wielding personal power may be challenging. Learning to balance spiritual and material worlds is key.',
+                'remedy': 'Develop financial literacy. Practice ethical leadership.',
+                'element': 'Earth'
+            },
+            9: {
+                'number': 9,
+                'lesson': 'Compassion & Universal Love',
+                'description': 'Developing unconditional love and humanitarian awareness may need attention. Learning to let go and serve others is important.',
+                'remedy': 'Engage in humanitarian activities. Practice forgiveness and compassion.',
+                'element': 'Fire'
+            }
+        }
+        
+        return [missing_meanings[n] for n in missing_numbers if n in missing_meanings]
+    
+    def _get_repeating_number_details(self, number_counts: Dict[int, int]) -> List[Dict[str, Any]]:
+        """Get detailed meanings for repeating numbers (overemphasis)."""
+        repeating_meanings = {
+            1: {
+                'number': 1,
+                'strength': 'Strong Leadership',
+                'overemphasis': 'May become overly independent or stubborn. Risk of ego-driven decisions.',
+                'balance_tip': 'Practice collaboration and consider others\' perspectives.'
+            },
+            2: {
+                'number': 2,
+                'strength': 'Exceptional Sensitivity',
+                'overemphasis': 'May be overly sensitive or indecisive. Risk of dependency on others.',
+                'balance_tip': 'Develop inner strength while maintaining your empathetic nature.'
+            },
+            3: {
+                'number': 3,
+                'strength': 'Powerful Creativity',
+                'overemphasis': 'May scatter energy or become superficial. Risk of talking without action.',
+                'balance_tip': 'Focus your creative energy on completing projects.'
+            },
+            4: {
+                'number': 4,
+                'strength': 'Exceptional Organization',
+                'overemphasis': 'May become rigid or overly cautious. Risk of missing opportunities.',
+                'balance_tip': 'Allow flexibility while maintaining your structured approach.'
+            },
+            5: {
+                'number': 5,
+                'strength': 'Great Adaptability',
+                'overemphasis': 'May become restless or irresponsible. Risk of avoiding commitment.',
+                'balance_tip': 'Channel your need for change into productive pursuits.'
+            },
+            6: {
+                'number': 6,
+                'strength': 'Deep Nurturing Ability',
+                'overemphasis': 'May become overprotective or controlling. Risk of self-neglect.',
+                'balance_tip': 'Balance caring for others with self-care.'
+            },
+            7: {
+                'number': 7,
+                'strength': 'Profound Wisdom',
+                'overemphasis': 'May become isolated or overly critical. Risk of disconnection from reality.',
+                'balance_tip': 'Balance introspection with social engagement.'
+            },
+            8: {
+                'number': 8,
+                'strength': 'Strong Material Focus',
+                'overemphasis': 'May become materialistic or power-hungry. Risk of ethical compromises.',
+                'balance_tip': 'Balance material pursuits with spiritual growth.'
+            },
+            9: {
+                'number': 9,
+                'strength': 'Deep Compassion',
+                'overemphasis': 'May become idealistic or martyr-like. Risk of emotional burnout.',
+                'balance_tip': 'Set healthy boundaries while serving others.'
+            }
+        }
+        
+        details = []
+        for num, count in number_counts.items():
+            if count >= 2 and num in repeating_meanings:
+                detail = repeating_meanings[num].copy()
+                detail['count'] = count
+                detail['intensity'] = 'moderate' if count == 2 else 'strong' if count == 3 else 'very_strong'
+                details.append(detail)
+        
+        return details
     
     def _get_lo_shu_meaning(self, number: int, position: str) -> str:
         """Get meaning of a number in a specific Lo Shu Grid position."""
@@ -717,6 +1077,7 @@ class NumerologyCalculator:
             'soul_urge_number': self.calculate_soul_urge_number(full_name),
             'personality_number': self.calculate_personality_number(full_name),
             'attitude_number': self.calculate_attitude_number(birth_date),
+            'birthday_number': self.calculate_birthday_number(birth_date),
             'maturity_number': self.calculate_maturity_number(life_path, destiny),
             'balance_number': self.calculate_balance_number(full_name),
             'personal_year_number': self.calculate_personal_year_number(birth_date),
@@ -727,7 +1088,11 @@ class NumerologyCalculator:
             'karmic_debt_numbers': self.calculate_karmic_debt_numbers(birth_date, full_name),
             'karmic_lessons': self.calculate_karmic_lessons(full_name),
             'pinnacles': self.calculate_pinnacles(birth_date),
-            'challenges': self.calculate_challenges(birth_date)
+            'challenges': self.calculate_challenges(birth_date),
+            # Chaldean-specific numbers
+            'driver_number': self.calculate_driver_number(birth_date),
+            'conductor_number': self.calculate_conductor_number(birth_date),
+            'driver_conductor_compatibility': self.calculate_driver_conductor_compatibility(birth_date),
         }
         
         return result

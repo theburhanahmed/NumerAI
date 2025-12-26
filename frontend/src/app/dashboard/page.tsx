@@ -3,18 +3,30 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { UserIcon, MessageSquareIcon, HeartIcon, BookOpenIcon, SparklesIcon, StarIcon, TrendingUpIcon } from 'lucide-react';
-import { PageLayout } from '@/components/ui/page-layout';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { AnimatedNumber } from '@/components/ui/animated-number';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { UserIcon, MessageSquareIcon, HeartIcon, BookOpenIcon, SparklesIcon, StarIcon, TrendingUpIcon, Users2Icon, CalendarIcon, ArrowRightIcon } from 'lucide-react';
+import { AccessibleSpaceBackground } from '@/components/space/accessible-space-background';
+import { SpaceCard } from '@/components/space/space-card';
+import { SpaceButton } from '@/components/space/space-button';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicSkeletonLoader } from '@/components/cosmic/cosmic-skeleton-loader';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
+import { FeatureHighlight } from '@/components/features/feature-highlight';
+import { InteractiveTour } from '@/components/tours/interactive-tour';
+import { CrystalNumerologyCube } from '@/components/3d/crystal-numerology-cube';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
+import { useIsMobile } from '@/hooks/use-media-query';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useAIChat } from '@/contexts/ai-chat-context';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/auth-context';
-import { numerologyAPI } from '@/lib/numerology-api';
+import { numerologyAPI, ChaldeanAnalysis, ZodiacNumerologyProfile, DetailedLoShuGrid } from '@/lib/numerology-api';
 import { userAPI } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { CosmicNavbar } from '@/components/navigation/cosmic-navbar';
+import { ChaldeanInsightsCard } from '@/components/numerology/ChaldeanInsightsCard';
+import { ZodiacPlanetCard } from '@/components/numerology/ZodiacPlanetCard';
+import { LoShuGridVisualization } from '@/components/numerology/LoShuGridVisualization';
 
 interface UserProfile {
   full_name?: string;
@@ -26,8 +38,18 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { isOnboardingComplete } = useOnboarding();
+  const { openChat } = useAIChat();
+  const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [statsRef, statsVisible] = useIntersectionObserver({
+    threshold: 0.1,
+  });
+  const [hasSeenTour, setHasSeenTour] = useLocalStorage(
+    'hasSeenDashboardTour',
+    false,
+  );
+  const [showTour, setShowTour] = useState(false);
 
   // Update showOnboarding when isOnboardingComplete changes
   useEffect(() => {
@@ -35,10 +57,21 @@ export default function Dashboard() {
       setShowOnboarding(false);
     }
   }, [isOnboardingComplete]);
+
+  // Show tour for first-time dashboard visitors
+  useEffect(() => {
+    if (!hasSeenTour) {
+      const timer = setTimeout(() => setShowTour(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSeenTour]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [numerologyProfile, setNumerologyProfile] = useState<any>(null);
   const [dailyReading, setDailyReading] = useState<any>(null);
   const [weeklyReport, setWeeklyReport] = useState<any>(null);
+  const [chaldeanAnalysis, setChaldeanAnalysis] = useState<ChaldeanAnalysis | null>(null);
+  const [zodiacNumerology, setZodiacNumerology] = useState<ZodiacNumerologyProfile | null>(null);
+  const [detailedLoShuGrid, setDetailedLoShuGrid] = useState<DetailedLoShuGrid | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
   // Redirect unauthenticated users
@@ -95,6 +128,30 @@ export default function Dashboard() {
         } catch (error: any) {
           const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Failed to fetch weekly report';
           console.error('Failed to fetch weekly report:', errorMessage, error);
+        }
+
+        // Fetch Chaldean Analysis (DivineAPI-style)
+        try {
+          const chaldean = await numerologyAPI.getChaldeanAnalysis();
+          setChaldeanAnalysis(chaldean);
+        } catch (error) {
+          console.error('Failed to fetch Chaldean analysis:', error);
+        }
+
+        // Fetch Zodiac Numerology (DivineAPI-style)
+        try {
+          const zodiac = await numerologyAPI.getZodiacNumerology();
+          setZodiacNumerology(zodiac);
+        } catch (error) {
+          console.error('Failed to fetch zodiac numerology:', error);
+        }
+
+        // Fetch Detailed Lo Shu Grid (DivineAPI-style)
+        try {
+          const loShu = await numerologyAPI.getDetailedLoShuGrid();
+          setDetailedLoShuGrid(loShu);
+        } catch (error) {
+          console.error('Failed to fetch detailed Lo Shu grid:', error);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -154,309 +211,522 @@ export default function Dashboard() {
     };
     return colorMap[color.toLowerCase()] || 'from-yellow-400 to-amber-500';
   };
+  const tourSteps = [
+    {
+      target: 'dashboard',
+      title: 'Welcome to Your Dashboard',
+      content:
+        'This is your cosmic command center. Access all your numerology insights from here.',
+    },
+    {
+      target: 'numbers',
+      title: 'Your Core Numbers',
+      content:
+        'These crystal cubes represent your Life Path, Destiny, Soul Urge, and Personality numbers.',
+    },
+    {
+      target: 'actions',
+      title: 'Quick Actions',
+      content:
+        'Use these shortcuts to access AI chat, daily readings, compatibility checks, and more.',
+    },
+  ];
+
+  const quickActions = [
+    {
+      icon: <MessageSquareIcon className="w-6 h-6" />,
+      title: 'AI Numerologist',
+      description: 'Chat with AI for instant insights',
+      action: openChat,
+      color: 'from-cyan-400 to-blue-600',
+      tooltip: 'Get personalized numerology guidance 24/7',
+    },
+    {
+      icon: <CalendarIcon className="w-6 h-6" />,
+      title: 'Daily Reading',
+      description: 'Your cosmic guidance for today',
+      action: () => router.push('/daily-reading'),
+      color: 'from-purple-500 to-pink-600',
+      tooltip: 'Discover what the numbers reveal for today',
+    },
+    {
+      icon: <HeartIcon className="w-6 h-6" />,
+      title: 'Compatibility',
+      description: 'Check relationship compatibility',
+      action: () => router.push('/compatibility'),
+      color: 'from-pink-500 to-rose-600',
+      tooltip: 'Analyze cosmic connections with others',
+    },
+    {
+      icon: <TrendingUpIcon className="w-6 h-6" />,
+      title: 'Life Path',
+      description: 'Explore your life journey',
+      action: () => router.push('/life-path'),
+      color: 'from-green-500 to-emerald-600',
+      tooltip: "Understand your life's purpose and direction",
+    },
+  ];
+
+  const coreNumbers = numerologyProfile
+    ? [
+        {
+          number: numerologyProfile.life_path_number || 0,
+          label: 'Life Path',
+          color: 'cyan' as const,
+        },
+        {
+          number: numerologyProfile.destiny_number || 0,
+          label: 'Destiny',
+          color: 'purple' as const,
+        },
+        {
+          number: numerologyProfile.soul_urge_number || 0,
+          label: 'Soul Urge',
+          color: 'blue' as const,
+        },
+        {
+          number: numerologyProfile.personality_number || 0,
+          label: 'Personality',
+          color: 'pink' as const,
+        },
+      ].filter((item) => item.number > 0)
+    : [];
+
   if (isLoading) {
-    return <PageLayout>
+    return (
+      <div className="relative min-h-screen">
+        <AccessibleSpaceBackground />
         <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner size="lg" message="Loading your dashboard..." />
+          <CosmicSkeletonLoader variant="card" />
         </div>
-      </PageLayout>;
+      </div>
+    );
   }
-  return <PageLayout>
+
+  return (
+    <div className="relative min-h-screen">
+      <AccessibleSpaceBackground />
+      <CosmicNavbar />
       {showOnboarding && <OnboardingModal />}
+      {showTour && (
+        <InteractiveTour
+          steps={tourSteps}
+          onComplete={() => {
+            setHasSeenTour(true);
+            setShowTour(false);
+          }}
+          onSkip={() => {
+            setHasSeenTour(true);
+            setShowTour(false);
+          }}
+        />
+      )}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            {/* Profile Hero Card */}
-            <motion.div initial={{
+      {/* Main Content - Added pt-28 to prevent navbar overlap */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 pt-28">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{
             opacity: 0,
-            y: 20
-          }} animate={{
+            y: 20,
+          }}
+          animate={{
             opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.1
-          }}>
-              <GlassCard variant="elevated" className="p-6 md:p-8 bg-gradient-to-br from-blue-500/90 to-purple-600/90 text-white overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-48 h-48 md:w-64 md:h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div className="relative z-10">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-3 md:gap-4">
-                      <motion.div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border border-white/30" whileHover={{
-                      scale: 1.1,
-                      rotate: 5
-                    }}>
-                        <UserIcon className="w-8 h-8 md:w-10 md:h-10" />
-                      </motion.div>
-                      <div>
-                        <motion.h2 className="text-2xl md:text-3xl font-bold mb-1" initial={{
-                        opacity: 0,
-                        x: -20
-                      }} animate={{
-                        opacity: 1,
-                        x: 0
-                      }} transition={{
-                        delay: 0.2
-                      }}>
-                          Welcome, {getUserName()}
-                        </motion.h2>
-                        {userProfile?.date_of_birth && (
-                          <p className="text-white/80 text-sm md:text-base">
-                            Born: {formatBirthDate(userProfile.date_of_birth)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <GlassButton variant="secondary" size="sm" onClick={() => router.push('/profile')}>
-                      Edit Profile
-                    </GlassButton>
-                  </div>
-                  {numerologyProfile ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                      <AnimatedNumber number={numerologyProfile.life_path_number?.toString() || '-'} label="Life Path" delay={0.3} />
-                      <AnimatedNumber number={numerologyProfile.destiny_number?.toString() || '-'} label="Destiny" delay={0.4} />
-                      <AnimatedNumber number={numerologyProfile.soul_urge_number?.toString() || '-'} label="Soul Urge" delay={0.5} />
-                      <AnimatedNumber number={numerologyProfile.personality_number?.toString() || '-'} label="Personality" delay={0.6} />
-                    </div>
-                  ) : (
-                    <div className="col-span-2 md:col-span-4">
-                      <GlassCard variant="subtle" className="p-4 md:p-6 text-center">
-                        <p className="text-white/80 text-sm md:text-base mb-4">
-                          Your numerology profile is not available yet. Calculate it to see your numbers and unlock personalized insights.
-                        </p>
-                        <GlassButton 
-                          variant="primary" 
-                          size="sm" 
-                          onClick={() => router.push('/numerology-report')}
-                        >
-                          Calculate My Profile
-                        </GlassButton>
-                      </GlassCard>
-                    </div>
-                  )}
-                </div>
-              </GlassCard>
-            </motion.div>
+            y: 0,
+          }}
+          className="mb-8"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white mb-2">
+                Welcome Back, {getUserName()}
+              </h1>
+              <p className="text-white/70">Your cosmic dashboard awaits</p>
+            </div>
+            <div className="flex gap-3">
+              <CosmicTooltip content="View your complete numerology profile">
+                <TouchOptimizedButton
+                  variant="secondary"
+                  onClick={() => router.push('/numerology-report')}
+                  ariaLabel="View full report"
+                >
+                  View Full Report
+                </TouchOptimizedButton>
+              </CosmicTooltip>
+            </div>
+          </div>
+        </motion.div>
 
-            {/* Today's Reading */}
-            <motion.div initial={{
+        {/* Core Numbers - with lazy loading */}
+        <motion.div
+          ref={statsRef}
+          initial={{
             opacity: 0,
-            y: 20
-          }} animate={{
+            y: 20,
+          }}
+          animate={{
             opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.2
-          }}>
-              <GlassCard variant="elevated" className="p-6 md:p-8">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                  <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Today&apos;s Reading
-                  </h3>
-                  <motion.div className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 backdrop-blur-xl rounded-full border border-blue-500/30" animate={{
-                  scale: [1, 1.05, 1]
-                }} transition={{
-                  duration: 2,
-                  repeat: Infinity
-                }}>
-                    <span className="text-xs md:text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      {new Date().toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                    </span>
+            y: 0,
+          }}
+          transition={{
+            delay: 0.1,
+          }}
+          className="mb-8"
+          id="numbers"
+        >
+          <SpaceCard variant="premium" className="p-6 md:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white">
+                Your Core Numbers
+              </h2>
+              <CosmicTooltip
+                content="These numbers define your cosmic blueprint"
+                icon
+              />
+            </div>
+
+            {statsVisible && coreNumbers.length > 0 ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {coreNumbers.map((item, index) => (
+                  <motion.div
+                    key={item.label}
+                    initial={{
+                      opacity: 0,
+                      scale: 0.9,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                    }}
+                    transition={{
+                      delay: 0.2 + index * 0.1,
+                    }}
+                    className="flex flex-col items-center"
+                  >
+                    <CrystalNumerologyCube
+                      number={item.number}
+                      size={isMobile ? 'sm' : 'md'}
+                      color={item.color}
+                    />
+                    <p className="text-sm font-semibold text-white mt-3">
+                      {item.label}
+                    </p>
                   </motion.div>
-                </div>
-                {dailyReading ? (
-                  <>
-                    <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6">
-                      <div className="flex items-center gap-3 md:gap-4 mb-4">
-                        <motion.div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl md:text-2xl shadow-xl" animate={{
-                        rotate: [0, 5, -5, 0]
-                      }} transition={{
+                ))}
+              </div>
+            ) : numerologyProfile ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <CosmicSkeletonLoader variant="cube" count={4} />
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-white/80 mb-4">
+                  Your numerology profile is not available yet. Calculate it to
+                  see your numbers and unlock personalized insights.
+                </p>
+                <SpaceButton
+                  variant="primary"
+                  onClick={() => router.push('/numerology-report')}
+                >
+                  Calculate My Profile
+                </SpaceButton>
+              </div>
+            )}
+          </SpaceCard>
+        </motion.div>
+
+        {/* Featured: AI Chat */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.2,
+          }}
+          className="mb-8"
+        >
+          <FeatureHighlight
+            title="New: AI Numerologist Chat"
+            description="Get instant answers to your numerology questions"
+            badge="NEW"
+          >
+            <TouchOptimizedButton
+              variant="primary"
+              onClick={openChat}
+              icon={<ArrowRightIcon className="w-5 h-5" />}
+              ariaLabel="Start AI chat"
+            >
+              Start Chatting
+            </TouchOptimizedButton>
+          </FeatureHighlight>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.3,
+          }}
+          id="actions"
+        >
+          <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-6">
+            Quick Actions
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <motion.div
+                key={action.title}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  delay: 0.4 + index * 0.1,
+                }}
+                whileHover={{
+                  y: -4,
+                }}
+              >
+                <SpaceCard
+                  variant="default"
+                  className="p-6 cursor-pointer group h-full"
+                  onClick={action.action}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={action.title}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}
+                  >
+                    {action.icon}
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-white">{action.title}</h3>
+                    <CosmicTooltip
+                      content={action.tooltip}
+                      icon
+                      position="top"
+                    />
+                  </div>
+                  <p className="text-sm text-white/70">{action.description}</p>
+                </SpaceCard>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Today's Reading */}
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.4,
+          }}
+          className="mt-8"
+        >
+          <SpaceCard variant="premium" className="p-6 md:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <h3 className="text-xl md:text-2xl font-['Playfair_Display'] font-bold text-white">
+                Today&apos;s Reading
+              </h3>
+              <motion.div
+                className="px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-600/20 backdrop-blur-xl rounded-full border border-cyan-500/30"
+                animate={{
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                }}
+              >
+                <span className="text-xs md:text-sm font-semibold text-cyan-400">
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </span>
+              </motion.div>
+            </div>
+            {dailyReading ? (
+              <>
+                <SpaceCard variant="default" className="p-5 md:p-6 mb-4 md:mb-6">
+                  <div className="flex items-center gap-3 md:gap-4 mb-4">
+                    <motion.div
+                      className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl md:text-2xl shadow-xl"
+                      animate={{
+                        rotate: [0, 5, -5, 0],
+                      }}
+                      transition={{
                         duration: 2,
-                        repeat: Infinity
-                      }}>
-                          {dailyReading.personal_day_number || '-'}
-                        </motion.div>
-                        <div>
-                          <p className="font-semibold text-base md:text-lg text-gray-900 dark:text-white">
-                            Personal Day Number
-                          </p>
-                          {dailyReading.activity_recommendation && (
-                            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
-                              {dailyReading.activity_recommendation.substring(0, 30)}...
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {dailyReading.actionable_tip && (
-                        <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {dailyReading.actionable_tip}
+                        repeat: Infinity,
+                      }}
+                    >
+                      {dailyReading.personal_day_number || '-'}
+                    </motion.div>
+                    <div>
+                      <p className="font-semibold text-base md:text-lg text-white">
+                        Personal Day Number
+                      </p>
+                      {dailyReading.activity_recommendation && (
+                        <p className="text-xs md:text-sm text-white/60">
+                          {dailyReading.activity_recommendation.substring(0, 30)}
+                          ...
                         </p>
                       )}
-                    </GlassCard>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                      <GlassCard variant="subtle" className="p-4">
-                        <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                          Lucky Number
-                        </p>
-                        <motion.p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" animate={{
-                        scale: [1, 1.1, 1]
-                      }} transition={{
+                    </div>
+                  </div>
+                  {dailyReading.actionable_tip && (
+                    <p className="text-sm md:text-base text-white/80 leading-relaxed">
+                      {dailyReading.actionable_tip}
+                    </p>
+                  )}
+                </SpaceCard>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                  <SpaceCard variant="default" className="p-4">
+                    <p className="text-xs md:text-sm font-semibold text-white/60 mb-2">
+                      Lucky Number
+                    </p>
+                    <motion.p
+                      className="text-3xl md:text-4xl font-bold text-cyan-400"
+                      animate={{
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
                         duration: 1.5,
-                        repeat: Infinity
-                      }}>
-                          {dailyReading.lucky_number || '-'}
-                        </motion.p>
-                      </GlassCard>
-                      <GlassCard variant="subtle" className="p-4">
-                        <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                          Lucky Color
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <motion.div className={`w-10 h-10 bg-gradient-to-r ${getLuckyColorStyle(dailyReading.lucky_color)} rounded-full shadow-lg`} animate={{
-                          rotate: 360
-                        }} transition={{
+                        repeat: Infinity,
+                      }}
+                    >
+                      {dailyReading.lucky_number || '-'}
+                    </motion.p>
+                  </SpaceCard>
+                  <SpaceCard variant="default" className="p-4">
+                    <p className="text-xs md:text-sm font-semibold text-white/60 mb-2">
+                      Lucky Color
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        className={`w-10 h-10 bg-gradient-to-r ${getLuckyColorStyle(dailyReading.lucky_color)} rounded-full shadow-lg`}
+                        animate={{
+                          rotate: 360,
+                        }}
+                        transition={{
                           duration: 3,
                           repeat: Infinity,
-                          ease: 'linear'
-                        }}></motion.div>
-                          <p className="text-base md:text-lg font-semibold text-gray-900 dark:text-white capitalize">
-                            {dailyReading.lucky_color || 'N/A'}
-                          </p>
-                        </div>
-                      </GlassCard>
+                          ease: 'linear',
+                        }}
+                      ></motion.div>
+                      <p className="text-base md:text-lg font-semibold text-white capitalize">
+                        {dailyReading.lucky_color || 'N/A'}
+                      </p>
                     </div>
-                  </>
-                ) : (
-                  <GlassCard variant="subtle" className="p-5 md:p-6 mb-4 md:mb-6 text-center">
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      {dataLoading ? 'Loading your daily reading...' : 'Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.'}
-                    </p>
-                    {!dataLoading && (
-                      <GlassButton 
-                        variant="primary" 
-                        size="sm" 
-                        onClick={() => router.push('/numerology-report')}
-                      >
-                        Calculate Profile
-                      </GlassButton>
-                    )}
-                  </GlassCard>
-                )}
-              </GlassCard>
-            </motion.div>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-4 md:space-y-6">
-            {/* Quick Actions */}
-            <motion.div initial={{
-            opacity: 0,
-            x: 20
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} transition={{
-            delay: 0.3
-          }}>
-              <GlassCard variant="elevated" className="p-5 md:p-6">
-                <h3 className="text-lg md:text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                  Quick Actions
-                </h3>
-                <div className="space-y-3">
-                  <ActionCard icon={<MessageSquareIcon className="w-5 h-5" />} label="Ask AI Numerologist" description="Get instant answers" onClick={() => router.push('/chat')} delay={0.4} />
-                  <ActionCard icon={<SparklesIcon className="w-5 h-5" />} label="Get Remedies" description="Personalized guidance" onClick={() => router.push('/remedies')} delay={0.5} />
-                  <ActionCard icon={<HeartIcon className="w-5 h-5" />} label="Check Compatibility" description="Relationship insights" onClick={() => router.push('/compatibility')} delay={0.6} />
-                  <ActionCard icon={<BookOpenIcon className="w-5 h-5" />} label="View Full Report" description="Complete analysis" onClick={() => router.push('/numerology-report')} delay={0.7} />
+                  </SpaceCard>
                 </div>
-              </GlassCard>
-            </motion.div>
-
-            {/* Insights */}
-            <motion.div initial={{
-            opacity: 0,
-            x: 20
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} transition={{
-            delay: 0.4
-          }}>
-              <GlassCard variant="elevated" className="p-5 md:p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUpIcon className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
-                  <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white">
-                    This Week&apos;s Insights
-                  </h3>
-                </div>
-                {weeklyReport ? (
-                  <>
-                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                      {weeklyReport.weekly_summary || weeklyReport.main_theme || 'Your numbers suggest a strong focus on personal growth and relationships this week.'}
-                    </p>
-                    <GlassButton variant="primary" size="sm" className="w-full" onClick={() => router.push('/weekly-report')}>
-                      Learn More
-                    </GlassButton>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                      {dataLoading ? 'Loading weekly insights...' : 'Your weekly insights are not available yet. Calculate your numerology profile first to get personalized weekly forecasts.'}
-                    </p>
-                    {!dataLoading && (
-                      <GlassButton variant="primary" size="sm" className="w-full" onClick={() => router.push('/numerology-report')}>
-                        Calculate Profile
-                      </GlassButton>
-                    )}
-                  </>
+              </>
+            ) : (
+              <SpaceCard variant="default" className="p-5 md:p-6 mb-4 md:mb-6 text-center">
+                <p className="text-white/70 mb-4">
+                  {dataLoading
+                    ? 'Loading your daily reading...'
+                    : 'Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.'}
+                </p>
+                {!dataLoading && (
+                  <SpaceButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => router.push('/numerology-report')}
+                  >
+                    Calculate Profile
+                  </SpaceButton>
                 )}
-              </GlassCard>
-            </motion.div>
-          </div>
-        </div>
+              </SpaceCard>
+            )}
+          </SpaceCard>
+        </motion.div>
+
+        {/* DivineAPI-Style Insights Section */}
+        {numerologyProfile && (chaldeanAnalysis || zodiacNumerology || detailedLoShuGrid) && (
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              delay: 0.5,
+            }}
+            className="mt-8"
+          >
+            <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-6">
+              Deep Numerology Insights
+            </h2>
+            
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Chaldean Insights Card */}
+              {chaldeanAnalysis && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <ChaldeanInsightsCard data={chaldeanAnalysis} />
+                </motion.div>
+              )}
+
+              {/* Zodiac Planet Card */}
+              {zodiacNumerology && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <ZodiacPlanetCard data={zodiacNumerology} />
+                </motion.div>
+              )}
+            </div>
+
+            {/* Enhanced Lo Shu Grid */}
+            {detailedLoShuGrid && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="mt-6"
+              >
+                <LoShuGridVisualization 
+                  gridData={detailedLoShuGrid} 
+                  onUpgrade={() => router.push('/pricing')}
+                />
+              </motion.div>
+            )}
+          </motion.div>
+        )}
       </div>
-    </PageLayout>;
-}
-function ActionCard({
-  icon,
-  label,
-  description,
-  onClick,
-  delay
-}: {
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  onClick?: () => void;
-  delay: number;
-}) {
-  return <motion.button onClick={onClick} className="w-full p-4 bg-gradient-to-r from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 text-left flex items-center gap-3 transition-all hover:shadow-xl group" initial={{
-    opacity: 0,
-    x: -20
-  }} animate={{
-    opacity: 1,
-    x: 0
-  }} transition={{
-    delay
-  }} whileHover={{
-    scale: 1.02,
-    x: 4
-  }} whileTap={{
-    scale: 0.98
-  }}>
-      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-shadow">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <p className="font-semibold text-gray-900 dark:text-white">{label}</p>
-        <p className="text-xs text-gray-600 dark:text-gray-400">
-          {description}
-        </p>
-      </div>
-      <StarIcon className="w-5 h-5 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-    </motion.button>;
+    </div>
+  );
 }

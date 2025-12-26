@@ -404,3 +404,172 @@ class LoShuGridService:
             recommendations.append(f'Work together to develop areas represented by numbers: {", ".join(map(str, complementary_missing))}')
         
         return recommendations
+    
+    def calculate_personality_arrows(self, full_name: str, birth_date: date) -> Dict[str, Any]:
+        """
+        Calculate all personality arrows in the Lo Shu Grid.
+        
+        Args:
+            full_name: Full name
+            birth_date: Date of birth
+            
+        Returns:
+            Dictionary with all arrow patterns detected
+        """
+        enhanced_grid = self.calculate_enhanced_grid(full_name, birth_date)
+        
+        return {
+            'strength_arrows': enhanced_grid.get('strength_arrows', []),
+            'weakness_arrows': enhanced_grid.get('weakness_arrows', []),
+            'arrow_interpretation': enhanced_grid.get('arrow_interpretation', ''),
+            'arrow_details': self._get_arrow_details(enhanced_grid.get('strength_arrows', []), enhanced_grid.get('weakness_arrows', []))
+        }
+    
+    def _get_arrow_details(self, strength_arrows: List[str], weakness_arrows: List[str]) -> List[Dict[str, Any]]:
+        """Get detailed information about each arrow."""
+        arrow_details = []
+        
+        arrow_info = {
+            'spiritual_arrow': {
+                'name': 'Spiritual Arrow',
+                'numbers': [1, 5, 9],
+                'meaning': 'Strong spiritual connection and intuition',
+                'type': 'strength'
+            },
+            'material_arrow': {
+                'name': 'Material Arrow',
+                'numbers': [3, 5, 7],
+                'meaning': 'Strong material success and practical abilities',
+                'type': 'strength'
+            },
+            'mental_arrow': {
+                'name': 'Mental Arrow',
+                'numbers': [2, 5, 8],
+                'meaning': 'Strong mental clarity and analytical thinking',
+                'type': 'strength'
+            },
+            'emotional_arrow': {
+                'name': 'Emotional Arrow',
+                'numbers': [4, 5, 6],
+                'meaning': 'Strong emotional intelligence and empathy',
+                'type': 'strength'
+            },
+            'action_arrow': {
+                'name': 'Action Arrow',
+                'numbers': [1, 2, 3],
+                'meaning': 'Strong drive for action and achievement',
+                'type': 'strength'
+            },
+            'stability_arrow': {
+                'name': 'Stability Arrow',
+                'numbers': [7, 8, 9],
+                'meaning': 'Strong foundation and stability',
+                'type': 'strength'
+            },
+            'creativity_arrow': {
+                'name': 'Creativity Arrow',
+                'numbers': [1, 4, 7],
+                'meaning': 'Strong creative expression',
+                'type': 'strength'
+            },
+            'expression_arrow': {
+                'name': 'Expression Arrow',
+                'numbers': [3, 6, 9],
+                'meaning': 'Strong communication and expression',
+                'type': 'strength'
+            },
+            'missing_spiritual': {
+                'name': 'Missing Spiritual',
+                'numbers': [1, 5, 9],
+                'meaning': 'Need to develop spiritual awareness',
+                'type': 'weakness'
+            },
+            'missing_material': {
+                'name': 'Missing Material',
+                'numbers': [3, 5, 7],
+                'meaning': 'Need to develop practical skills',
+                'type': 'weakness'
+            },
+            'missing_mental': {
+                'name': 'Missing Mental',
+                'numbers': [2, 5, 8],
+                'meaning': 'Need to develop mental clarity',
+                'type': 'weakness'
+            },
+            'missing_emotional': {
+                'name': 'Missing Emotional',
+                'numbers': [4, 5, 6],
+                'meaning': 'Need to develop emotional intelligence',
+                'type': 'weakness'
+            },
+        }
+        
+        for arrow in strength_arrows:
+            if arrow in arrow_info:
+                arrow_details.append(arrow_info[arrow])
+        
+        for arrow in weakness_arrows:
+            if arrow in arrow_info:
+                arrow_details.append(arrow_info[arrow])
+        
+        return arrow_details
+    
+    def calculate_grid_strength_score(self, full_name: str, birth_date: date) -> Dict[str, Any]:
+        """
+        Calculate overall grid health/strength score.
+        
+        Args:
+            full_name: Full name
+            birth_date: Date of birth
+            
+        Returns:
+            Dictionary with strength score and analysis
+        """
+        enhanced_grid = self.calculate_enhanced_grid(full_name, birth_date)
+        position_grid = enhanced_grid.get('position_grid', {})
+        
+        # Calculate score based on:
+        # - Number of present numbers (max 9)
+        # - Strength arrows (each adds points)
+        # - Weakness arrows (each subtracts points)
+        # - Repeating numbers (indicates strength)
+        
+        present_count = sum(1 for count in position_grid.values() if count > 0)
+        present_score = (present_count / 9) * 40  # Max 40 points
+        
+        strength_arrows = enhanced_grid.get('strength_arrows', [])
+        strength_score = len(strength_arrows) * 10  # Max 40 points (4 arrows)
+        
+        weakness_arrows = enhanced_grid.get('weakness_arrows', [])
+        weakness_penalty = len(weakness_arrows) * 5  # Max -20 points
+        
+        repeating_numbers = enhanced_grid.get('repeating_numbers', [])
+        repeating_score = len(repeating_numbers) * 5  # Max 20 points
+        
+        total_score = present_score + strength_score - weakness_penalty + repeating_score
+        total_score = max(0, min(100, total_score))
+        
+        # Determine health level
+        if total_score >= 80:
+            health_level = 'Excellent'
+        elif total_score >= 60:
+            health_level = 'Good'
+        elif total_score >= 40:
+            health_level = 'Fair'
+        else:
+            health_level = 'Needs Attention'
+        
+        return {
+            'strength_score': int(total_score),
+            'health_level': health_level,
+            'breakdown': {
+                'present_numbers_score': int(present_score),
+                'strength_arrows_score': int(strength_score),
+                'weakness_penalty': -int(weakness_penalty),
+                'repeating_numbers_score': int(repeating_score)
+            },
+            'present_count': present_count,
+            'strength_arrows_count': len(strength_arrows),
+            'weakness_arrows_count': len(weakness_arrows),
+            'repeating_numbers_count': len(repeating_numbers)
+        }

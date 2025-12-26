@@ -3,8 +3,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckIcon, SparklesIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { SubscriptionTier } from '@/contexts/SubscriptionContext';
 
 interface SubscriptionPricingCardsProps {
@@ -119,7 +119,7 @@ export function SubscriptionPricingCards({
                     variant={isSelected ? 'liquid' : 'secondary'}
                     className={isSelected ? 'w-full glass-glow' : 'w-full'}
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e?.stopPropagation();
                       onSelectTier(plan.tier);
                     }}
                   >

@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, FileText } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { expertAPI } from '@/lib/expert-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';

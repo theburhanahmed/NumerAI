@@ -152,12 +152,15 @@ class PredictiveNumerologyService:
             personal_year = self.calculator.calculate_personal_year_number(birth_date, year)
             
             if personal_year in breakthrough_numbers:
+                # Calculate confidence based on alignment with life path
+                confidence = self._calculate_breakthrough_confidence(personal_year, life_path)
                 breakthrough_years.append({
                     'year': year,
                     'personal_year': personal_year,
                     'breakthrough_type': self._get_breakthrough_type(personal_year),
                     'description': self._get_breakthrough_description(personal_year),
-                    'preparation': self._get_breakthrough_preparation(personal_year)
+                    'preparation': self._get_breakthrough_preparation(personal_year),
+                    'confidence_score': confidence
                 })
         
         return breakthrough_years
@@ -181,12 +184,15 @@ class PredictiveNumerologyService:
             personal_year = self.calculator.calculate_personal_year_number(birth_date, year)
             
             if personal_year in crisis_numbers:
+                severity = self._calculate_crisis_severity(personal_year, life_path)
                 crisis_years.append({
                     'year': year,
                     'personal_year': personal_year,
                     'crisis_type': self._get_crisis_type(personal_year),
                     'description': self._get_crisis_description(personal_year),
-                    'guidance': self._get_crisis_guidance(personal_year)
+                    'guidance': self._get_crisis_guidance(personal_year),
+                    'severity_level': severity,
+                    'preparation_steps': self._get_crisis_preparation_steps(personal_year)
                 })
         
         return crisis_years
@@ -472,4 +478,222 @@ class PredictiveNumerologyService:
             parts.append(f"{len(opportunity_periods)} opportunity period(s) for growth and expansion.")
         
         return " ".join(parts) if parts else "Your predictive numerology reveals a balanced path ahead."
+    
+    def forecast_life_milestones(
+        self,
+        birth_date: date,
+        life_path: int,
+        destiny: int,
+        forecast_years: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        Forecast major life milestones based on numerology.
+        
+        Args:
+            birth_date: Birth date
+            life_path: Life path number
+            destiny: Destiny number
+            forecast_years: Number of years to forecast
+        
+        Returns:
+            List of milestone dictionaries
+        """
+        today = date.today()
+        current_year = today.year
+        current_age = current_year - birth_date.year
+        
+        milestones = []
+        
+        # Calculate milestone ages based on life path cycles
+        milestone_ages = [
+            current_age + (life_path * 3),
+            current_age + (life_path * 5),
+            current_age + (life_path * 7),
+            current_age + (destiny * 4),
+            current_age + (destiny * 6),
+        ]
+        
+        # Add 9-year cycle milestones
+        for i in range(1, (forecast_years // 9) + 1):
+            milestone_ages.append(current_age + (i * 9))
+        
+        # Remove duplicates and sort
+        milestone_ages = sorted(set([age for age in milestone_ages if age > current_age and age <= current_age + forecast_years]))
+        
+        for milestone_age in milestone_ages[:10]:  # Limit to 10 milestones
+            milestone_year = current_year + (milestone_age - current_age)
+            milestone_type = self._determine_milestone_type(milestone_age, life_path)
+            
+            milestones.append({
+                'year': milestone_year,
+                'age': milestone_age,
+                'milestone_type': milestone_type,
+                'significance': self._get_milestone_significance_detailed(
+                    milestone_age, life_path, destiny, milestone_type
+                ),
+                'life_path_number': life_path,
+                'destiny_number': destiny
+            })
+        
+        return milestones
+    
+    def generate_yearly_forecast(
+        self,
+        birth_date: date,
+        target_year: int,
+        full_name: str
+    ) -> Dict[str, Any]:
+        """
+        Generate comprehensive yearly forecast for a specific year.
+        
+        Args:
+            birth_date: Birth date
+            target_year: Year to forecast
+            full_name: Full name
+        
+        Returns:
+            Dictionary with comprehensive yearly forecast
+        """
+        life_path = self.calculator.calculate_life_path_number(birth_date)
+        destiny = self.calculator.calculate_destiny_number(full_name)
+        
+        # Calculate personal year
+        personal_year = self.calculator.calculate_personal_year_number(birth_date, target_year)
+        
+        # Calculate personal months for the year
+        monthly_forecasts = []
+        for month in range(1, 13):
+            personal_month = self.calculator.calculate_personal_month_number(
+                birth_date, target_year, month
+            )
+            monthly_forecasts.append({
+                'month': month,
+                'personal_month': personal_month,
+                'theme': self._get_month_theme(personal_month),
+                'focus': self._get_month_focus(personal_month)
+            })
+        
+        return {
+            'year': target_year,
+            'personal_year': personal_year,
+            'year_theme': self._get_cycle_theme(personal_year),
+            'key_focus': self._get_cycle_focus(personal_year),
+            'energy_level': self._get_energy_level(personal_year),
+            'key_events': self._get_key_events(personal_year),
+            'advice': self._get_year_advice(personal_year),
+            'monthly_forecasts': monthly_forecasts,
+            'life_path_alignment': self._get_life_path_alignment(personal_year, life_path),
+            'destiny_alignment': self._get_destiny_alignment(personal_year, destiny),
+            'overall_outlook': self._get_overall_outlook(personal_year, life_path, destiny)
+        }
+    
+    def _calculate_breakthrough_confidence(self, personal_year: int, life_path: int) -> int:
+        """Calculate confidence score for breakthrough prediction."""
+        base_confidence = 75
+        
+        # Increase confidence if personal year aligns with life path
+        if personal_year == life_path:
+            base_confidence += 15
+        elif abs(personal_year - life_path) <= 2:
+            base_confidence += 10
+        
+        return min(100, max(50, base_confidence))
+    
+    def _calculate_crisis_severity(self, personal_year: int, life_path: int) -> str:
+        """Calculate severity level for crisis year."""
+        # Higher severity if personal year conflicts with life path
+        if personal_year == 4 and life_path in [1, 5]:  # Foundation crisis for freedom-seekers
+            return 'high'
+        elif personal_year == 7 and life_path in [8, 9]:  # Spiritual crisis for material-focused
+            return 'high'
+        elif personal_year == 9 and life_path in [1, 2, 3]:  # Ending crisis for beginning-focused
+            return 'high'
+        else:
+            return 'medium'
+    
+    def _get_crisis_preparation_steps(self, personal_year: int) -> List[str]:
+        """Get preparation steps for crisis year."""
+        prep_map = {
+            4: [
+                "Build solid foundations early in the year",
+                "Create backup plans for stability",
+                "Focus on organization and structure",
+                "Avoid major changes during crisis periods"
+            ],
+            7: [
+                "Schedule regular time for reflection",
+                "Engage in spiritual practices",
+                "Seek guidance from mentors",
+                "Trust your intuition"
+            ],
+            9: [
+                "Prepare for completions and endings",
+                "Let go of what no longer serves",
+                "Focus on service and giving",
+                "Begin planning for new cycles"
+            ]
+        }
+        return prep_map.get(personal_year, ["Stay patient", "Trust the process", "Seek support when needed"])
+    
+    def _determine_milestone_type(self, age: int, life_path: int) -> str:
+        """Determine milestone type based on age."""
+        if age < 30:
+            return "Early Milestone"
+        elif age < 50:
+            return "Mid-Life Milestone"
+        elif age < 70:
+            return "Later Life Milestone"
+        else:
+            return "Wisdom Milestone"
+    
+    def _get_milestone_significance_detailed(
+        self,
+        age: int,
+        life_path: int,
+        destiny: int,
+        milestone_type: str
+    ) -> str:
+        """Get detailed significance for milestone."""
+        return f"A significant {milestone_type.lower()} transition aligned with your life path {life_path} and destiny {destiny}. This period represents major growth and transformation opportunities."
+    
+    def _get_month_theme(self, personal_month: int) -> str:
+        """Get theme for personal month."""
+        return self._get_cycle_theme(personal_month)
+    
+    def _get_month_focus(self, personal_month: int) -> str:
+        """Get focus for personal month."""
+        return self._get_cycle_focus(personal_month)
+    
+    def _get_life_path_alignment(self, personal_year: int, life_path: int) -> str:
+        """Get alignment between personal year and life path."""
+        if personal_year == life_path:
+            return "Perfect alignment - year supports your core life purpose"
+        elif abs(personal_year - life_path) <= 2:
+            return "Strong alignment - year complements your life path"
+        else:
+            return "Different energy - year offers complementary experiences"
+    
+    def _get_destiny_alignment(self, personal_year: int, destiny: int) -> str:
+        """Get alignment between personal year and destiny."""
+        if personal_year == destiny:
+            return "Destiny alignment - year supports your ultimate purpose"
+        elif abs(personal_year - destiny) <= 2:
+            return "Good alignment - year supports your destiny path"
+        else:
+            return "Exploratory period - year offers new perspectives"
+    
+    def _get_overall_outlook(self, personal_year: int, life_path: int, destiny: int) -> str:
+        """Get overall outlook for the year."""
+        outlook_map = {
+            1: "A year of new beginnings and fresh starts",
+            2: "A year of partnerships and cooperation",
+            3: "A year of creativity and expression",
+            4: "A year of building and stability",
+            5: "A year of change and freedom",
+            6: "A year of service and responsibility",
+            7: "A year of spiritual growth and reflection",
+            8: "A year of material success and achievement",
+            9: "A year of completion and service to others"
+        }
+        return outlook_map.get(personal_year, "A year of growth and transformation")
 

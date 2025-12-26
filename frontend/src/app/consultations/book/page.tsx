@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Clock, DollarSign, MessageSquare, Video, Phone } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { consultationsAPI } from '@/lib/consultations-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
@@ -91,27 +92,29 @@ function BookConsultationContent() {
 
   if (!expert) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 p-8">
+    <CosmicPageLayout>
       <div className="max-w-4xl mx-auto">
-        <GlassCard className="p-8">
-          <h1 className="text-3xl font-bold mb-6">Book Consultation</h1>
+        <SpaceCard variant="premium" className="p-8" glow>
+          <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Book Consultation</h1>
           
           {/* Expert Info */}
-          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">{expert.name}</h2>
-            <p className="text-gray-600 dark:text-gray-400">{expert.bio}</p>
+          <div className="mb-6 p-4 bg-[#1a2942]/40 rounded-lg">
+            <h2 className="text-xl font-semibold mb-2 text-white">{expert.name}</h2>
+            <p className="text-white/70">{expert.bio}</p>
           </div>
 
           {/* Consultation Type */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-3">Consultation Type</label>
+            <label className="block text-sm font-medium mb-3 text-white/90">Consultation Type</label>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { type: 'video' as const, icon: Video, label: 'Video Call' },
@@ -123,12 +126,12 @@ function BookConsultationContent() {
                   onClick={() => setConsultationType(type)}
                   className={`p-4 rounded-lg border-2 transition-colors ${
                     consultationType === type
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
-                      : 'border-gray-200 dark:border-gray-700'
+                      ? 'border-cyan-500 bg-cyan-500/20'
+                      : 'border-cyan-500/20 bg-[#1a2942]/40'
                   }`}
                 >
-                  <Icon className="w-6 h-6 mx-auto mb-2" />
-                  <div className="text-sm font-medium">{label}</div>
+                  <Icon className={`w-6 h-6 mx-auto mb-2 ${consultationType === type ? 'text-cyan-400' : 'text-white/70'}`} />
+                  <div className={`text-sm font-medium ${consultationType === type ? 'text-white' : 'text-white/70'}`}>{label}</div>
                 </button>
               ))}
             </div>
@@ -136,22 +139,22 @@ function BookConsultationContent() {
 
           {/* Date Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Select Date</label>
+            <label className="block text-sm font-medium mb-2 text-white/90">Select Date</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+              className="w-full px-4 py-2 border border-cyan-500/20 rounded-lg bg-[#1a2942]/40 text-white"
             />
           </div>
 
           {/* Time Slots */}
           {selectedDate && (
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Available Time Slots</label>
+              <label className="block text-sm font-medium mb-2 text-white/90">Available Time Slots</label>
               {loadingSlots ? (
-                <div className="text-center py-4">Loading slots...</div>
+                <div className="text-center py-4 text-white/70">Loading slots...</div>
               ) : availableSlots.length > 0 ? (
                 <div className="grid grid-cols-4 gap-2">
                   {availableSlots.map((slot) => {
@@ -164,10 +167,10 @@ function BookConsultationContent() {
                       <button
                         key={slot}
                         onClick={() => setSelectedTime(timeStr)}
-                        className={`p-2 rounded border ${
+                        className={`p-2 rounded border transition-colors ${
                           selectedTime === timeStr
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
-                            : 'border-gray-200 dark:border-gray-700'
+                            ? 'border-cyan-500 bg-cyan-500/20 text-white'
+                            : 'border-cyan-500/20 bg-[#1a2942]/40 text-white/70'
                         }`}
                       >
                         {timeStr}
@@ -176,18 +179,18 @@ function BookConsultationContent() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-4 text-gray-500">No available slots</div>
+                <div className="text-center py-4 text-white/70">No available slots</div>
               )}
             </div>
           )}
 
           {/* Duration */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+            <label className="block text-sm font-medium mb-2 text-white/90">Duration (minutes)</label>
             <select
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+              className="w-full px-4 py-2 border border-cyan-500/20 rounded-lg bg-[#1a2942]/40 text-white"
             >
               <option value={15}>15 minutes</option>
               <option value={30}>30 minutes</option>
@@ -198,36 +201,39 @@ function BookConsultationContent() {
 
           {/* Notes */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Notes (optional)</label>
+            <label className="block text-sm font-medium mb-2 text-white/90">Notes (optional)</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+              className="w-full px-4 py-2 border border-cyan-500/20 rounded-lg bg-[#1a2942]/40 text-white placeholder-white/50"
               placeholder="Any specific questions or topics you'd like to discuss..."
             />
           </div>
 
           {/* Submit */}
-          <GlassButton
+          <TouchOptimizedButton
             onClick={handleBooking}
             disabled={loading || !selectedDate || !selectedTime}
+            loading={loading}
             className="w-full"
           >
-            {loading ? 'Booking...' : 'Book Consultation'}
-          </GlassButton>
-        </GlassCard>
+            Book Consultation
+          </TouchOptimizedButton>
+        </SpaceCard>
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }
 
 export default function BookConsultationPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     }>
       <BookConsultationContent />
     </Suspense>

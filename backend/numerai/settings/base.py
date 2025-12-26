@@ -63,6 +63,10 @@ INSTALLED_APPS = [
     'knowledge_graph',
     'decisions',
     'analytics',
+    'graphql_api',
+    'graphene_django',
+    'realtime',
+    'channels',
     'social',
     'matchmaking',
     'rewards',
@@ -75,6 +79,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'utils.request_id.RequestIDMiddleware',
+    'utils.security_middleware.SecurityHeadersMiddleware',
+    'numerai.middleware.APIVersionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -205,6 +212,7 @@ CORS_ALLOW_METHODS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'accounts.authentication.APIKeyAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -250,6 +258,14 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
+}
+
+# GraphQL Settings
+GRAPHENE = {
+    'SCHEMA': 'graphql_api.schema.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
 
 # DRF Spectacular (OpenAPI) Settings

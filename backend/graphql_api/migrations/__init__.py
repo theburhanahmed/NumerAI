@@ -1,0 +1,2 @@
+# GraphQL migrations (if needed)
+

@@ -10,7 +10,7 @@ class APIKey(models.Model):
     """API keys for developers."""
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='api_keys')
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='developer_api_keys')
     key_name = models.CharField(max_length=200)
     api_key = models.CharField(max_length=64, unique=True, db_index=True)
     is_active = models.BooleanField(default=True)
@@ -19,7 +19,7 @@ class APIKey(models.Model):
     last_used_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
-        db_table = 'api_keys'
+        db_table = 'developer_api_keys'
         ordering = ['-created_at']
     
     def __str__(self):

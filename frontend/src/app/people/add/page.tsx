@@ -10,10 +10,9 @@ import {
   ChevronLeft,
   Plus
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { useAuth } from '@/contexts/auth-context';
 import { peopleAPI } from '@/lib/numerology-api';
 
@@ -69,10 +68,7 @@ export default function AddPersonPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10">
+    <CosmicPageLayout>
       <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -80,41 +76,42 @@ export default function AddPersonPage() {
           transition={{ duration: 0.5 }}
         >
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <GlassButton 
-              variant="ghost" 
+          <div className="mb-8">
+            <TouchOptimizedButton 
+              variant="secondary" 
               onClick={() => router.push('/people')}
+              className="mb-4"
               icon={<ChevronLeft className="w-5 h-5" />}
             >
               Back
-            </GlassButton>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            </TouchOptimizedButton>
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
               Add Person
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-white/70 mt-2">
               Add someone to generate numerology reports for them
             </p>
           </div>
 
-          <GlassCard variant="default" className="p-6 sm:p-8">
+          <SpaceCard variant="premium" className="p-6 sm:p-8" glow>
             {error && (
-              <div className="mb-6 p-4 rounded-2xl bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800">
-                <p className="text-red-800 dark:text-red-200">{error}</p>
+              <div className="mb-6 p-4 rounded-2xl bg-red-900/30 border border-red-500/30">
+                <p className="text-red-200">{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-white/90 mb-2">
                   Full Name
                 </label>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                <p className="text-white/70 text-sm mb-2">
                   Enter the person&apos;s full name as it appears on official documents
                 </p>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+                    <User className="h-5 w-5 text-cyan-400/70" />
                   </div>
                   <input
                     type="text"
@@ -122,7 +119,7 @@ export default function AddPersonPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-3 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/50"
                     placeholder="Enter full name"
                     required
                   />
@@ -131,15 +128,15 @@ export default function AddPersonPage() {
 
               {/* Birth Date Field */}
               <div>
-                <label htmlFor="birth_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="birth_date" className="block text-sm font-medium text-white/90 mb-2">
                   Birth Date
                 </label>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                <p className="text-white/70 text-sm mb-2">
                   Enter the person&apos;s date of birth (required for numerology calculations)
                 </p>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                    <Calendar className="h-5 w-5 text-cyan-400/70" />
                   </div>
                   <input
                     type="date"
@@ -147,7 +144,7 @@ export default function AddPersonPage() {
                     name="birth_date"
                     value={formData.birth_date}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-3 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
                     required
                   />
                 </div>
@@ -155,22 +152,22 @@ export default function AddPersonPage() {
 
               {/* Relationship Field */}
               <div>
-                <label htmlFor="relationship" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="relationship" className="block text-sm font-medium text-white/90 mb-2">
                   Relationship
                 </label>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                <p className="text-white/70 text-sm mb-2">
                   Select your relationship to this person for personalized compatibility analysis
                 </p>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-cyan-400/70" />
                   </div>
                   <select
                     id="relationship"
                     name="relationship"
                     value={formData.relationship}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                    className="block w-full pl-10 pr-3 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none text-white"
                   >
                     {relationshipOptions.map(option => (
                       <option key={option.value} value={option.value}>
@@ -183,10 +180,10 @@ export default function AddPersonPage() {
 
               {/* Notes Field */}
               <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="notes" className="block text-sm font-medium text-white/90 mb-2">
                   Notes (Optional)
                 </label>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                <p className="text-white/70 text-sm mb-2">
                   Add any additional information that might be helpful for future reference
                 </p>
                 <textarea
@@ -195,35 +192,36 @@ export default function AddPersonPage() {
                   value={formData.notes}
                   onChange={handleChange}
                   rows={4}
-                  className="block w-full px-3 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="block w-full px-3 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/50"
                   placeholder="Add any additional notes about this person..."
                 />
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <GlassButton 
+                <TouchOptimizedButton 
                   variant="secondary" 
                   onClick={() => router.push('/people')}
                   disabled={saving}
                   className="flex-1"
                 >
                   Cancel
-                </GlassButton>
-                <GlassButton 
+                </TouchOptimizedButton>
+                <TouchOptimizedButton 
                   variant="primary" 
                   type="submit"
                   disabled={saving}
+                  loading={saving}
                   className="flex-1"
-                  icon={saving ? undefined : <Plus className="w-5 h-5" />}
+                  icon={<Plus className="w-5 h-5" />}
                 >
-                  {saving ? 'Adding...' : 'Add Person'}
-                </GlassButton>
+                  Add Person
+                </TouchOptimizedButton>
               </div>
             </form>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
-        </div>      </div>
-    </div>
+      </div>
+    </CosmicPageLayout>
   );
 }

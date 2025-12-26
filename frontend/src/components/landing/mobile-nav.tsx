@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 
 interface MobileNavProps {
   navLinks: Array<{ label: string; href: string }>;

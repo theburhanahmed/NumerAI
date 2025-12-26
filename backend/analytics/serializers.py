@@ -1,49 +1,71 @@
 """
-Serializers for analytics app.
+Serializers for analytics models.
 """
 from rest_framework import serializers
-from .models import UserBehavior, AnalyticsInsight, GrowthMetric
+from .models import (
+    UserActivityLog, EventTracking, UserJourney,
+    ABTest, ConversionFunnel, BusinessMetric
+)
 
 
-class UserBehaviorSerializer(serializers.ModelSerializer):
-    """Serializer for user behaviors."""
-    
-    action_type_display = serializers.CharField(source='get_action_type_display', read_only=True)
-    
+class UserActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserBehavior
+        model = UserActivityLog
         fields = [
-            'id', 'action_type', 'action_type_display', 'action_details',
-            'session_id', 'created_at'
+            'id', 'user', 'activity_type', 'activity_data',
+            'page_path', 'feature_name', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
 
-class AnalyticsInsightSerializer(serializers.ModelSerializer):
-    """Serializer for analytics insights."""
-    
-    insight_type_display = serializers.CharField(source='get_insight_type_display', read_only=True)
-    
+class EventTrackingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AnalyticsInsight
+        model = EventTracking
         fields = [
-            'id', 'insight_type', 'insight_type_display', 'title',
-            'content', 'insight_data', 'confidence_score',
-            'is_read', 'created_at'
+            'id', 'user', 'event_name', 'event_category', 'event_properties',
+            'funnel_name', 'funnel_step', 'funnel_position',
+            'experiment_id', 'variant_id', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
 
-class GrowthMetricSerializer(serializers.ModelSerializer):
-    """Serializer for growth metrics."""
-    
-    metric_type_display = serializers.CharField(source='get_metric_type_display', read_only=True)
-    
+class UserJourneySerializer(serializers.ModelSerializer):
     class Meta:
-        model = GrowthMetric
+        model = UserJourney
         fields = [
-            'id', 'metric_type', 'metric_type_display', 'metric_value',
-            'metric_data', 'period_start', 'period_end', 'created_at'
+            'id', 'user', 'session_id', 'journey_type', 'steps',
+            'current_step', 'completed', 'duration_seconds',
+            'steps_completed', 'total_steps', 'started_at', 'completed_at'
+        ]
+        read_only_fields = ['id', 'started_at', 'completed_at']
+
+
+class ABTestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ABTest
+        fields = [
+            'id', 'name', 'description', 'is_active',
+            'start_date', 'end_date', 'variants', 'target_audience',
+            'primary_metric', 'secondary_metrics', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ConversionFunnelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConversionFunnel
+        fields = [
+            'id', 'name', 'description', 'steps',
+            'is_active', 'time_window_hours', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class BusinessMetricSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessMetric
+        fields = [
+            'id', 'metric_name', 'metric_category', 'value', 'value_type',
+            'period_start', 'period_end', 'period_type', 'dimensions', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
-

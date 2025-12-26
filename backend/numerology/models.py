@@ -4,6 +4,17 @@ Numerology models for NumerAI application.
 import uuid
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+
+
+def default_dict():
+    """Return an empty dict for JSONField defaults."""
+    return {}
+
+
+def default_list():
+    """Return an empty list for JSONField defaults."""
+    return []
 
 
 class NumerologyProfile(models.Model):
@@ -33,8 +44,19 @@ class NumerologyProfile(models.Model):
     hidden_passion_number = models.IntegerField(null=True, blank=True)
     subconscious_self_number = models.IntegerField(null=True, blank=True)
     
+    # Chaldean-specific numbers (DivineAPI-style)
+    birthday_number = models.IntegerField(null=True, blank=True, help_text="Inherent talents from birth day")
+    driver_number = models.IntegerField(null=True, blank=True, help_text="Chaldean: Inner self/psychic number")
+    conductor_number = models.IntegerField(null=True, blank=True, help_text="Chaldean: Destiny/how others perceive you")
+    
     # Lo Shu Grid data
     lo_shu_grid = models.JSONField(null=True, blank=True)  # Stores grid calculation results
+    
+    # Personality Arrows from Lo Shu Grid
+    personality_arrows = models.JSONField(null=True, blank=True, help_text="Detected personality arrows from Lo Shu Grid")
+    
+    # Zodiac-Numerology data
+    zodiac_planet_data = models.JSONField(null=True, blank=True, help_text="Zodiac and planetary associations")
     
     # Calculation metadata
     calculation_system = models.CharField(max_length=20, choices=SYSTEM_CHOICES, default='pythagorean')
@@ -142,12 +164,30 @@ class Remedy(models.Model):
         ('exercise', 'Exercise'),
     ]
     
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+    ]
+    
+    FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('custom', 'Custom'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='remedies')
     remedy_type = models.CharField(max_length=20, choices=REMEDY_TYPES)
     title = models.CharField(max_length=200)
     description = models.TextField()
     recommendation = models.TextField()
+    priority = models.IntegerField(default=5, help_text="Priority level 1-10")
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='medium')
+    duration_minutes = models.IntegerField(null=True, blank=True, help_text="Expected duration in minutes")
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, default='daily')
+    personalization_data = models.JSONField(default=dict, blank=True, help_text="AI-generated personalization data")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -169,11 +209,22 @@ class Remedy(models.Model):
 class RemedyTracking(models.Model):
     """Tracking of remedy practice by users."""
     
+    MOOD_CHOICES = [
+        ('very_low', 'Very Low'),
+        ('low', 'Low'),
+        ('neutral', 'Neutral'),
+        ('good', 'Good'),
+        ('very_good', 'Very Good'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='remedy_trackings')
     remedy = models.ForeignKey(Remedy, on_delete=models.CASCADE, related_name='trackings')
     date = models.DateField()
     is_completed = models.BooleanField(default=False)
+    effectiveness_rating = models.IntegerField(null=True, blank=True, help_text="User rating 1-5")
+    mood_before = models.CharField(max_length=20, choices=MOOD_CHOICES, null=True, blank=True)
+    mood_after = models.CharField(max_length=20, choices=MOOD_CHOICES, null=True, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -190,6 +241,92 @@ class RemedyTracking(models.Model):
     
     def __str__(self):
         return f"Tracking for {self.remedy} on {self.date}"
+
+
+class RemedyEffectiveness(models.Model):
+    """Track effectiveness of remedies over time."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='remedy_effectiveness')
+    remedy = models.ForeignKey(Remedy, on_delete=models.CASCADE, related_name='effectiveness_records')
+    effectiveness_score = models.FloatField(help_text="Average effectiveness score 0-5")
+    feedback = models.TextField(blank=True)
+    analyzed_at = models.DateTimeField(auto_now_add=True)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    
+    class Meta:
+        db_table = 'remedy_effectiveness'
+        verbose_name = 'Remedy Effectiveness'
+        verbose_name_plural = 'Remedy Effectiveness Records'
+        ordering = ['-analyzed_at']
+        indexes = [
+            models.Index(fields=['user', 'remedy']),
+            models.Index(fields=['analyzed_at']),
+        ]
+    
+    def __str__(self):
+        return f"Effectiveness for {self.remedy.title} - Score: {self.effectiveness_score}"
+
+
+class RemedyCombination(models.Model):
+    """Suggested remedy combinations."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='remedy_combinations')
+    primary_remedy = models.ForeignKey(Remedy, on_delete=models.CASCADE, related_name='as_primary_combination')
+    secondary_remedy = models.ForeignKey(Remedy, on_delete=models.CASCADE, related_name='as_secondary_combination')
+    combination_score = models.FloatField(help_text="Compatibility score 0-10")
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'remedy_combinations'
+        verbose_name = 'Remedy Combination'
+        verbose_name_plural = 'Remedy Combinations'
+        ordering = ['-combination_score']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.primary_remedy.title} + {self.secondary_remedy.title}"
+
+
+class RemedyReminder(models.Model):
+    """Reminders for remedy practice."""
+    
+    FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('custom', 'Custom'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='remedy_reminders')
+    remedy = models.ForeignKey(Remedy, on_delete=models.CASCADE, related_name='reminders')
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, default='daily')
+    reminder_time = models.TimeField(help_text="Time to send reminder")
+    is_active = models.BooleanField(default=True)
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+    next_send_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'remedy_reminders'
+        verbose_name = 'Remedy Reminder'
+        verbose_name_plural = 'Remedy Reminders'
+        ordering = ['next_send_at']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['next_send_at', 'is_active']),
+        ]
+    
+    def __str__(self):
+        return f"Reminder for {self.remedy.title} - {self.frequency}"
 
 
 class Person(models.Model):
@@ -742,9 +879,135 @@ class SpiritualNumerologyProfile(models.Model):
         db_table = 'spiritual_numerology_profiles'
         verbose_name = 'Spiritual Numerology Profile'
         verbose_name_plural = 'Spiritual Numerology Profiles'
+        indexes = [
+            models.Index(fields=['user', 'calculated_at']),
+        ]
     
     def __str__(self):
         return f"Spiritual Numerology Profile of {self.user}"
+
+
+class SoulContract(models.Model):
+    """Detailed soul contract tracking for spiritual numerology."""
+    
+    CONTRACT_TYPES = [
+        ('primary', 'Primary Contract'),
+        ('secondary', 'Secondary Contract'),
+        ('karmic', 'Karmic Contract'),
+        ('soul_evolution', 'Soul Evolution Contract'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='soul_contracts')
+    spiritual_profile = models.ForeignKey(SpiritualNumerologyProfile, on_delete=models.CASCADE, related_name='contracts', null=True, blank=True)
+    
+    # Contract details
+    contract_number = models.IntegerField(help_text="The soul contract number (1-9)")
+    contract_type = models.CharField(max_length=20, choices=CONTRACT_TYPES)
+    description = models.TextField(help_text="Description of the soul contract")
+    lessons = models.JSONField(default=list, help_text="List of lessons associated with this contract")
+    
+    # Contract fulfillment
+    fulfillment_status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('fulfilled', 'Fulfilled'),
+    ], default='pending')
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'soul_contracts'
+        verbose_name = 'Soul Contract'
+        verbose_name_plural = 'Soul Contracts'
+        indexes = [
+            models.Index(fields=['user', 'contract_type']),
+            models.Index(fields=['contract_number']),
+            models.Index(fields=['fulfillment_status']),
+        ]
+    
+    def __str__(self):
+        return f"Soul Contract {self.contract_number} for {self.user} ({self.contract_type})"
+
+
+class KarmicTimeline(models.Model):
+    """Karmic timeline visualization data."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='karmic_timelines')
+    spiritual_profile = models.ForeignKey(SpiritualNumerologyProfile, on_delete=models.CASCADE, related_name='karmic_timelines', null=True, blank=True)
+    
+    # Timeline data
+    start_year = models.IntegerField()
+    end_year = models.IntegerField()
+    cycle_number = models.IntegerField(help_text="Karmic cycle number")
+    karmic_theme = models.CharField(max_length=200)
+    lessons = models.JSONField(default=list)
+    
+    # Current status
+    is_current = models.BooleanField(default=False)
+    
+    # Visualization data
+    timeline_data = models.JSONField(default=dict, help_text="Additional timeline visualization data")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'karmic_timelines'
+        verbose_name = 'Karmic Timeline'
+        verbose_name_plural = 'Karmic Timelines'
+        indexes = [
+            models.Index(fields=['user', 'start_year']),
+            models.Index(fields=['is_current']),
+            models.Index(fields=['cycle_number']),
+        ]
+    
+    def __str__(self):
+        return f"Karmic Timeline for {self.user} ({self.start_year}-{self.end_year})"
+
+
+class RebirthCycle(models.Model):
+    """Rebirth cycle tracking for spiritual numerology."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='rebirth_cycles')
+    spiritual_profile = models.ForeignKey(SpiritualNumerologyProfile, on_delete=models.CASCADE, related_name='rebirth_cycles_list', null=True, blank=True)
+    
+    # Cycle details
+    rebirth_number = models.IntegerField(help_text="Rebirth cycle number")
+    start_year = models.IntegerField()
+    end_year = models.IntegerField()
+    duration_years = models.IntegerField(default=27, help_text="Duration of rebirth cycle in years")
+    transformation_theme = models.CharField(max_length=200)
+    spiritual_growth = models.TextField(help_text="Description of spiritual growth in this cycle")
+    
+    # Current status
+    is_current = models.BooleanField(default=False)
+    
+    # Transition data
+    transition_warnings = models.JSONField(default=list, help_text="Warnings for cycle transitions")
+    preparation_guidance = models.JSONField(default=list, help_text="Guidance for preparing for transitions")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'rebirth_cycles'
+        verbose_name = 'Rebirth Cycle'
+        verbose_name_plural = 'Rebirth Cycles'
+        indexes = [
+            models.Index(fields=['user', 'start_year']),
+            models.Index(fields=['is_current']),
+            models.Index(fields=['rebirth_number']),
+        ]
+    
+    def __str__(self):
+        return f"Rebirth Cycle {self.rebirth_number} for {self.user} ({self.start_year}-{self.end_year})"
 
 
 class PredictiveCycle(models.Model):
@@ -763,6 +1026,14 @@ class PredictiveCycle(models.Model):
     year = models.IntegerField()
     cycle_data = models.JSONField(default=dict)
     
+    # Enhanced fields
+    confidence_score = models.IntegerField(null=True, blank=True, help_text="Prediction confidence (0-100)")
+    severity_level = models.CharField(max_length=20, null=True, blank=True, choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ])
+    
     # Metadata
     calculated_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -775,10 +1046,121 @@ class PredictiveCycle(models.Model):
         indexes = [
             models.Index(fields=['user', 'year']),
             models.Index(fields=['cycle_type']),
+            models.Index(fields=['confidence_score']),
         ]
     
     def __str__(self):
         return f"Predictive Cycle for {self.user} - {self.cycle_type} ({self.year})"
+
+
+class BreakthroughYear(models.Model):
+    """Breakthrough year predictions for a user."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='breakthrough_years')
+    
+    # Breakthrough details
+    year = models.IntegerField(db_index=True)
+    personal_year = models.IntegerField()
+    breakthrough_type = models.CharField(max_length=100)
+    description = models.TextField()
+    preparation = models.TextField(help_text="Preparation advice for this breakthrough")
+    
+    # Prediction metadata
+    confidence_score = models.IntegerField(default=75, help_text="Confidence in prediction (0-100)")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'breakthrough_years'
+        verbose_name = 'Breakthrough Year'
+        verbose_name_plural = 'Breakthrough Years'
+        ordering = ['year']
+        indexes = [
+            models.Index(fields=['user', 'year']),
+            models.Index(fields=['personal_year']),
+        ]
+        unique_together = ['user', 'year']
+    
+    def __str__(self):
+        return f"Breakthrough Year {self.year} for {self.user}"
+
+
+class CrisisYear(models.Model):
+    """Crisis year predictions for a user."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='crisis_years')
+    
+    # Crisis details
+    year = models.IntegerField(db_index=True)
+    personal_year = models.IntegerField()
+    crisis_type = models.CharField(max_length=100)
+    description = models.TextField()
+    guidance = models.TextField(help_text="Guidance for navigating this crisis")
+    
+    # Severity and preparation
+    severity_level = models.CharField(max_length=20, choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ], default='medium')
+    preparation_steps = models.JSONField(default=list, help_text="Steps to prepare for this crisis")
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'crisis_years'
+        verbose_name = 'Crisis Year'
+        verbose_name_plural = 'Crisis Years'
+        ordering = ['year']
+        indexes = [
+            models.Index(fields=['user', 'year']),
+            models.Index(fields=['severity_level']),
+        ]
+        unique_together = ['user', 'year']
+    
+    def __str__(self):
+        return f"Crisis Year {self.year} for {self.user} ({self.severity_level})"
+
+
+class LifeMilestone(models.Model):
+    """Life milestone predictions for a user."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='life_milestones')
+    
+    # Milestone details
+    year = models.IntegerField(db_index=True)
+    age = models.IntegerField(help_text="Age at this milestone")
+    milestone_type = models.CharField(max_length=100)
+    significance = models.TextField()
+    
+    # Associated numerology
+    life_path_number = models.IntegerField(null=True, blank=True)
+    destiny_number = models.IntegerField(null=True, blank=True)
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'life_milestones'
+        verbose_name = 'Life Milestone'
+        verbose_name_plural = 'Life Milestones'
+        ordering = ['year']
+        indexes = [
+            models.Index(fields=['user', 'year']),
+            models.Index(fields=['milestone_type']),
+        ]
+        unique_together = ['user', 'year', 'milestone_type']
+    
+    def __str__(self):
+        return f"Life Milestone: {self.milestone_type} ({self.year}) for {self.user}"
 
 
 class GenerationalAnalysis(models.Model):
@@ -812,6 +1194,41 @@ class GenerationalAnalysis(models.Model):
     
     def __str__(self):
         return f"Generational Analysis for {self.user} - Number {self.generational_number}"
+
+
+class FamilyUnitProfile(models.Model):
+    """Family unit numerology profile."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='family_unit_profiles')
+    
+    # Family unit identification
+    family_unit_hash = models.CharField(max_length=64, db_index=True)
+    member_count = models.IntegerField()
+    
+    # Family numerology
+    family_life_path = models.IntegerField(help_text="Combined life path for family unit")
+    family_destiny = models.IntegerField(null=True, blank=True)
+    generational_number = models.IntegerField()
+    
+    # Family dynamics
+    compatibility_score = models.IntegerField(default=50, help_text="Overall family compatibility (0-100)")
+    dynamics = models.JSONField(default=dict, help_text="Family dynamics analysis")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'family_unit_profiles'
+        verbose_name = 'Family Unit Profile'
+        verbose_name_plural = 'Family Unit Profiles'
+        indexes = [
+            models.Index(fields=['user', 'family_unit_hash']),
+        ]
+    
+    def __str__(self):
+        return f"Family Unit Profile for {self.user}"
 
 
 class KarmicContract(models.Model):
@@ -952,6 +1369,42 @@ class SpaceOptimization(models.Model):
         return f"Space Optimization: {self.room_name} for {self.analysis}"
 
 
+class RoomNumerology(models.Model):
+    """Room numerology analysis for Feng Shui × Numerology."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    analysis = models.ForeignKey(FengShuiAnalysis, on_delete=models.CASCADE, related_name='room_numerology')
+    
+    # Room details
+    room_name = models.CharField(max_length=200)
+    room_number = models.CharField(max_length=50, null=True, blank=True)
+    direction = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Numerology analysis
+    room_vibration = models.IntegerField(null=True, blank=True, help_text="Room numerology vibration number")
+    direction_compatibility = models.JSONField(default=dict, help_text="Direction compatibility analysis")
+    
+    # Recommendations
+    color_recommendations = models.JSONField(default=list)
+    number_recommendations = models.JSONField(default=list)
+    layout_recommendations = models.JSONField(default=list)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'room_numerology'
+        verbose_name = 'Room Numerology'
+        verbose_name_plural = 'Room Numerology'
+        indexes = [
+            models.Index(fields=['analysis', 'room_name']),
+        ]
+    
+    def __str__(self):
+        return f"Room Numerology: {self.room_name}"
+
+
 class MentalStateTracking(models.Model):
     """Tracks emotional state over time for Mental State AI analysis."""
     
@@ -992,11 +1445,10 @@ class MentalStateTracking(models.Model):
         db_table = 'mental_state_trackings'
         verbose_name = 'Mental State Tracking'
         verbose_name_plural = 'Mental State Trackings'
-        unique_together = [['user', 'date']]
+        unique_together = ['user', 'date']
         indexes = [
             models.Index(fields=['user', 'date']),
             models.Index(fields=['emotional_state']),
-            models.Index(fields=['date']),
         ]
     
     def __str__(self):
@@ -1010,17 +1462,17 @@ class MentalStateAnalysis(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='mental_state_analyses')
     
     # Analysis period
-    period_start = models.DateField()
-    period_end = models.DateField()
+    period_start = models.DateField(db_index=True)
+    period_end = models.DateField(db_index=True)
     
     # Analysis results
-    stress_patterns = models.JSONField(default=dict, help_text="Identified stress patterns and correlations")
-    wellbeing_recommendations = models.JSONField(default=list, help_text="AI-generated wellbeing recommendations")
-    mood_predictions = models.JSONField(default=dict, help_text="Predicted mood cycles based on numerology")
+    stress_patterns = models.JSONField(default=default_dict, help_text="Identified stress patterns and correlations")
+    wellbeing_recommendations = models.JSONField(default=default_list, help_text="AI-generated wellbeing recommendations")
+    mood_predictions = models.JSONField(default=default_dict, help_text="Predicted mood cycles based on numerology")
     
     # Additional insights
-    emotional_compatibility = models.JSONField(default=dict, help_text="Emotional compatibility analysis with others")
-    numerology_correlations = models.JSONField(default=dict, help_text="Correlations between numerology cycles and mental state")
+    emotional_compatibility = models.JSONField(default=default_dict, help_text="Emotional compatibility analysis with others")
+    numerology_correlations = models.JSONField(default=default_dict, help_text="Correlations between numerology cycles and mental state")
     
     # Metadata
     calculated_at = models.DateTimeField(auto_now_add=True)
@@ -1035,5 +1487,65 @@ class MentalStateAnalysis(models.Model):
             models.Index(fields=['calculated_at']),
         ]
     
+    def clean(self):
+        """Validate that period_end is not before period_start."""
+        if self.period_start and self.period_end:
+            if self.period_end < self.period_start:
+                raise ValidationError({
+                    'period_end': 'Period end date must be greater than or equal to period start date.'
+                })
+    
     def __str__(self):
         return f"Mental State Analysis for {self.user} ({self.period_start} to {self.period_end})"
+
+
+class EmotionalCycle(models.Model):
+    """Emotional cycle tracking based on numerology."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='emotional_cycles')
+    
+    # Cycle details
+    cycle_type = models.CharField(max_length=50, choices=[
+        ('daily', 'Daily Cycle'),
+        ('weekly', 'Weekly Cycle'),
+        ('monthly', 'Monthly Cycle'),
+        ('yearly', 'Yearly Cycle'),
+    ])
+    start_date = models.DateField(db_index=True)
+    end_date = models.DateField()
+    
+    # Emotional patterns
+    predicted_mood = models.CharField(max_length=50, help_text="Predicted emotional state")
+    mood_score_range = models.JSONField(default=list, help_text="Predicted mood score range [min, max]")
+    energy_level = models.CharField(max_length=20, choices=[
+        ('low', 'Low'),
+        ('low-moderate', 'Low-Moderate'),
+        ('moderate', 'Moderate'),
+        ('moderate-high', 'Moderate-High'),
+        ('high', 'High'),
+    ])
+    
+    # Recommendations
+    recommendations = models.JSONField(default=list, help_text="Emotional wellbeing recommendations")
+    
+    # Associated numerology
+    personal_year = models.IntegerField(null=True, blank=True)
+    personal_month = models.IntegerField(null=True, blank=True)
+    personal_day = models.IntegerField(null=True, blank=True)
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'emotional_cycles'
+        verbose_name = 'Emotional Cycle'
+        verbose_name_plural = 'Emotional Cycles'
+        indexes = [
+            models.Index(fields=['user', 'start_date']),
+            models.Index(fields=['cycle_type']),
+        ]
+    
+    def __str__(self):
+        return f"Emotional Cycle for {self.user} ({self.cycle_type})"

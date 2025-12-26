@@ -13,10 +13,10 @@ import {
   Calendar,
   User
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { PageDescription } from '@/components/ui/page-description';
 import { useAuth } from '@/contexts/auth-context';
 import { reportAPI, peopleAPI } from '@/lib/numerology-api';
 import { GeneratedReport, Person, ReportTemplate } from '@/types';
@@ -122,10 +122,8 @@ export default function ReportsPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10 max-w-7xl mx-auto">
+    <CosmicPageLayout>
+      <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -134,40 +132,62 @@ export default function ReportsPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Reports
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-white/70 mt-2">
                 View and manage your generated numerology reports
               </p>
             </div>
             
-            <GlassButton 
+            <TouchOptimizedButton 
               variant="primary" 
               onClick={handleGenerateReport}
               icon={<Plus className="w-5 h-5" />}
             >
               Generate Report
-            </GlassButton>
+            </TouchOptimizedButton>
           </div>
+
+          {/* Page Description */}
+          <PageDescription
+            title="Numerology Reports"
+            description="Generate comprehensive numerology reports for yourself or people in your life. These detailed reports combine all aspects of numerology including life path, destiny, soul urge, personality, cycles, and more. Reports can be generated in various formats and templates, and downloaded as PDFs for offline reference."
+            features={[
+              "Multiple report templates (Basic, Detailed, Yearly Forecast)",
+              "Generate reports for yourself or any person in your list",
+              "PDF export for offline access and sharing",
+              "Bulk report generation for multiple people",
+              "Report history and search functionality",
+              "Detailed interpretations and insights",
+              "Visual charts and number breakdowns"
+            ]}
+            usage="Click 'Generate Report' to create a new report. Select a template, choose the person (yourself or someone from your people list), and generate. Reports are saved automatically and can be viewed, downloaded, or shared. Use the search and filters to find specific reports quickly."
+            examples={[
+              "Generate a detailed report for yourself to understand your complete numerology profile",
+              "Create reports for family members to understand family dynamics",
+              "Generate yearly forecast reports to plan ahead",
+              "Export reports as PDFs to share with others or keep for reference"
+            ]}
+          />
 
           {/* Search and Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="md:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400/70 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search reports..."
-                className="w-full pl-10 pr-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-white/50"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400/70 w-5 h-5" />
               <select
-                className="w-full pl-10 pr-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                className="w-full pl-10 pr-4 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none text-white"
                 value={filterPerson}
                 onChange={(e) => setFilterPerson(e.target.value)}
               >
@@ -177,14 +197,14 @@ export default function ReportsPage() {
                 ))}
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <Filter className="w-5 h-5 text-gray-400" />
+                <Filter className="w-5 h-5 text-cyan-400/70" />
               </div>
             </div>
             
             <div className="relative">
-              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400/70 w-5 h-5" />
               <select
-                className="w-full pl-10 pr-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                className="w-full pl-10 pr-4 py-3 bg-[#1a2942]/40 backdrop-blur-sm border border-cyan-500/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent appearance-none text-white"
                 value={filterTemplate}
                 onChange={(e) => setFilterTemplate(e.target.value)}
               >
@@ -194,86 +214,86 @@ export default function ReportsPage() {
                 ))}
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <Filter className="w-5 h-5 text-gray-400" />
+                <Filter className="w-5 h-5 text-cyan-400/70" />
               </div>
             </div>
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <GlassCard variant="elevated" className="p-6">
+            <SpaceCard variant="premium" className="p-6" glow>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Total Reports</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-white/70 text-sm">Total Reports</p>
+                  <p className="text-2xl font-bold text-white">
                     {reports.length}
                   </p>
                 </div>
               </div>
-            </GlassCard>
+            </SpaceCard>
             
-            <GlassCard variant="elevated" className="p-6">
+            <SpaceCard variant="premium" className="p-6" glow>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
                   <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">People</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{Array.isArray(people) ? people.length : 0}</p>
+                  <p className="text-white/70 text-sm">People</p>
+                  <p className="text-2xl font-bold text-white">{Array.isArray(people) ? people.length : 0}</p>
                 </div>
               </div>
-            </GlassCard>
+            </SpaceCard>
             
-            <GlassCard variant="elevated" className="p-6">
+            <SpaceCard variant="premium" className="p-6" glow>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-pink-500 to-red-600 flex items-center justify-center">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Last Report</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-white/70 text-sm">Last Report</p>
+                  <p className="text-2xl font-bold text-white">
                     {reports.length > 0 ? new Date(reports[0].generated_at).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
               </div>
-            </GlassCard>
+            </SpaceCard>
           </div>
 
           {/* Reports List */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Generated Reports</h2>
+            <h2 className="text-2xl font-bold mb-6 text-white">Generated Reports</h2>
             
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <GlassCard key={i} variant="default" className="p-6 h-24 animate-pulse">
-                    <div className="h-6 bg-white/50 dark:bg-gray-800/50 rounded w-1/3 mb-3"></div>
-                    <div className="h-4 bg-white/50 dark:bg-gray-800/50 rounded w-1/2"></div>
-                  </GlassCard>
+                  <SpaceCard key={i} variant="premium" className="p-6 h-24 animate-pulse" glow>
+                    <div className="h-6 bg-[#1a2942]/40 rounded w-1/3 mb-3"></div>
+                    <div className="h-4 bg-[#1a2942]/40 rounded w-1/2"></div>
+                  </SpaceCard>
                 ))}
               </div>
             ) : filteredReports.length === 0 ? (
-              <GlassCard variant="default" className="p-12 text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <SpaceCard variant="premium" className="p-12 text-center" glow>
+                <FileText className="w-12 h-12 text-white/50 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
                   No Reports Found
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                <p className="text-white/70 mb-6">
                   {searchTerm || filterPerson || filterTemplate 
                     ? 'No reports match your search or filters.' 
                     : 'Generate your first report to get started.'}
                 </p>
-                <GlassButton 
+                <TouchOptimizedButton 
                   variant="primary" 
                   onClick={handleGenerateReport}
                   icon={<Plus className="w-5 h-5" />}
                 >
                   Generate Report
-                </GlassButton>
-              </GlassCard>
+                </TouchOptimizedButton>
+              </SpaceCard>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredReports.map((report) => (
@@ -283,40 +303,40 @@ export default function ReportsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     whileHover={{ y: -5 }}
                   >
-                    <GlassCard variant="default" className="p-6">
+                    <SpaceCard variant="premium" className="p-6" glow>
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+                          <h3 className="text-xl font-semibold text-white mb-1">
                             {report.title}
                           </h3>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm">
+                          <p className="text-white/70 text-sm">
                             {new Date(report.generated_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
                           {(Array.isArray(templates) && templates.find(t => t.id === report.template)?.name) || 'Unknown Template'}
                         </span>
                       </div>
                       
                       <div className="flex gap-2">
-                        <GlassButton 
+                        <TouchOptimizedButton 
                           variant="secondary" 
                           size="sm"
                           onClick={() => handleViewReport(report.id)}
                           icon={<Eye className="w-4 h-4" />}
                         >
                           View
-                        </GlassButton>
-                        <GlassButton 
-                          variant="ghost" 
+                        </TouchOptimizedButton>
+                        <TouchOptimizedButton 
+                          variant="secondary" 
                           size="sm"
                           onClick={() => handleDownloadReport(report.id)}
                           icon={<Download className="w-4 h-4" />}
                         >
                           Download
-                        </GlassButton>
+                        </TouchOptimizedButton>
                       </div>
-                    </GlassCard>
+                    </SpaceCard>
                   </motion.div>
                 ))}
               </div>
@@ -324,6 +344,6 @@ export default function ReportsPage() {
           </div>
         </motion.div>
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }

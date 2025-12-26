@@ -3,34 +3,143 @@ export interface ValidationRule {
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
-  custom?: (value: string) => boolean;
+  custom?: (value: string) => boolean | string; // Can return error message
   message: string;
+  validateOnBlur?: boolean; // Only validate on blur
+  validateOnChange?: boolean; // Validate on change
 }
 
 export interface ValidationRules {
   [key: string]: ValidationRule[];
 }
 
-export function validateField(value: string, rules: ValidationRule[]): string {
+export interface ValidationResult {
+  isValid: boolean;
+  error: string;
+  isDirty: boolean;
+}
+
+export interface FieldValidationState {
+  value: string;
+  error: string;
+  touched: boolean;
+  isValid: boolean;
+}
+
+export function validateField(
+  value: string,
+  rules: ValidationRule[],
+  options?: { skipRequired?: boolean }
+): ValidationResult {
+  const skipRequired = options?.skipRequired || false;
+  
   for (const rule of rules) {
-    if (rule.required && !value.trim()) {
-      return rule.message;
+    if (rule.required && !skipRequired && !value.trim()) {
+      return { isValid: false, error: rule.message, isDirty: true };
     }
-    if (rule.minLength && value.length < rule.minLength) {
-      return rule.message;
+    if (rule.minLength && value.length > 0 && value.length < rule.minLength) {
+      return { isValid: false, error: rule.message, isDirty: true };
     }
     if (rule.maxLength && value.length > rule.maxLength) {
-      return rule.message;
+      return { isValid: false, error: rule.message, isDirty: true };
     }
-    if (rule.pattern && !rule.pattern.test(value)) {
-      return rule.message;
+    if (rule.pattern && value.length > 0 && !rule.pattern.test(value)) {
+      return { isValid: false, error: rule.message, isDirty: true };
     }
-    if (rule.custom && !rule.custom(value)) {
-      return rule.message;
+    if (rule.custom && value.length > 0) {
+      const result = rule.custom(value);
+      if (result === false) {
+        return { isValid: false, error: rule.message, isDirty: true };
+      }
+      if (typeof result === 'string') {
+        return { isValid: false, error: result, isDirty: true };
+      }
     }
   }
-  return '';
+  return { isValid: true, error: '', isDirty: value.length > 0 };
 }
+
+/**
+ * Validate entire form
+ */
+export function validateForm(
+  formData: Record<string, string>,
+  rules: ValidationRules
+): { isValid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  let isValid = true;
+
+  for (const [field, fieldRules] of Object.entries(rules)) {
+    const value = formData[field] || '';
+    const result = validateField(value, fieldRules);
+    if (!result.isValid) {
+      errors[field] = result.error;
+      isValid = false;
+    }
+  }
+
+  return { isValid, errors };
+}
+
+/**
+ * Real-time validation hook
+ */
+export function useFieldValidation(
+  initialValue: string,
+  rules: ValidationRule[],
+  options?: { validateOnChange?: boolean; validateOnBlur?: boolean }
+) {
+  const [value, setValue] = React.useState(initialValue);
+  const [touched, setTouched] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [isValid, setIsValid] = React.useState(false);
+
+  const validate = React.useCallback(
+    (val: string, skipRequired = false) => {
+      const result = validateField(val, rules, { skipRequired });
+      setError(result.error);
+      setIsValid(result.isValid);
+      return result;
+    },
+    [rules]
+  );
+
+  const handleChange = React.useCallback(
+    (newValue: string) => {
+      setValue(newValue);
+      if (options?.validateOnChange && (touched || newValue.length > 0)) {
+        validate(newValue, !touched);
+      }
+    },
+    [touched, validate, options]
+  );
+
+  const handleBlur = React.useCallback(() => {
+    setTouched(true);
+    if (options?.validateOnBlur !== false) {
+      validate(value);
+    }
+  }, [value, validate, options]);
+
+  React.useEffect(() => {
+    if (touched || value.length > 0) {
+      validate(value, !touched);
+    }
+  }, [value, touched, validate]);
+
+  return {
+    value,
+    error,
+    touched,
+    isValid,
+    setValue: handleChange,
+    onBlur: handleBlur,
+    validate: () => validate(value),
+  };
+}
+
+// Fix React import
+import React from 'react'
 
 export const commonValidationRules = {
   email: [

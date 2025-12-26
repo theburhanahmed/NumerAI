@@ -485,4 +485,262 @@ class TimingNumerologyService:
             'Align with your Personal Year cycle',
             'Consider Universal Day energy'
         ])
+    
+    def analyze_global_influences(
+        self,
+        target_date: Optional[date] = None,
+        year: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Analyze global numerology influences for a date or year.
+        
+        Args:
+            target_date: Specific date to analyze (optional)
+            year: Year to analyze (optional, defaults to current year)
+            
+        Returns:
+            Global numerology analysis
+        """
+        if not target_date and not year:
+            target_date = date.today()
+            year = target_date.year
+        elif target_date:
+            year = target_date.year
+        elif year:
+            target_date = date(year, 1, 1)
+        
+        # Calculate universal year
+        universal_year_data = self.universal_calculator.calculate_universal_year(year)
+        universal_year = universal_year_data['universal_year_number']
+        
+        # Calculate universal month if date provided
+        universal_month = None
+        if target_date:
+            universal_month_data = self.universal_calculator.calculate_universal_month(
+                target_date.year,
+                target_date.month
+            )
+            universal_month = universal_month_data['universal_month_number']
+        
+        # Calculate universal day if date provided
+        universal_day = None
+        if target_date:
+            universal_day_data = self.universal_calculator.calculate_universal_day(
+                target_date.year,
+                target_date.month,
+                target_date.day
+            )
+            universal_day = universal_day_data['universal_day_number']
+        
+        # Get interpretations
+        year_interpretation = self.universal_calculator.get_universal_cycle_interpretation(
+            'year',
+            universal_year
+        )
+        
+        month_interpretation = None
+        if universal_month:
+            month_interpretation = self.universal_calculator.get_universal_cycle_interpretation(
+                'month',
+                universal_month
+            )
+        
+        day_interpretation = None
+        if universal_day:
+            day_interpretation = self.universal_calculator.get_universal_cycle_interpretation(
+                'day',
+                universal_day
+            )
+        
+        # Global themes
+        global_themes = self._get_global_themes(universal_year, universal_month, universal_day)
+        
+        return {
+            'target_date': target_date.isoformat() if target_date else None,
+            'year': year,
+            'universal_year': universal_year,
+            'universal_month': universal_month,
+            'universal_day': universal_day,
+            'year_interpretation': year_interpretation,
+            'month_interpretation': month_interpretation,
+            'day_interpretation': day_interpretation,
+            'global_themes': global_themes,
+            'collective_energy': self._get_collective_energy(universal_year),
+            'world_events_tendency': self._get_world_events_tendency(universal_year)
+        }
+    
+    def calculate_timing_compatibility(
+        self,
+        birth_date_1: date,
+        birth_date_2: date,
+        target_date: date
+    ) -> Dict[str, Any]:
+        """
+        Calculate timing compatibility between two people for a specific date.
+        
+        Args:
+            birth_date_1: First person's birth date
+            birth_date_2: Second person's birth date
+            target_date: Date to check compatibility for
+            
+        Returns:
+            Timing compatibility analysis
+        """
+        # Calculate personal cycles for both people
+        pd1 = self.calculator.calculate_personal_day_number(birth_date_1, target_date)
+        pd2 = self.calculator.calculate_personal_day_number(birth_date_2, target_date)
+        pm1 = self.calculator.calculate_personal_month_number(birth_date_1, target_date.year, target_date.month)
+        pm2 = self.calculator.calculate_personal_month_number(birth_date_2, target_date.year, target_date.month)
+        py1 = self.calculator.calculate_personal_year_number(birth_date_1, target_date.year)
+        py2 = self.calculator.calculate_personal_year_number(birth_date_2, target_date.year)
+        
+        # Calculate compatibility scores
+        day_compatibility = self._calculate_number_compatibility(pd1, pd2)
+        month_compatibility = self._calculate_number_compatibility(pm1, pm2)
+        year_compatibility = self._calculate_number_compatibility(py1, py2)
+        
+        # Overall timing compatibility
+        overall_score = (
+            day_compatibility['score'] * 0.5 +
+            month_compatibility['score'] * 0.3 +
+            year_compatibility['score'] * 0.2
+        )
+        
+        return {
+            'target_date': target_date.isoformat(),
+            'person_1': {
+                'personal_day': pd1,
+                'personal_month': pm1,
+                'personal_year': py1
+            },
+            'person_2': {
+                'personal_day': pd2,
+                'personal_month': pm2,
+                'personal_year': py2
+            },
+            'day_compatibility': day_compatibility,
+            'month_compatibility': month_compatibility,
+            'year_compatibility': year_compatibility,
+            'overall_timing_compatibility': {
+                'score': round(overall_score),
+                'level': 'excellent' if overall_score >= 80 else 'good' if overall_score >= 65 else 'moderate' if overall_score >= 50 else 'challenging',
+                'recommendation': self._get_timing_compatibility_recommendation(overall_score)
+            }
+        }
+    
+    def _get_global_themes(
+        self,
+        universal_year: int,
+        universal_month: Optional[int],
+        universal_day: Optional[int]
+    ) -> List[str]:
+        """Get global themes based on universal cycles."""
+        themes = []
+        
+        year_themes = {
+            1: ['New beginnings', 'Leadership', 'Innovation'],
+            2: ['Cooperation', 'Partnerships', 'Diplomacy'],
+            3: ['Creativity', 'Expression', 'Communication'],
+            4: ['Stability', 'Building', 'Foundation'],
+            5: ['Change', 'Freedom', 'Transformation'],
+            6: ['Service', 'Responsibility', 'Care'],
+            7: ['Analysis', 'Spirituality', 'Introspection'],
+            8: ['Material success', 'Power', 'Achievement'],
+            9: ['Completion', 'Humanitarianism', 'Wisdom']
+        }
+        
+        if universal_year in year_themes:
+            themes.extend(year_themes[universal_year])
+        
+        if universal_month:
+            month_themes = {
+                1: 'New initiatives', 2: 'Partnerships', 3: 'Creativity',
+                4: 'Stability', 5: 'Change', 6: 'Service',
+                7: 'Analysis', 8: 'Success', 9: 'Completion'
+            }
+            if universal_month in month_themes:
+                themes.append(f'Monthly focus: {month_themes[universal_month]}')
+        
+        return themes
+    
+    def _get_collective_energy(self, universal_year: int) -> Dict[str, Any]:
+        """Get collective energy description."""
+        energy_levels = {
+            1: {'level': 'high', 'type': 'active', 'description': 'Collective drive for new beginnings and leadership'},
+            2: {'level': 'moderate', 'type': 'cooperative', 'description': 'Collective focus on harmony and partnerships'},
+            3: {'level': 'high', 'type': 'creative', 'description': 'Collective expression and communication'},
+            4: {'level': 'moderate', 'type': 'stable', 'description': 'Collective building and foundation'},
+            5: {'level': 'high', 'type': 'dynamic', 'description': 'Collective change and transformation'},
+            6: {'level': 'moderate', 'type': 'caring', 'description': 'Collective service and responsibility'},
+            7: {'level': 'low', 'type': 'introspective', 'description': 'Collective analysis and spirituality'},
+            8: {'level': 'high', 'type': 'powerful', 'description': 'Collective material success and achievement'},
+            9: {'level': 'moderate', 'type': 'completing', 'description': 'Collective completion and wisdom'}
+        }
+        
+        return energy_levels.get(universal_year, {
+            'level': 'moderate',
+            'type': 'balanced',
+            'description': 'Collective balanced energy'
+        })
+    
+    def _get_world_events_tendency(self, universal_year: int) -> List[str]:
+        """Get tendency for world events based on universal year."""
+        tendencies = {
+            1: ['Major new initiatives', 'Leadership changes', 'Technological breakthroughs'],
+            2: ['Diplomatic efforts', 'Partnerships formed', 'Cooperation agreements'],
+            3: ['Creative movements', 'Communication advances', 'Cultural events'],
+            4: ['Infrastructure projects', 'Building initiatives', 'Stability measures'],
+            5: ['Major changes', 'Revolutions', 'Transformations'],
+            6: ['Service initiatives', 'Healthcare focus', 'Community building'],
+            7: ['Scientific discoveries', 'Spiritual movements', 'Analysis periods'],
+            8: ['Economic events', 'Power shifts', 'Material achievements'],
+            9: ['Completion events', 'Humanitarian efforts', 'Wisdom sharing']
+        }
+        
+        return tendencies.get(universal_year, ['General world events'])
+    
+    def _calculate_number_compatibility(self, num1: int, num2: int) -> Dict[str, Any]:
+        """Calculate compatibility between two numbers."""
+        diff = abs(num1 - num2)
+        
+        if diff == 0:
+            score = 100
+            level = 'perfect'
+            description = 'Perfect alignment - same energy'
+        elif diff <= 2:
+            score = 85
+            level = 'excellent'
+            description = 'Excellent alignment - complementary energies'
+        elif diff <= 4:
+            score = 70
+            level = 'good'
+            description = 'Good alignment - harmonious energies'
+        elif diff <= 6:
+            score = 55
+            level = 'moderate'
+            description = 'Moderate alignment - some differences'
+        else:
+            score = 40
+            level = 'challenging'
+            description = 'Challenging alignment - conflicting energies'
+        
+        return {
+            'score': score,
+            'level': level,
+            'number_1': num1,
+            'number_2': num2,
+            'difference': diff,
+            'description': description
+        }
+    
+    def _get_timing_compatibility_recommendation(self, score: float) -> str:
+        """Get recommendation based on timing compatibility score."""
+        if score >= 80:
+            return 'Excellent timing for joint activities - both cycles are well-aligned'
+        elif score >= 65:
+            return 'Good timing - cycles support each other well'
+        elif score >= 50:
+            return 'Moderate timing - some alignment but differences may require compromise'
+        else:
+            return 'Challenging timing - consider postponing or finding alternative dates'
 

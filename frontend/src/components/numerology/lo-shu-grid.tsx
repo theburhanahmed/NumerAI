@@ -1,341 +1,422 @@
 'use client';
 
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Grid3x3, Info, ArrowRight, ArrowDown, ArrowDownRight, ArrowDownLeft } from 'lucide-react';
+import { Info, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { GlassCard } from '@/components/glassmorphism/glass-card';
 
 interface LoShuGridProps {
   gridData: {
-    grid: {
-      [key: string]: {
-        number: number;
-        count: number;
-        is_present: boolean;
-        strength: 'strong' | 'present' | 'missing';
-        meaning: string;
-      };
-    };
+    grid: Record<string, { count: number; numbers: number[] }>;
     missing_numbers: number[];
     strong_numbers: number[];
-    interpretation: string;
-    arrows?: {
-      strength_arrows: Array<{
-        name: string;
-        type: string;
-        positions: string[];
-        numbers: number[];
-        strength: string;
-        meaning: string;
-      }>;
-      weakness_arrows: Array<{
-        name: string;
-        type: string;
-        positions: string[];
-        numbers: number[];
-        strength: string;
-        meaning: string;
-      }>;
-      partial_arrows: Array<{
-        name: string;
-        type: string;
-        positions: string[];
-        numbers: number[];
-        strength: string;
-        meaning: string;
-      }>;
+    number_frequency: Record<number, number>;
+    position_grid?: Record<number, number>;
+    strength_arrows?: string[];
+    weakness_arrows?: string[];
+    interpretation?: string;
+    personality_signature?: {
+      dominant_numbers: Array<[number, number]>;
+      signature_type: string;
     };
-    arrow_interpretation?: string;
-    enhanced_interpretation?: string;
+    remedy_suggestions?: string[];
   };
-  className?: string;
-  showArrows?: boolean;
+  showComparison?: boolean;
+  comparisonData?: {
+    compatibility_score: number;
+    shared_strengths: string[];
+    shared_weaknesses: string[];
+    complementary_areas: string[];
+  };
 }
 
-export function LoShuGrid({ gridData, className = '', showArrows = true }: LoShuGridProps) {
-  const { grid, missing_numbers, strong_numbers, interpretation, arrows, arrow_interpretation, enhanced_interpretation } = gridData;
+// Lo Shu Grid positions (3x3 grid)
+const GRID_POSITIONS = [
+  [4, 9, 2],
+  [3, 5, 7],
+  [8, 1, 6],
+];
 
-  // Standard Lo Shu Grid layout
-  const gridLayout = [
-    ['top_left', 'top_center', 'top_right'],
-    ['middle_left', 'center', 'middle_right'],
-    ['bottom_left', 'bottom_center', 'bottom_right'],
-  ];
+const ARROW_PATTERNS: Record<string, { positions: number[]; name: string; description: string }> = {
+  'spiritual_plane': {
+    positions: [1, 5, 9],
+    name: 'Spiritual Plane',
+    description: 'Strong spiritual connection and intuition',
+  },
+  'material_plane': {
+    positions: [3, 5, 7],
+    name: 'Material Plane',
+    description: 'Strong material and physical focus',
+  },
+  'mental_plane': {
+    positions: [2, 5, 8],
+    name: 'Mental Plane',
+    description: 'Strong mental and intellectual abilities',
+  },
+  'emotional_plane': {
+    positions: [4, 5, 6],
+    name: 'Emotional Plane',
+    description: 'Strong emotional intelligence and empathy',
+  },
+  'physical_plane': {
+    positions: [1, 2, 3],
+    name: 'Physical Plane',
+    description: 'Strong physical energy and vitality',
+  },
+  'practical_plane': {
+    positions: [7, 8, 9],
+    name: 'Practical Plane',
+    description: 'Strong practical and organizational skills',
+  },
+  'will_plane': {
+    positions: [1, 4, 7],
+    name: 'Will Plane',
+    description: 'Strong willpower and determination',
+  },
+  'action_plane': {
+    positions: [3, 6, 9],
+    name: 'Action Plane',
+    description: 'Strong action-oriented and dynamic energy',
+  },
+};
 
-  // Get arrow paths for visualization
-  const getArrowPath = (arrow: { name: string; type: string; positions: string[] }) => {
-    const positionCoords: Record<string, { row: number; col: number }> = {
-      'top_left': { row: 0, col: 0 },
-      'top_center': { row: 0, col: 1 },
-      'top_right': { row: 0, col: 2 },
-      'middle_left': { row: 1, col: 0 },
-      'center': { row: 1, col: 1 },
-      'middle_right': { row: 1, col: 2 },
-      'bottom_left': { row: 2, col: 0 },
-      'bottom_center': { row: 2, col: 1 },
-      'bottom_right': { row: 2, col: 2 },
-    };
+export function LoShuGrid({ gridData, showComparison, comparisonData }: LoShuGridProps) {
+  const [selectedCell, setSelectedCell] = useState<number | null>(null);
+  const [showArrows, setShowArrows] = useState(true);
 
-    const coords = arrow.positions.map(pos => positionCoords[pos]);
-    if (coords.length < 2) return null;
+  const getCellData = (position: number) => {
+    const posKey = `pos_${position}`;
+    return gridData.grid[posKey] || { count: 0, numbers: [] };
+  };
 
-    const start = coords[0];
-    const end = coords[coords.length - 1];
+  const getCellColor = (position: number) => {
+    const cellData = getCellData(position);
+    const count = cellData.count;
     
-    // Calculate SVG path
-    const cellSize = 100; // Approximate cell size
-    const startX = start.col * cellSize + cellSize / 2;
-    const startY = start.row * cellSize + cellSize / 2;
-    const endX = end.col * cellSize + cellSize / 2;
-    const endY = end.row * cellSize + cellSize / 2;
-
-    return { startX, startY, endX, endY, type: arrow.type };
+    if (count === 0) return 'bg-gray-200 dark:bg-gray-800';
+    if (count === 1) return 'bg-blue-100 dark:bg-blue-900/30';
+    if (count === 2) return 'bg-blue-300 dark:bg-blue-700/50';
+    if (count >= 3) return 'bg-blue-500 dark:bg-blue-600';
+    
+    return 'bg-gray-100 dark:bg-gray-700';
   };
 
-  // Get all arrow paths
-  const allArrows = [
-    ...(arrows?.strength_arrows || []).map(a => ({ ...a, color: 'green' })),
-    ...(arrows?.weakness_arrows || []).map(a => ({ ...a, color: 'red' })),
-    ...(arrows?.partial_arrows || []).map(a => ({ ...a, color: 'yellow' })),
-  ];
-
-  const getCellColor = (strength: string) => {
-    switch (strength) {
-      case 'strong':
-        return 'bg-gradient-to-br from-green-500 to-emerald-600 text-white';
-      case 'present':
-        return 'bg-gradient-to-br from-blue-500 to-cyan-600 text-white';
-      case 'missing':
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600';
-      default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-400';
-    }
+  const hasArrow = (arrowType: string) => {
+    if (!showArrows) return false;
+    const arrows = gridData.strength_arrows || [];
+    return arrows.includes(arrowType);
   };
 
-  const getCellBorder = (strength: string) => {
-    switch (strength) {
-      case 'strong':
-        return 'border-2 border-green-400';
-      case 'present':
-        return 'border-2 border-blue-400';
-      default:
-        return 'border border-gray-300 dark:border-gray-700';
-    }
+  const getArrowIcon = (arrowType: string) => {
+    const pattern = ARROW_PATTERNS[arrowType];
+    if (!pattern) return null;
+    
+    return (
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="flex flex-col items-center gap-1">
+          <TrendingUp className="w-4 h-4 text-green-500" />
+          <span className="text-xs text-green-600 dark:text-green-400 font-semibold">
+            {pattern.name}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <GlassCard variant="default" className={`p-6 ${className}`}>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center text-white">
-          <Grid3x3 className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="space-y-6">
+      {/* Grid Visualization */}
+      <GlassCard variant="elevated" className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
             Lo Shu Grid
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Magic Square Numerology
-          </p>
-        </div>
-      </div>
-
-      {/* Grid Visualization */}
-      <div className="mb-6">
-        <div className="relative grid grid-cols-3 gap-2 max-w-md mx-auto">
-          {/* Arrow overlay SVG */}
-          {showArrows && arrows && allArrows.length > 0 && (
-            <svg
-              className="absolute inset-0 w-full h-full pointer-events-none z-10"
-              viewBox="0 0 300 300"
-              preserveAspectRatio="none"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowArrows(!showArrows)}
+              className="px-3 py-1 text-sm rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
-              {allArrows.map((arrow, idx) => {
-                const path = getArrowPath(arrow);
-                if (!path) return null;
-                
-                const colorMap: Record<string, string> = {
-                  green: '#10b981',
-                  red: '#ef4444',
-                  yellow: '#eab308'
-                };
-                
-                return (
-                  <g key={`arrow-${idx}`}>
-                    <line
-                      x1={path.startX}
-                      y1={path.startY}
-                      x2={path.endX}
-                      y2={path.endY}
-                      stroke={colorMap[arrow.color] || '#6b7280'}
-                      strokeWidth="3"
-                      strokeDasharray={arrow.color === 'yellow' ? '5,5' : '0'}
-                      markerEnd="url(#arrowhead)"
-                      opacity="0.7"
-                    />
-                  </g>
-                );
-              })}
-              <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="10"
-                  markerHeight="10"
-                  refX="9"
-                  refY="3"
-                  orient="auto"
-                >
-                  <polygon points="0 0, 10 3, 0 6" fill="#6b7280" />
-                </marker>
-              </defs>
-            </svg>
-          )}
-          
-          {gridLayout.map((row, rowIdx) =>
+              {showArrows ? 'Hide' : 'Show'} Arrows
+            </button>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
+          {GRID_POSITIONS.map((row, rowIdx) =>
             row.map((position, colIdx) => {
-              const cell = grid[position];
-              const isCenter = position === 'center';
-              
-              // Check if this position is part of an arrow
-              const isInArrow = showArrows && arrows && allArrows.some(a => 
-                a.positions.includes(position)
-              );
-              
+              const cellData = getCellData(position);
+              const isSelected = selectedCell === position;
+              const hasStrength = hasArrow(`spiritual_plane`) || 
+                                 hasArrow(`material_plane`) || 
+                                 hasArrow(`mental_plane`) ||
+                                 hasArrow(`emotional_plane`);
+
               return (
                 <motion.div
-                  key={position}
+                  key={`${rowIdx}-${colIdx}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: (rowIdx * 3 + colIdx) * 0.05 }}
                   className={`
-                    aspect-square flex flex-col items-center justify-center rounded-lg relative z-20
-                    ${getCellColor(cell.strength)}
-                    ${getCellBorder(cell.strength)}
-                    ${isCenter ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}
-                    ${isInArrow ? 'ring-1 ring-offset-1' : ''}
-                    transition-all duration-300
-                    hover:scale-105 cursor-pointer
+                    relative aspect-square rounded-lg border-2 transition-all cursor-pointer
+                    ${getCellColor(position)}
+                    ${isSelected ? 'ring-4 ring-purple-500 ring-offset-2' : 'border-gray-300 dark:border-gray-600'}
+                    hover:scale-105 hover:shadow-lg
                   `}
-                  title={cell.meaning}
+                  onClick={() => setSelectedCell(isSelected ? null : position)}
                 >
-                  <span className="text-2xl font-bold">{cell.number}</span>
-                  {cell.count > 0 && (
-                    <span className="text-xs opacity-80 mt-1">
-                      {cell.count}x
-                    </span>
+                  {/* Position Number */}
+                  <div className="absolute top-1 left-1 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                    {position}
+                  </div>
+
+                  {/* Count Badge */}
+                  {cellData.count > 0 && (
+                    <div className="absolute top-1 right-1 bg-white dark:bg-gray-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold text-gray-900 dark:text-white shadow-sm">
+                      {cellData.count}
+                    </div>
                   )}
+
+                  {/* Numbers in Cell */}
+                  <div className="flex items-center justify-center h-full">
+                    {cellData.numbers.length > 0 ? (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {cellData.numbers.join(', ')}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-400 dark:text-gray-600 text-sm">Empty</div>
+                    )}
+                  </div>
+
+                  {/* Arrow Indicators */}
+                  {showArrows && hasStrength && getArrowIcon('spiritual_plane')}
                 </motion.div>
               );
             })
           )}
         </div>
-        
-        {/* Arrow Legend */}
-        {showArrows && arrows && (arrows.strength_arrows.length > 0 || arrows.weakness_arrows.length > 0 || arrows.partial_arrows.length > 0) && (
-          <div className="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
-            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Arrow Patterns:</p>
-            <div className="flex flex-wrap gap-3 text-xs">
-              {arrows.strength_arrows.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-0.5 bg-green-500"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {arrows.strength_arrows.length} Strong
-                  </span>
-                </div>
-              )}
-              {arrows.weakness_arrows.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-0.5 bg-red-500"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {arrows.weakness_arrows.length} Weak
-                  </span>
-                </div>
-              )}
-              {arrows.partial_arrows.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-0.5 bg-yellow-500 border-dashed"></div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {arrows.partial_arrows.length} Partial
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mb-6 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-green-500 to-emerald-600"></div>
-          <span className="text-gray-600 dark:text-gray-400">Strong (2+)</span>
+        {/* Legend */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-gray-200 dark:bg-gray-800"></div>
+            <span className="text-gray-600 dark:text-gray-400">Empty</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/30"></div>
+            <span className="text-gray-600 dark:text-gray-400">1 occurrence</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-blue-300 dark:bg-blue-700/50"></div>
+            <span className="text-gray-600 dark:text-gray-400">2 occurrences</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-blue-500 dark:bg-blue-600"></div>
+            <span className="text-gray-600 dark:text-gray-400">3+ occurrences</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500 to-cyan-600"></div>
-          <span className="text-gray-600 dark:text-gray-400">Present</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gray-200 dark:bg-gray-700"></div>
-          <span className="text-gray-600 dark:text-gray-400">Missing</span>
-        </div>
-      </div>
+      </GlassCard>
+
+      {/* Selected Cell Details */}
+      {selectedCell && (
+        <GlassCard variant="elevated" className="p-6">
+          <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+            Position {selectedCell} Details
+          </h4>
+          {(() => {
+            const cellData = getCellData(selectedCell);
+            return (
+              <div className="space-y-2">
+                <div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Count: </span>
+                  <span className="text-gray-600 dark:text-gray-400">{cellData.count}</span>
+                </div>
+                {cellData.numbers.length > 0 && (
+                  <div>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">Numbers: </span>
+                    <span className="text-gray-600 dark:text-gray-400">{cellData.numbers.join(', ')}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </GlassCard>
+      )}
+
+      {/* Missing Numbers */}
+      {gridData.missing_numbers && gridData.missing_numbers.length > 0 && (
+        <GlassCard variant="elevated" className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingDown className="w-5 h-5 text-orange-500" />
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Missing Numbers
+            </h4>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {gridData.missing_numbers.map((num) => (
+              <span
+                key={num}
+                className="px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-semibold"
+              >
+                {num}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+            These numbers are not present in your grid. Consider remedies to balance your energy.
+          </p>
+        </GlassCard>
+      )}
+
+      {/* Strong Numbers */}
+      {gridData.strong_numbers && gridData.strong_numbers.length > 0 && (
+        <GlassCard variant="elevated" className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Strong Numbers
+            </h4>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {gridData.strong_numbers.map((num) => (
+              <span
+                key={num}
+                className="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold"
+              >
+                {num}
+              </span>
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       {/* Interpretation */}
-      <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
-        <div className="flex items-start gap-2 mb-2">
-          <Info className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
-          <h4 className="font-semibold text-gray-900 dark:text-white">Interpretation</h4>
-        </div>
-        <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-          {enhanced_interpretation || interpretation}
-        </p>
-        
-        {arrow_interpretation && (
-          <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-800">
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Arrow Analysis:
-            </p>
-            <p className="text-xs text-gray-700 dark:text-gray-300">
-              {arrow_interpretation}
-            </p>
+      {gridData.interpretation && (
+        <GlassCard variant="elevated" className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Info className="w-5 h-5 text-blue-500" />
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Interpretation
+            </h4>
           </div>
-        )}
-        
-        {strong_numbers.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-800">
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Strong Numbers:
-            </p>
-            <div className="flex gap-2">
-              {strong_numbers.map((num) => (
-                <span
-                  key={num}
-                  className="px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold"
-                >
-                  {num}
-                </span>
-              ))}
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+            {gridData.interpretation}
+          </p>
+        </GlassCard>
+      )}
+
+      {/* Personality Signature */}
+      {gridData.personality_signature && (
+        <GlassCard variant="elevated" className="p-6">
+          <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+            Personality Signature
+          </h4>
+          <div className="space-y-2">
+            <div>
+              <span className="font-semibold text-gray-700 dark:text-gray-300">Type: </span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {gridData.personality_signature.signature_type}
+              </span>
             </div>
-          </div>
-        )}
-        
-        {missing_numbers.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-800">
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Missing Numbers (Areas to Develop):
-            </p>
-            <div className="flex gap-2">
-              {missing_numbers.map((num) => (
-                <span
-                  key={num}
-                  className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold"
-                >
-                  {num}
+            {gridData.personality_signature.dominant_numbers.length > 0 && (
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Dominant Numbers: </span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {gridData.personality_signature.dominant_numbers
+                    .map(([num, count]) => `${num} (${count}x)`)
+                    .join(', ')}
                 </span>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </GlassCard>
+        </GlassCard>
+      )}
+
+      {/* Comparison Data */}
+      {showComparison && comparisonData && (
+        <GlassCard variant="elevated" className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-purple-500" />
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Compatibility Analysis
+            </h4>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Compatibility Score
+                </span>
+                <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {comparisonData.compatibility_score}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-purple-600 h-2 rounded-full transition-all"
+                  style={{ width: `${comparisonData.compatibility_score}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {comparisonData.shared_strengths.length > 0 && (
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Shared Strengths: 
+                </span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {comparisonData.shared_strengths.map((strength, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm"
+                    >
+                      {strength}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {comparisonData.complementary_areas.length > 0 && (
+              <div>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Complementary Areas: 
+                </span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {comparisonData.complementary_areas.map((area, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm"
+                    >
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Remedy Suggestions */}
+      {gridData.remedy_suggestions && gridData.remedy_suggestions.length > 0 && (
+        <GlassCard variant="elevated" className="p-6">
+          <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+            Remedy Suggestions
+          </h4>
+          <ul className="space-y-2">
+            {gridData.remedy_suggestions.map((remedy, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                <span className="text-purple-500 mt-1">•</span>
+                <span>{remedy}</span>
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+      )}
+    </div>
   );
 }
-

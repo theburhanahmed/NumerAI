@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { StarIcon, SparklesIcon, TrendingUpIcon, HeartIcon, BriefcaseIcon, BookOpenIcon } from 'lucide-react';
+import { TrendingUpIcon, TargetIcon, CompassIcon, MapIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { SpaceCard } from '@/components/space/space-card';
+import { SpaceButton } from '@/components/space/space-button';
+import { CrystalNumerologyCube } from '@/components/3d/crystal-numerology-cube';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
 import { numerologyAPI } from '@/lib/numerology-api';
 import type { LifePathAnalysis } from '@/lib/numerology-api';
 import { useAuth } from '@/contexts/auth-context';
@@ -138,256 +138,303 @@ export default function LifePathAnalysis() {
 
   if (loading) {
     return (
-      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading your life path...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+            <p className="text-white/70">Loading your life path...</p>
           </div>
         </div>
-      </div>
+      </CosmicPageLayout>
     );
   }
 
   if (!selectedPath) {
     return (
-      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
-          <GlassCard className="p-8 text-center">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Your life path is not available yet. Calculate your numerology profile first to discover your life path number and unlock personalized insights.
-            </p>
-            <GlassButton onClick={() => router.push('/numerology-report')}>
-              Calculate My Profile
-            </GlassButton>
-          </GlassCard>
-        </div>
-      </div>
+      <CosmicPageLayout>
+        <SpaceCard variant="premium" className="p-8 text-center">
+          <p className="text-white/80 mb-4">
+            Your life path is not available yet. Calculate your numerology
+            profile first to discover your life path number and unlock
+            personalized insights.
+          </p>
+          <SpaceButton onClick={() => router.push('/numerology-report')}>
+            Calculate My Profile
+          </SpaceButton>
+        </SpaceCard>
+      </CosmicPageLayout>
     );
   }
 
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
-        {/* Hero Section */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }}>
-          <GlassCard variant="liquid-premium" className={`p-8 mb-8 bg-gradient-to-br ${selected?.color} text-white relative overflow-hidden`}>
-            <div className="liquid-glass-content">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-              <div className="relative z-10">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                  Life Path {selectedPath}
-                </h1>
-                <h2 className="text-2xl md:text-3xl mb-2">{selected?.title}</h2>
-                <p className="text-xl text-white/90">{selected?.description}</p>
-              </div>
-            </div>
-          </GlassCard>
-        </motion.div>
+  const phases = [
+    {
+      age: '0-27',
+      title: 'Foundation Phase',
+      description:
+        'Building your spiritual foundation and discovering your unique gifts. Focus on education and self-discovery.',
+      icon: <CompassIcon className="w-6 h-6" />,
+      color: 'from-cyan-400 to-blue-600',
+    },
+    {
+      age: '28-54',
+      title: 'Growth Phase',
+      description:
+        'Applying your wisdom and sharing your insights with others. Career and relationships flourish.',
+      icon: <TrendingUpIcon className="w-6 h-6" />,
+      color: 'from-purple-500 to-pink-600',
+    },
+    {
+      age: '55+',
+      title: 'Mastery Phase',
+      description:
+        'Achieving spiritual mastery and becoming a guide for others. Legacy and wisdom sharing.',
+      icon: <TargetIcon className="w-6 h-6" />,
+      color: 'from-green-500 to-emerald-600',
+    },
+  ];
 
-        {/* Life Path Numbers Grid */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.2
-      }} className="mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Explore All Life Paths
-          </h3>
-          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
-            {lifePaths.map((path, index) => <motion.button key={path.number} onClick={() => handlePathChange(path.number)} className={`p-4 rounded-2xl backdrop-blur-xl border transition-all ${selectedPath === path.number ? 'bg-gradient-to-r ' + path.color + ' text-white border-white/30 shadow-xl scale-105' : 'bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-white/20 text-gray-900 dark:text-white'}`} initial={{
-            opacity: 0,
-            scale: 0.8
-          }} animate={{
-            opacity: 1,
-            scale: 1
-          }} transition={{
-            delay: index * 0.05
-          }} whileHover={{
-            scale: 1.1,
-            y: -4
-          }} whileTap={{
-            scale: 0.95
-          }}>
-                <div className="text-3xl font-bold mb-1">{path.number}</div>
-                <div className="text-xs">{path.title.split(' ')[1]}</div>
-              </motion.button>)}
+  const strengths =
+    currentAnalysis?.strengths && currentAnalysis.strengths.length > 0
+      ? currentAnalysis.strengths
+      : [
+          'Deep spiritual insight and intuition',
+          'Analytical and research-oriented mind',
+          'Natural wisdom and philosophical thinking',
+          'Strong connection to inner guidance',
+          'Ability to see beyond surface appearances',
+        ];
+
+  const challenges =
+    currentAnalysis?.challenges && currentAnalysis.challenges.length > 0
+      ? currentAnalysis.challenges
+      : [
+          'Tendency toward isolation and overthinking',
+          'Difficulty trusting others fully',
+          'May struggle with practical matters',
+          'Can be overly critical of self and others',
+          'Need to balance solitude with connection',
+        ];
+
+  return (
+    <CosmicPageLayout>
+      {/* Header */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        className="mb-8"
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg">
+            <MapIcon className="w-6 h-6 text-white" />
           </div>
-        </motion.div>
-
-        {/* Detailed Analysis */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Characteristics */}
-          <motion.div initial={{
-          opacity: 0,
-          x: -20
-        }} animate={{
-          opacity: 1,
-          x: 0
-        }} transition={{
-          delay: 0.3
-        }}>
-            <MagneticCard variant="liquid-premium" className="p-6">
-              <div className="liquid-glass-content">
-                <div className="flex items-center gap-3 mb-6">
-                  <SparklesIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Key Characteristics
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      Strengths
-                    </h4>
-                    {analysisLoading ? (
-                      <p className="text-sm text-gray-500">Loading...</p>
-                    ) : currentAnalysis?.strengths && currentAnalysis.strengths.length > 0 ? (
-                      <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                        {currentAnalysis.strengths.map((strength, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full" />
-                            {strength}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-gray-500 italic">Calculate your profile to see personalized strengths</p>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      Challenges
-                    </h4>
-                    {analysisLoading ? (
-                      <p className="text-sm text-gray-500">Loading...</p>
-                    ) : currentAnalysis?.challenges && currentAnalysis.challenges.length > 0 ? (
-                      <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                        {currentAnalysis.challenges.map((challenge, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                            {challenge}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-gray-500 italic">Calculate your profile to see personalized challenges</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </MagneticCard>
-          </motion.div>
-
-          {/* Life Areas */}
-          <motion.div initial={{
-          opacity: 0,
-          x: 20
-        }} animate={{
-          opacity: 1,
-          x: 0
-        }} transition={{
-          delay: 0.4
-        }}>
-            <MagneticCard variant="liquid-premium" className="p-6">
-              <div className="liquid-glass-content">
-                <div className="flex items-center gap-3 mb-6">
-                  <TrendingUpIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Life Areas
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  <GlassCard variant="liquid" className="p-4">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-2">
-                        <HeartIcon className="w-5 h-5 text-pink-500" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          Relationships
-                        </h4>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {currentAnalysis?.relationships || selected?.description || 'Calculate your profile to see personalized insights'}
-                      </p>
-                    </div>
-                  </GlassCard>
-
-                  <GlassCard variant="liquid" className="p-4">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-2">
-                        <BriefcaseIcon className="w-5 h-5 text-blue-500" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          Career
-                        </h4>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {currentAnalysis?.career && currentAnalysis.career.length > 0 
-                          ? currentAnalysis.career.join(', ')
-                          : selected?.description || 'Calculate your profile to see personalized career insights'}
-                      </p>
-                    </div>
-                  </GlassCard>
-
-                  <GlassCard variant="liquid" className="p-4">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookOpenIcon className="w-5 h-5 text-purple-500" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          Personal Growth
-                        </h4>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {currentAnalysis?.advice || selected?.description || 'Calculate your profile to see personalized growth insights'}
-                      </p>
-                    </div>
-                  </GlassCard>
-                </div>
-              </div>
-            </MagneticCard>
-          </motion.div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white">
+              Life Path Analysis
+            </h1>
+            <p className="text-white/70">Understanding your cosmic journey</p>
+          </div>
         </div>
+      </motion.div>
 
-        {/* CTA */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.5
-      }}>
-          <GlassCard variant="liquid-premium" className="p-8 text-center bg-gradient-to-br from-blue-500/20 to-purple-600/20 liquid-glass-iridescent">
-            <div className="liquid-glass-content">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Want Your Complete Analysis?
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Get a detailed report with personalized insights and guidance
-              </p>
-              <GlassButton variant="liquid" size="lg" onClick={() => router.push('/numerology-report')} className="glass-glow">
-                View Full Report
-              </GlassButton>
+      {/* Life Path Number */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          delay: 0.1,
+        }}
+        className="mb-8"
+      >
+        <SpaceCard variant="premium" className="p-6 md:p-8">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-shrink-0">
+              <CrystalNumerologyCube
+                number={selectedPath}
+                size="lg"
+                color="cyan"
+              />
             </div>
-          </GlassCard>
-        </motion.div>
-      </div>
-    </div>;
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center gap-2 justify-center md:justify-start mb-3">
+                <h2 className="text-3xl font-['Playfair_Display'] font-bold text-white">
+                  Life Path Number {selectedPath}
+                </h2>
+                <CosmicTooltip
+                  content="Your most important numerology number"
+                  icon
+                />
+              </div>
+              <p className="text-xl text-white/80 leading-relaxed mb-4">
+                {selected?.title}
+              </p>
+              <p className="text-white/70 leading-relaxed">
+                {currentAnalysis?.description ||
+                  selected?.description ||
+                  `Your Life Path ${selectedPath} indicates a journey of spiritual growth, inner wisdom, and deep understanding. You are here to seek truth, develop your intuition, and share your insights with the world.`}
+              </p>
+            </div>
+          </div>
+        </SpaceCard>
+      </motion.div>
+
+      {/* Life Phases */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          delay: 0.2,
+        }}
+        className="mb-8"
+      >
+        <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-6">
+          Life Journey Phases
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {phases.map((phase, index) => (
+            <motion.div
+              key={phase.title}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                delay: 0.3 + index * 0.1,
+              }}
+              whileHover={{
+                y: -4,
+              }}
+            >
+              <SpaceCard variant="default" className="p-6 h-full">
+                <div
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${phase.color} flex items-center justify-center text-white mb-4 shadow-lg`}
+                >
+                  {phase.icon}
+                </div>
+                <div className="mb-3">
+                  <span className="text-sm font-semibold text-cyan-400">
+                    {phase.age} years
+                  </span>
+                  <h3 className="text-xl font-['Playfair_Display'] font-bold text-white mt-1">
+                    {phase.title}
+                  </h3>
+                </div>
+                <p className="text-white/70 leading-relaxed">
+                  {phase.description}
+                </p>
+              </SpaceCard>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Strengths & Challenges */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          delay: 0.4,
+        }}
+      >
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Strengths */}
+          <SpaceCard variant="default" className="p-6">
+            <h3 className="text-xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Your Strengths
+            </h3>
+            {analysisLoading ? (
+              <p className="text-sm text-white/60">Loading...</p>
+            ) : (
+              <ul className="space-y-3">
+                {strengths.map((strength, index) => (
+                  <motion.li
+                    key={index}
+                    initial={{
+                      opacity: 0,
+                      x: -20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      delay: 0.5 + index * 0.1,
+                    }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                    <span className="text-white/80">{strength}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            )}
+          </SpaceCard>
+
+          {/* Challenges */}
+          <SpaceCard variant="default" className="p-6">
+            <h3 className="text-xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Growth Opportunities
+            </h3>
+            {analysisLoading ? (
+              <p className="text-sm text-white/60">Loading...</p>
+            ) : (
+              <ul className="space-y-3">
+                {challenges.map((challenge, index) => (
+                  <motion.li
+                    key={index}
+                    initial={{
+                      opacity: 0,
+                      x: 20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      delay: 0.5 + index * 0.1,
+                    }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs">!</span>
+                    </div>
+                    <span className="text-white/80">{challenge}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            )}
+          </SpaceCard>
+        </div>
+      </motion.div>
+    </CosmicPageLayout>
+  );
 }

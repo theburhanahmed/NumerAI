@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 import { AlertTriangleIcon, InfoIcon } from 'lucide-react';
 import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingFooter } from '@/components/landing/landing-footer';
-import { GlassCard } from '@/components/ui/glass-card';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
 import { LiquidGlassHero } from '@/components/ui/liquid-glass-hero';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
 export default function Disclaimer() {

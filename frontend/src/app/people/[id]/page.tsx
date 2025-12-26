@@ -12,10 +12,9 @@ import {
   FileText,
   Calculator
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { useAuth } from '@/contexts/auth-context';
 import { peopleAPI } from '@/lib/numerology-api';
 import { Person, PersonNumerologyProfile } from '@/types';
@@ -97,52 +96,48 @@ export default function PersonDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
-        <AmbientParticles />
-        <FloatingOrbs />
-        <div className="relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="animate-pulse">
-              <div className="h-12 bg-white/50 dark:bg-gray-800/50 rounded w-1/3 mb-8"></div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-24 bg-white/50 dark:bg-gray-800/50 rounded-2xl"></div>
-                ))}
-              </div>
-              <div className="h-96 bg-white/50 dark:bg-gray-800/50 rounded-2xl"></div>
+      <CosmicPageLayout>
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-12 bg-[#1a2942]/40 rounded w-1/3 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-24 bg-[#1a2942]/40 rounded-2xl"></div>
+              ))}
             </div>
+            <div className="h-96 bg-[#1a2942]/40 rounded-2xl"></div>
           </div>
         </div>
-      </div>
+      </CosmicPageLayout>
     );
   }
 
   if (!person) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
+      <CosmicPageLayout>
         <div className="max-w-4xl mx-auto">
-          <GlassCard variant="default" className="p-12 text-center">
-            <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <SpaceCard variant="premium" className="p-12 text-center" glow>
+            <User className="w-12 h-12 text-white/50 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">
               Person Not Found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-white/70 mb-6">
               The requested person could not be found.
             </p>
-            <GlassButton 
+            <TouchOptimizedButton 
               variant="primary" 
               onClick={() => router.push('/people')}
             >
               Back to People
-            </GlassButton>
-          </GlassCard>
+            </TouchOptimizedButton>
+          </SpaceCard>
         </div>
-      </div>
+      </CosmicPageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
+    <CosmicPageLayout>
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -152,54 +147,54 @@ export default function PersonDetailPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <GlassButton 
-                variant="ghost" 
+              <TouchOptimizedButton 
+                variant="secondary" 
                 onClick={() => router.push('/people')}
                 className="mb-4"
                 icon={<ChevronLeft className="w-5 h-5" />}
               >
                 Back to People
-              </GlassButton>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              </TouchOptimizedButton>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 {person.name}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-white/70 mt-2">
                 View and manage numerology information for this person
               </p>
               <div className="flex flex-wrap items-center gap-4 mt-2">
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-white/70">
                   <Calendar className="w-4 h-4" />
                   <span>{new Date(person.birth_date).toLocaleDateString()}</span>
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
                   {person.relationship}
                 </span>
               </div>
             </div>
             
             <div className="flex flex-wrap gap-2">
-              <GlassButton 
+              <TouchOptimizedButton 
                 variant="secondary" 
                 onClick={handleEditPerson}
                 icon={<Edit className="w-5 h-5" />}
               >
                 Edit
-              </GlassButton>
-              <GlassButton 
+              </TouchOptimizedButton>
+              <TouchOptimizedButton 
                 variant="primary" 
                 onClick={handleGenerateReport}
                 icon={<FileText className="w-5 h-5" />}
                 disabled={!profile}
               >
                 Generate Report
-              </GlassButton>
+              </TouchOptimizedButton>
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 rounded-2xl bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800">
-              <p className="text-red-800 dark:text-red-200">{error}</p>
+            <div className="mb-6 p-4 rounded-2xl bg-red-900/30 border border-red-500/30">
+              <p className="text-red-200">{error}</p>
             </div>
           )}
 
@@ -207,60 +202,60 @@ export default function PersonDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Person Info Card */}
             <div className="lg:col-span-1">
-              <GlassCard variant="default" className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              <SpaceCard variant="premium" className="p-6" glow>
+                <h2 className="text-xl font-bold text-white mb-4">
                   Person Details
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                <p className="text-white/70 text-sm mb-4">
                   Basic information about this person in your numerology system
                 </p>
                 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
-                    <p className="text-gray-900 dark:text-white font-medium">{person.name}</p>
+                    <p className="text-sm text-white/60">Name</p>
+                    <p className="text-white font-medium">{person.name}</p>
                   </div>
                   
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Birth Date</p>
-                    <p className="text-gray-900 dark:text-white font-medium">
+                    <p className="text-sm text-white/60">Birth Date</p>
+                    <p className="text-white font-medium">
                       {new Date(person.birth_date).toLocaleDateString()}
                     </p>
                   </div>
                   
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Relationship</p>
-                    <p className="text-gray-900 dark:text-white font-medium capitalize">
+                    <p className="text-sm text-white/60">Relationship</p>
+                    <p className="text-white font-medium capitalize">
                       {person.relationship}
                     </p>
                   </div>
                   
                   {person.notes && (
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Notes</p>
-                      <p className="text-gray-900 dark:text-white font-medium">{person.notes}</p>
+                      <p className="text-sm text-white/60">Notes</p>
+                      <p className="text-white font-medium">{person.notes}</p>
                     </div>
                   )}
                   
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Added On</p>
-                    <p className="text-gray-900 dark:text-white font-medium">
+                    <p className="text-sm text-white/60">Added On</p>
+                    <p className="text-white font-medium">
                       {new Date(person.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-              </GlassCard>
+              </SpaceCard>
             </div>
 
             {/* Numerology Profile */}
             <div className="lg:col-span-2">
-              <GlassCard variant="default" className="p-6">
+              <SpaceCard variant="premium" className="p-6" glow>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    <h2 className="text-xl font-bold text-white">
                       Numerology Profile
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    <p className="text-white/70 text-sm">
                       {profile 
                         ? "View this person&#39;s numerology numbers and interpretations" 
                         : "Calculate numerology profile to view detailed insights"}
@@ -268,104 +263,106 @@ export default function PersonDetailPage() {
                   </div>
                   
                   {!profile && (
-                    <GlassButton 
+                    <TouchOptimizedButton 
                       variant="primary" 
                       onClick={handleCalculateNumerology}
                       disabled={calculating}
+                      loading={calculating}
                       icon={<Calculator className="w-5 h-5" />}
                     >
-                      {calculating ? 'Calculating...' : 'Calculate Profile'}
-                    </GlassButton>
+                      Calculate Profile
+                    </TouchOptimizedButton>
                   )}
                 </div>
                 
                 {profile ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Life Path</p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-4 bg-[#1a2942]/40 rounded-2xl">
+                      <p className="text-sm text-white/70">Life Path</p>
+                      <p className="text-2xl font-bold text-purple-400">
                         {profile.life_path_number}
                       </p>
                     </div>
                     
-                    <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Destiny</p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-4 bg-[#1a2942]/40 rounded-2xl">
+                      <p className="text-sm text-white/70">Destiny</p>
+                      <p className="text-2xl font-bold text-purple-400">
                         {profile.destiny_number}
                       </p>
                     </div>
                     
-                    <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Soul Urge</p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-4 bg-[#1a2942]/40 rounded-2xl">
+                      <p className="text-sm text-white/70">Soul Urge</p>
+                      <p className="text-2xl font-bold text-purple-400">
                         {profile.soul_urge_number}
                       </p>
                     </div>
                     
-                    <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Personality</p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-4 bg-[#1a2942]/40 rounded-2xl">
+                      <p className="text-sm text-white/70">Personality</p>
+                      <p className="text-2xl font-bold text-purple-400">
                         {profile.personality_number}
                       </p>
                     </div>
                     
-                    <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Personal Year</p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-4 bg-[#1a2942]/40 rounded-2xl">
+                      <p className="text-sm text-white/70">Personal Year</p>
+                      <p className="text-2xl font-bold text-purple-400">
                         {profile.personal_year_number}
                       </p>
                     </div>
                     
-                    <div className="text-center p-4 bg-white/50 dark:bg-gray-800/50 rounded-2xl">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Attitude</p>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-center p-4 bg-[#1a2942]/40 rounded-2xl">
+                      <p className="text-sm text-white/70">Attitude</p>
+                      <p className="text-2xl font-bold text-purple-400">
                         {profile.attitude_number}
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center mb-4">
-                      <Calculator className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center mb-4">
+                      <Calculator className="w-8 h-8 text-cyan-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-lg font-medium text-white mb-2">
                       No Numerology Profile Yet
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    <p className="text-white/70 mb-6">
                       Calculate this person&#39;s numerology profile to unlock detailed insights and generate reports.
                     </p>
-                    <GlassButton 
+                    <TouchOptimizedButton 
                       variant="primary" 
                       onClick={handleCalculateNumerology}
                       disabled={calculating}
+                      loading={calculating}
                       icon={<Calculator className="w-5 h-5" />}
                     >
-                      {calculating ? 'Calculating...' : 'Calculate Profile'}
-                    </GlassButton>
+                      Calculate Profile
+                    </TouchOptimizedButton>
                   </div>
                 )}
-              </GlassCard>
+              </SpaceCard>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <GlassButton 
+            <TouchOptimizedButton 
               variant="secondary" 
               onClick={() => router.push('/people')}
             >
               Back to People
-            </GlassButton>
-            <GlassButton 
+            </TouchOptimizedButton>
+            <TouchOptimizedButton 
               variant="primary" 
               onClick={handleGenerateReport}
               icon={<FileText className="w-5 h-5" />}
             >
               Generate Report for {person.name}
-            </GlassButton>
+            </TouchOptimizedButton>
           </div>
         </motion.div>
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }

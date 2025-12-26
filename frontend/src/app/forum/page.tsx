@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquareIcon, ThumbsUpIcon, MessageCircleIcon, TrendingUpIcon, ClockIcon, StarIcon, PlusIcon, SearchIcon, FilterIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { FloatingOrbs } from '@/components/ui/floating-orbs';
 import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
 type ForumCategory = 'all' | 'questions' | 'insights' | 'experiences' | 'remedies';
 interface ForumPost {
   id: string;

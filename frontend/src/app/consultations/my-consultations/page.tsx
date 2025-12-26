@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Video, MessageSquare, Phone, X, RefreshCw } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { consultationsAPI } from '@/lib/consultations-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
@@ -55,15 +56,15 @@ export default function MyConsultationsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-green-500/20 text-green-300 border border-green-500/30';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+        return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
       case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        return 'bg-red-500/20 text-red-300 border border-red-500/30';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
     }
   };
 
@@ -82,43 +83,43 @@ export default function MyConsultationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 p-8">
+    <CosmicPageLayout>
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">My Consultations</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">My Consultations</h1>
           <div className="flex gap-2">
-            <GlassButton
-              variant="liquid"
+            <TouchOptimizedButton
+              variant={filter === 'upcoming' ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setFilter('upcoming')}
-              className={filter === 'upcoming' ? 'opacity-100' : 'opacity-50'}
             >
               Upcoming
-            </GlassButton>
-            <GlassButton
-              variant="liquid"
+            </TouchOptimizedButton>
+            <TouchOptimizedButton
+              variant={filter === 'past' ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setFilter('past')}
-              className={filter === 'past' ? 'opacity-100' : 'opacity-50'}
             >
               Past
-            </GlassButton>
+            </TouchOptimizedButton>
           </div>
         </div>
 
         {consultations.length === 0 ? (
-          <GlassCard className="p-8 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+          <SpaceCard variant="premium" className="p-8 text-center" glow>
+            <p className="text-white/70">
               No {filter} consultations found.
             </p>
-          </GlassCard>
+          </SpaceCard>
         ) : (
           <div className="grid gap-4">
             {consultations.map((consultation) => {
@@ -126,23 +127,23 @@ export default function MyConsultationsPage() {
               const scheduledDate = new Date(consultation.scheduled_at);
               
               return (
-                <GlassCard key={consultation.id} className="p-6">
+                <SpaceCard key={consultation.id} variant="premium" className="p-6" glow>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold">
+                        <h3 className="text-xl font-semibold text-white">
                           {expert?.name || 'Expert'}
                         </h3>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(consultation.status)}`}>
                           {consultation.status}
                         </span>
-                        <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                        <span className="flex items-center gap-1 text-white/70">
                           {getTypeIcon(consultation.consultation_type)}
                           <span className="capitalize">{consultation.consultation_type}</span>
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      <div className="flex items-center gap-4 text-sm text-white/70 mb-4">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {format(scheduledDate, 'MMM dd, yyyy')}
@@ -157,49 +158,49 @@ export default function MyConsultationsPage() {
                       </div>
 
                       {consultation.notes && (
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                        <p className="text-sm text-white/80 mb-4">
                           {consultation.notes}
                         </p>
                       )}
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <GlassButton
-                        variant="liquid"
+                      <TouchOptimizedButton
+                        variant="secondary"
                         size="sm"
                         onClick={() => router.push(`/consultations/${consultation.id}`)}
                       >
                         View Details
-                      </GlassButton>
+                      </TouchOptimizedButton>
                       {consultation.consultation_type === 'video' && consultation.meeting_link && (
-                        <GlassButton
-                          variant="liquid"
+                        <TouchOptimizedButton
+                          variant="secondary"
                           size="sm"
                           onClick={() => window.open(consultation.meeting_link, '_blank')}
                         >
                           Join Meeting
-                        </GlassButton>
+                        </TouchOptimizedButton>
                       )}
                       {consultation.can_be_cancelled && (
-                        <GlassButton
-                          variant="liquid"
+                        <TouchOptimizedButton
+                          variant="secondary"
                           size="sm"
                           onClick={() => handleCancel(consultation.id)}
-                          className="bg-red-500 hover:bg-red-600"
+                          className="bg-red-500 hover:bg-red-600 text-white"
                         >
                           <X className="w-4 h-4" />
                           Cancel
-                        </GlassButton>
+                        </TouchOptimizedButton>
                       )}
                     </div>
                   </div>
-                </GlassCard>
+                </SpaceCard>
               );
             })}
           </div>
         )}
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }
 

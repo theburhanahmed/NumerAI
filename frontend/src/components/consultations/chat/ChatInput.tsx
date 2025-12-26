@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Send, Paperclip, Smile } from 'lucide-react';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 
 interface ChatInputProps {
   onSendMessage: (content: string, file?: File) => void;

@@ -6,8 +6,8 @@ import { MessageSquareIcon, XIcon, SendIcon, BotIcon, Minimize2Icon } from 'luci
 import { useAIChat } from '@/contexts/ai-chat-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { toast } from 'sonner';
 import { numerologyAPI } from '@/lib/numerology-api';
 

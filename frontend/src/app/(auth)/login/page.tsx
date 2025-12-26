@@ -7,10 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SparklesIcon, MailIcon, LockIcon, EyeIcon, EyeOffIcon, MoonIcon, SunIcon, CheckCircleIcon, AlertCircleIcon } from 'lucide-react';
 import { useTheme } from '@/contexts/theme-context';
 import { useAuth } from '@/contexts/auth-context';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
 import { useForm } from '@/hooks/use-form';
 import { commonValidationRules } from '@/lib/form-validation';
 import { LoginData } from '@/types';
@@ -82,10 +80,7 @@ function LoginContent() {
   });
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-
+    <div className="w-full min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       <div className="w-full max-w-md relative z-10">
         {/* Theme Toggle */}
         <motion.div
@@ -95,14 +90,14 @@ function LoginContent() {
         >
           <motion.button
             onClick={toggleTheme}
-            className="p-3 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-xl border border-gray-200 dark:border-white/20 shadow-lg"
+            className="p-3 rounded-2xl bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 shadow-lg"
             whileHover={{ scale: 1.1, rotate: 180 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.3 }}
             aria-label="Toggle theme"
           >
             {theme === 'light' ? (
-              <MoonIcon className="w-5 h-5 text-gray-700" />
+              <MoonIcon className="w-5 h-5 text-white" />
             ) : (
               <SunIcon className="w-5 h-5 text-yellow-400" />
             )}
@@ -128,11 +123,11 @@ function LoginContent() {
             >
               <SparklesIcon className="w-7 h-7 text-white" />
             </motion.div>
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+            <span className="text-3xl font-bold text-white">
               NumerAI
             </span>
           </motion.div>
-          <p className="text-gray-600 dark:text-white/70">
+          <p className="text-white/70">
             Welcome back to your numerology journey
           </p>
         </motion.div>
@@ -143,32 +138,31 @@ function LoginContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <GlassCard variant="liquid-premium" className="p-6 sm:p-8">
-            <div className="liquid-glass-content">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Sign In
-              </h2>
+          <SpaceCard variant="premium" className="p-6 sm:p-8" glow>
+            <h2 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              Sign In
+            </h2>
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-white/90 mb-2">
                     Email Address
                   </label>
                   <div className="relative">
-                    <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-white/60" />
+                    <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400/70" />
                     <input
                       type="email"
                       name="email"
                       value={values.email}
                       onChange={(e) => handleChange('email', e.target.value)}
                       onBlur={() => handleBlur('email')}
-                      className={`w-full pl-10 pr-10 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-10 py-3 bg-[#1a2942]/40 backdrop-blur-xl border ${
                         touched.email && errors.email
                           ? 'border-red-500 focus:ring-red-500'
                           : touched.email && !errors.email && values.email
                           ? 'border-green-500 focus:ring-green-500'
-                          : 'border-gray-300 dark:border-white/20 focus:ring-purple-500'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 transition-all`}
+                          : 'border-cyan-500/20 focus:ring-cyan-500'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:border-transparent text-white placeholder-white/50 transition-all`}
                       placeholder="your@email.com"
                       aria-label="Email address"
                       aria-invalid={touched.email && !!errors.email}
@@ -204,24 +198,24 @@ function LoginContent() {
 
                 {/* Password Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-white/90 mb-2">
+                  <label className="block text-sm font-semibold text-white/90 mb-2">
                     Password
                   </label>
                   <div className="relative">
-                    <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-white/60" />
+                    <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400/70" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={values.password}
                       onChange={(e) => handleChange('password', e.target.value)}
                       onBlur={() => handleBlur('password')}
-                      className={`w-full pl-10 pr-20 py-3 bg-white/50 dark:bg-white/10 backdrop-blur-xl border ${
+                      className={`w-full pl-10 pr-20 py-3 bg-[#1a2942]/40 backdrop-blur-xl border ${
                         touched.password && errors.password
                           ? 'border-red-500 focus:ring-red-500'
                           : touched.password && !errors.password && values.password
                           ? 'border-green-500 focus:ring-green-500'
-                          : 'border-gray-300 dark:border-white/20 focus:ring-purple-500'
-                      } rounded-2xl focus:outline-none focus:ring-2 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 transition-all`}
+                          : 'border-cyan-500/20 focus:ring-cyan-500'
+                      } rounded-2xl focus:outline-none focus:ring-2 focus:border-transparent text-white placeholder-white/50 transition-all`}
                       placeholder="••••••••"
                       aria-label="Password"
                     />
@@ -274,14 +268,14 @@ function LoginContent() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       className="w-4 h-4 text-purple-600 border-gray-300 dark:border-white/20 rounded focus:ring-purple-500 cursor-pointer bg-white/50 dark:bg-white/10"
                     />
-                    <span className="ml-2 text-sm text-gray-600 dark:text-white/70 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                    <span className="ml-2 text-sm text-white/70 group-hover:text-white transition-colors">
                       Remember me
                     </span>
                   </label>
                   <motion.button
                     type="button"
                     onClick={() => router.push('/reset-password')}
-                    className="text-sm text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 font-semibold transition-colors"
+                    className="text-sm text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
                     whileHover={{ x: 2 }}
                   >
                     Forgot password?
@@ -289,39 +283,26 @@ function LoginContent() {
                 </div>
 
                 {/* Submit Button */}
-                <GlassButton
+                <TouchOptimizedButton
                   type="submit"
-                  variant="liquid"
+                  variant="primary"
                   size="md"
-                  className="w-full glass-glow"
+                  className="w-full"
                   disabled={isSubmitting}
+                  loading={isSubmitting}
+                  ariaLabel="Sign in to your account"
                 >
-                  {isSubmitting ? (
-                    <motion.div
-                      className="flex items-center gap-2"
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <motion.div
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      />
-                      Signing in...
-                    </motion.div>
-                  ) : (
-                    'Sign In'
-                  )}
-                </GlassButton>
+                  {isSubmitting ? 'Signing in...' : 'Sign In'}
+                </TouchOptimizedButton>
               </form>
 
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-white/20"></div>
+                  <div className="w-full border-t border-cyan-500/20"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white/50 dark:bg-white/5 backdrop-blur-xl text-gray-600 dark:text-white/60 rounded-full">
+                  <span className="px-4 bg-[#1a2942]/60 backdrop-blur-xl text-white/60 rounded-full">
                     Or continue with
                   </span>
                 </div>
@@ -329,7 +310,7 @@ function LoginContent() {
 
               {/* Social Login */}
               <div className="grid grid-cols-2 gap-3">
-                <GlassButton variant="secondary" size="sm">
+                <TouchOptimizedButton variant="secondary" size="sm" fullWidth>
                   <Image
                     src="https://www.google.com/favicon.ico"
                     alt="Google"
@@ -338,8 +319,8 @@ function LoginContent() {
                     className="mr-2"
                   />
                   Google
-                </GlassButton>
-                <GlassButton variant="secondary" size="sm">
+                </TouchOptimizedButton>
+                <TouchOptimizedButton variant="secondary" size="sm" fullWidth>
                   <Image
                     src="https://www.facebook.com/favicon.ico"
                     alt="Facebook"
@@ -348,22 +329,21 @@ function LoginContent() {
                     className="mr-2"
                   />
                   Facebook
-                </GlassButton>
+                </TouchOptimizedButton>
               </div>
 
               {/* Sign Up Link */}
-              <p className="text-center mt-6 text-gray-600 dark:text-white/70">
+              <p className="text-center mt-6 text-white/70">
                 Don&apos;t have an account?{' '}
                 <motion.button
                   onClick={() => router.push('/register')}
-                  className="text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 font-semibold transition-colors"
+                  className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
                   whileHover={{ x: 2 }}
                 >
                   Sign up
                 </motion.button>
               </p>
-            </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
 
         {/* Back to Home */}
@@ -372,7 +352,7 @@ function LoginContent() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
           onClick={() => router.push('/')}
-          className="w-full mt-4 text-center text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="w-full mt-4 text-center text-white/70 hover:text-white transition-colors"
           whileHover={{ x: -4 }}
         >
           ← Back to home
@@ -385,11 +365,9 @@ function LoginContent() {
 export default function Login() {
   return (
     <Suspense fallback={
-      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
+      <div className="w-full min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
         <div className="w-full max-w-md relative z-10 text-center">
-          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       </div>
     }>

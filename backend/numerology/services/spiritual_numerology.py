@@ -445,4 +445,407 @@ class SpiritualNumerologyService:
             parts.append(f"You are in a rebirth cycle of: {current_rebirth[0]['transformation_theme']}")
         
         return " ".join(parts) if parts else "Your spiritual numerology profile reveals your soul's journey and purpose."
+    
+    def identify_soul_contracts_detailed(
+        self,
+        full_name: str,
+        birth_date: date
+    ) -> List[Dict[str, Any]]:
+        """
+        Identify detailed soul contracts with comprehensive analysis.
+        
+        Args:
+            full_name: Full name
+            birth_date: Birth date
+        
+        Returns:
+            List of detailed soul contract dictionaries
+        """
+        # Calculate base numbers
+        life_path = self.calculator.calculate_life_path_number(birth_date)
+        destiny = self.calculator.calculate_destiny_number(full_name)
+        soul_urge = self.calculator.calculate_soul_urge_number(full_name)
+        
+        contracts = self._calculate_soul_contracts(life_path, destiny, soul_urge, birth_date)
+        
+        # Enhance with detailed analysis
+        detailed_contracts = []
+        for contract in contracts:
+            contract_num = contract['contract_number']
+            detailed_contracts.append({
+                **contract,
+                'fulfillment_indicators': self._get_fulfillment_indicators(contract_num),
+                'challenges': self._get_contract_challenges(contract_num),
+                'opportunities': self._get_contract_opportunities(contract_num),
+                'meditation_guidance': self._get_contract_meditation(contract_num),
+                'affirmations': self._get_contract_affirmations(contract_num)
+            })
+        
+        return detailed_contracts
+    
+    def analyze_karmic_timeline(
+        self,
+        birth_date: date,
+        forecast_years: int = 50
+    ) -> Dict[str, Any]:
+        """
+        Analyze karmic timeline with visualization data.
+        
+        Args:
+            birth_date: Birth date
+            forecast_years: Number of years to forecast
+        
+        Returns:
+            Dictionary with timeline visualization data
+        """
+        today = date.today()
+        current_year = today.year
+        
+        life_path = self.calculator.calculate_life_path_number(birth_date)
+        cycles = self._calculate_karmic_cycles(birth_date, life_path)
+        
+        # Create timeline data with milestones
+        timeline_events = []
+        
+        for cycle in cycles:
+            if cycle['start_year'] <= current_year + forecast_years:
+                # Add transition markers
+                if cycle.get('is_current'):
+                    timeline_events.append({
+                        'year': current_year,
+                        'type': 'current_cycle',
+                        'cycle': cycle,
+                        'marker': 'current'
+                    })
+                
+                timeline_events.append({
+                    'year': cycle['start_year'],
+                    'type': 'cycle_start',
+                    'cycle': cycle,
+                    'marker': 'transition'
+                })
+                
+                timeline_events.append({
+                    'year': cycle['end_year'],
+                    'type': 'cycle_end',
+                    'cycle': cycle,
+                    'marker': 'transition'
+                })
+        
+        # Sort by year
+        timeline_events.sort(key=lambda x: x['year'])
+        
+        return {
+            'timeline_events': timeline_events,
+            'cycles': cycles,
+            'forecast_span': f"{current_year} - {current_year + forecast_years}",
+            'current_cycle': next((c for c in cycles if c.get('is_current')), None),
+            'upcoming_transitions': [
+                e for e in timeline_events 
+                if e['year'] > current_year and e['type'] in ['cycle_start', 'cycle_end']
+            ][:5]  # Next 5 transitions
+        }
+    
+    def calculate_rebirth_cycles_detailed(
+        self,
+        birth_date: date
+    ) -> List[Dict[str, Any]]:
+        """
+        Calculate detailed rebirth cycles with transition analysis.
+        
+        Args:
+            birth_date: Birth date
+        
+        Returns:
+            List of detailed rebirth cycle dictionaries
+        """
+        life_path = self.calculator.calculate_life_path_number(birth_date)
+        cycles = self._calculate_rebirth_cycles(birth_date, life_path)
+        
+        # Enhance with transition analysis
+        detailed_cycles = []
+        for cycle in cycles:
+            cycle_num = cycle['rebirth_number']
+            detailed_cycles.append({
+                **cycle,
+                'transition_periods': self._get_rebirth_transitions(cycle),
+                'preparation_steps': self._get_rebirth_preparation(cycle_num),
+                'spiritual_practices': self._get_rebirth_practices(cycle_num),
+                'warning_signs': self._get_rebirth_warnings(cycle_num)
+            })
+        
+        return detailed_cycles
+    
+    def optimize_meditation_timing(
+        self,
+        birth_date: date,
+        target_date: Optional[date] = None
+    ) -> Dict[str, Any]:
+        """
+        Optimize meditation timing based on numerology cycles.
+        
+        Args:
+            birth_date: Birth date
+            target_date: Optional target date, defaults to today
+        
+        Returns:
+            Dictionary with optimal meditation timing recommendations
+        """
+        if target_date is None:
+            target_date = date.today()
+        
+        # Calculate current cycles
+        personal_year = self.calculator.calculate_personal_year_number(birth_date, target_date.year)
+        personal_month = self.calculator.calculate_personal_month_number(
+            birth_date, target_date.year, target_date.month
+        )
+        
+        # Calculate personal day
+        personal_day = self.calculator.calculate_personal_day_number(
+            birth_date, target_date
+        )
+        
+        # Optimal meditation times based on numbers
+        optimal_times = self._get_optimal_meditation_times(personal_day, personal_month, personal_year)
+        
+        # Meditation practices based on cycles
+        practices = self._get_meditation_practices(personal_year)
+        
+        return {
+            'target_date': target_date.isoformat(),
+            'personal_year': personal_year,
+            'personal_month': personal_month,
+            'personal_day': personal_day,
+            'optimal_times': optimal_times,
+            'recommended_practices': practices,
+            'meditation_affirmations': self._get_meditation_affirmations(personal_year),
+            'crystal_recommendations': self._get_meditation_crystals(personal_year)
+        }
+    
+    def _get_fulfillment_indicators(self, contract_number: int) -> List[str]:
+        """Get indicators of contract fulfillment."""
+        indicators_map = {
+            1: ["Taking independent action", "Leading with confidence", "Trusting your path"],
+            2: ["Building harmonious relationships", "Practicing cooperation", "Finding balance"],
+            3: ["Expressing creativity freely", "Sharing joy with others", "Communicating authentically"],
+            4: ["Building stable foundations", "Maintaining discipline", "Creating structure"],
+            5: ["Embracing change courageously", "Seeking new experiences", "Staying flexible"],
+            6: ["Serving others selflessly", "Nurturing relationships", "Taking responsibility"],
+            7: ["Seeking deeper truth", "Trusting intuition", "Engaging in spiritual practice"],
+            8: ["Achieving material success", "Balancing power wisely", "Mastering skills"],
+            9: ["Serving humanity", "Letting go of attachments", "Practicing universal love"]
+        }
+        return indicators_map.get(contract_number, [])
+    
+    def _get_contract_challenges(self, contract_number: int) -> List[str]:
+        """Get challenges for soul contract."""
+        challenges_map = {
+            1: ["Overcoming fear of independence", "Learning to trust yourself", "Balancing leadership with humility"],
+            2: ["Avoiding codependency", "Learning to assert needs", "Finding your voice in partnerships"],
+            3: ["Overcoming creative blocks", "Avoiding superficiality", "Focusing energy"],
+            4: ["Avoiding rigidity", "Embracing change when needed", "Finding work-life balance"],
+            5: ["Finding stability amidst change", "Avoiding restlessness", "Maintaining commitments"],
+            6: ["Setting healthy boundaries", "Avoiding over-giving", "Self-care"],
+            7: ["Staying grounded", "Avoiding isolation", "Balancing spirituality with practicality"],
+            8: ["Avoiding materialism", "Using power ethically", "Balancing success with relationships"],
+            9: ["Avoiding burnout", "Setting boundaries", "Balancing service with self-care"]
+        }
+        return challenges_map.get(contract_number, [])
+    
+    def _get_contract_opportunities(self, contract_number: int) -> List[str]:
+        """Get opportunities for soul contract."""
+        opportunities_map = {
+            1: ["Leadership roles", "Starting new ventures", "Inspiring others"],
+            2: ["Partnerships", "Diplomacy", "Creating harmony"],
+            3: ["Creative projects", "Communication", "Expressing joy"],
+            4: ["Building projects", "Creating stability", "Organization"],
+            5: ["Adventure", "New experiences", "Freedom"],
+            6: ["Service", "Nurturing", "Healing"],
+            7: ["Spiritual growth", "Research", "Wisdom"],
+            8: ["Material success", "Achievement", "Power"],
+            9: ["Humanitarian work", "Teaching", "Completion"]
+        }
+        return opportunities_map.get(contract_number, [])
+    
+    def _get_contract_meditation(self, contract_number: int) -> str:
+        """Get meditation guidance for contract."""
+        guidance_map = {
+            1: "Meditate on independence and self-reliance. Visualize yourself leading confidently.",
+            2: "Meditate on harmony and balance. Focus on partnership and cooperation.",
+            3: "Meditate on creativity and expression. Visualize your creative flow.",
+            4: "Meditate on stability and foundation. Ground yourself in structure.",
+            5: "Meditate on change and freedom. Embrace transformation.",
+            6: "Meditate on service and love. Feel compassion flowing.",
+            7: "Meditate on truth and wisdom. Connect with your inner knowing.",
+            8: "Meditate on abundance and power. Visualize success with integrity.",
+            9: "Meditate on universal love and service. Connect with humanity."
+        }
+        return guidance_map.get(contract_number, "Meditate on your soul's purpose.")
+    
+    def _get_contract_affirmations(self, contract_number: int) -> List[str]:
+        """Get affirmations for contract."""
+        affirmations_map = {
+            1: ["I am a confident leader", "I trust my path", "I am independent and strong"],
+            2: ["I create harmony", "I balance giving and receiving", "I am a cooperative partner"],
+            3: ["I express my creativity freely", "I share joy", "I communicate authentically"],
+            4: ["I build strong foundations", "I am disciplined and organized", "I create stability"],
+            5: ["I embrace change", "I am free and adventurous", "I adapt easily"],
+            6: ["I serve with love", "I nurture others", "I take responsibility"],
+            7: ["I seek truth", "I trust my intuition", "I am spiritually connected"],
+            8: ["I achieve success", "I use power wisely", "I am abundant"],
+            9: ["I serve humanity", "I practice universal love", "I complete cycles"]
+        }
+        return affirmations_map.get(contract_number, ["I fulfill my soul contract"])
+    
+    def _get_rebirth_transitions(self, cycle: Dict) -> List[Dict[str, Any]]:
+        """Get transition periods for rebirth cycle."""
+        transitions = []
+        
+        # Quarter transitions
+        cycle_length = cycle['duration_years']
+        quarter = cycle_length // 4
+        
+        for i in range(1, 4):
+            transition_year = cycle['start_year'] + (i * quarter)
+            transitions.append({
+                'year': transition_year,
+                'type': 'quarter_transition',
+                'phase': f"Phase {i}",
+                'guidance': f"Major transition point in your {cycle['transformation_theme']} cycle"
+            })
+        
+        return transitions
+    
+    def _get_rebirth_preparation(self, cycle_number: int) -> List[str]:
+        """Get preparation steps for rebirth cycle."""
+        prep_map = {
+            1: ["Prepare for new beginnings", "Clear old patterns", "Set new intentions"],
+            2: ["Strengthen relationships", "Practice cooperation", "Build partnerships"],
+            3: ["Unlock creativity", "Express yourself", "Share your gifts"],
+            4: ["Build foundations", "Create structure", "Establish stability"],
+            5: ["Prepare for change", "Be flexible", "Embrace adventure"],
+            6: ["Prepare to serve", "Nurture others", "Take responsibility"],
+            7: ["Prepare for spiritual growth", "Deepen practice", "Seek truth"],
+            8: ["Prepare for success", "Build resources", "Focus on goals"],
+            9: ["Prepare for completion", "Let go", "Serve humanity"]
+        }
+        return prep_map.get(cycle_number, [])
+    
+    def _get_rebirth_practices(self, cycle_number: int) -> List[str]:
+        """Get spiritual practices for rebirth cycle."""
+        practices_map = {
+            1: ["Leadership meditation", "Independent action", "Vision setting"],
+            2: ["Partnership meditation", "Harmony practices", "Cooperation exercises"],
+            3: ["Creative expression", "Joy practices", "Communication exercises"],
+            4: ["Grounding practices", "Structure building", "Foundation work"],
+            5: ["Change acceptance", "Freedom practices", "Adventure planning"],
+            6: ["Service practices", "Love meditation", "Nurturing exercises"],
+            7: ["Deep meditation", "Spiritual study", "Intuition development"],
+            8: ["Abundance meditation", "Success visualization", "Power practices"],
+            9: ["Universal love meditation", "Service to others", "Completion rituals"]
+        }
+        return practices_map.get(cycle_number, [])
+    
+    def _get_rebirth_warnings(self, cycle_number: int) -> List[str]:
+        """Get warning signs for rebirth cycle."""
+        warnings_map = {
+            1: ["Beware of ego inflation", "Avoid isolation", "Balance independence"],
+            2: ["Beware of codependency", "Avoid losing yourself", "Maintain boundaries"],
+            3: ["Beware of scattered energy", "Avoid superficiality", "Focus attention"],
+            4: ["Beware of rigidity", "Avoid stagnation", "Allow flexibility"],
+            5: ["Beware of restlessness", "Avoid impulsivity", "Find grounding"],
+            6: ["Beware of over-giving", "Avoid self-neglect", "Set boundaries"],
+            7: ["Beware of isolation", "Avoid escapism", "Stay connected"],
+            8: ["Beware of materialism", "Avoid power misuse", "Maintain ethics"],
+            9: ["Beware of burnout", "Avoid over-giving", "Practice self-care"]
+        }
+        return warnings_map.get(cycle_number, [])
+    
+    def _get_optimal_meditation_times(self, personal_day: int, personal_month: int, personal_year: int) -> List[Dict[str, Any]]:
+        """Get optimal meditation times based on numerology."""
+        # Spiritual numbers (1, 3, 7, 9) indicate better meditation times
+        spiritual_numbers = [1, 3, 7, 9]
+        
+        times = []
+        
+        if personal_day in spiritual_numbers:
+            times.append({
+                'time': 'Early Morning (5-7 AM)',
+                'reason': f'Personal day {personal_day} is spiritually aligned',
+                'priority': 'high'
+            })
+        
+        if personal_month in spiritual_numbers:
+            times.append({
+                'time': 'Sunset (6-8 PM)',
+                'reason': f'Personal month {personal_month} enhances meditation',
+                'priority': 'high'
+            })
+        
+        if personal_year in spiritual_numbers:
+            times.append({
+                'time': 'Midnight (11 PM-1 AM)',
+                'reason': f'Personal year {personal_year} supports deep meditation',
+                'priority': 'medium'
+            })
+        
+        # Default times if no spiritual numbers
+        if not times:
+            times.append({
+                'time': 'Early Morning (5-7 AM)',
+                'reason': 'Universal optimal time',
+                'priority': 'medium'
+            })
+            times.append({
+                'time': 'Sunset (6-8 PM)',
+                'reason': 'Natural transition time',
+                'priority': 'medium'
+            })
+        
+        return times
+    
+    def _get_meditation_practices(self, personal_year: int) -> List[str]:
+        """Get recommended meditation practices."""
+        practices_map = {
+            1: ["Focus meditation", "Intention setting", "New beginning visualization"],
+            2: ["Loving-kindness meditation", "Partnership visualization", "Harmony practice"],
+            3: ["Creative visualization", "Joy meditation", "Expression practice"],
+            4: ["Grounding meditation", "Stability practice", "Foundation building"],
+            5: ["Change acceptance", "Freedom meditation", "Flexibility practice"],
+            6: ["Compassion meditation", "Service visualization", "Love practice"],
+            7: ["Deep meditation", "Spiritual inquiry", "Wisdom practice"],
+            8: ["Abundance meditation", "Success visualization", "Power practice"],
+            9: ["Universal love meditation", "Completion practice", "Service visualization"]
+        }
+        return practices_map.get(personal_year, ["Mindfulness meditation", "Breath awareness"])
+    
+    def _get_meditation_affirmations(self, personal_year: int) -> List[str]:
+        """Get meditation affirmations."""
+        affirmations_map = {
+            1: ["I am beginning anew", "I lead with confidence", "New opportunities await"],
+            2: ["I create harmony", "I am balanced", "Partnerships serve me"],
+            3: ["I express creatively", "Joy flows through me", "I communicate clearly"],
+            4: ["I am grounded", "Stability supports me", "I build strong foundations"],
+            5: ["I embrace change", "Freedom is my nature", "I adapt easily"],
+            6: ["I serve with love", "Compassion guides me", "I nurture others"],
+            7: ["I seek truth", "Wisdom guides me", "I am spiritually connected"],
+            8: ["Abundance flows to me", "I achieve success", "I use power wisely"],
+            9: ["I serve humanity", "Universal love flows through me", "I complete cycles"]
+        }
+        return affirmations_map.get(personal_year, ["I am present", "I am at peace"])
+    
+    def _get_meditation_crystals(self, personal_year: int) -> List[str]:
+        """Get crystal recommendations for meditation."""
+        crystals_map = {
+            1: ["Clear Quartz", "Citrine", "Carnelian"],
+            2: ["Rose Quartz", "Moonstone", "Pearl"],
+            3: ["Amethyst", "Lapis Lazuli", "Turquoise"],
+            4: ["Hematite", "Obsidian", "Smoky Quartz"],
+            5: ["Aquamarine", "Blue Lace Agate", "Chrysocolla"],
+            6: ["Rose Quartz", "Green Aventurine", "Emerald"],
+            7: ["Amethyst", "Selenite", "Clear Quartz"],
+            8: ["Pyrite", "Citrine", "Tiger's Eye"],
+            9: ["Amethyst", "Rose Quartz", "Clear Quartz"]
+        }
+        return crystals_map.get(personal_year, ["Clear Quartz", "Amethyst"])
 

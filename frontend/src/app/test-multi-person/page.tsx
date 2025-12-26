@@ -10,10 +10,9 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 
 export default function TestMultiPersonSystem() {
   const router = useRouter();
@@ -61,10 +60,7 @@ export default function TestMultiPersonSystem() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden p-4 sm:p-8">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10">
+    <CosmicPageLayout>
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -73,26 +69,26 @@ export default function TestMultiPersonSystem() {
         >
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-4">
               Multi-Person Numerology System
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-white/70 max-w-2xl mx-auto">
               Comprehensive testing of the multi-person numerology reporting system
             </p>
           </div>
 
           {/* System Overview */}
-          <GlassCard variant="default" className="p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">System Components</h2>
+          <SpaceCard variant="premium" className="p-8 mb-8" glow>
+            <h2 className="text-2xl font-bold text-white mb-6">System Components</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">People Management</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  <h3 className="text-lg font-semibold text-white">People Management</h3>
+                  <p className="text-white/70 mt-1">
                     Add, edit, and manage multiple people for numerology reports
                   </p>
                 </div>
@@ -103,8 +99,8 @@ export default function TestMultiPersonSystem() {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report Generation</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  <h3 className="text-lg font-semibold text-white">Report Generation</h3>
+                  <p className="text-white/70 mt-1">
                     Generate personalized numerology reports for each person
                   </p>
                 </div>
@@ -115,8 +111,8 @@ export default function TestMultiPersonSystem() {
                   <Calculator className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Numerology Calculation</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  <h3 className="text-lg font-semibold text-white">Numerology Calculation</h3>
+                  <p className="text-white/70 mt-1">
                     Calculate numerology profiles for multiple people
                   </p>
                 </div>
@@ -127,116 +123,120 @@ export default function TestMultiPersonSystem() {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Bulk Generation</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  <h3 className="text-lg font-semibold text-white">Bulk Generation</h3>
+                  <p className="text-white/70 mt-1">
                     Generate multiple reports simultaneously for different people and templates
                   </p>
                 </div>
               </div>
             </div>
-          </GlassCard>
+          </SpaceCard>
 
           {/* Test Results */}
-          <GlassCard variant="default" className="p-8 mb-8">
+          <SpaceCard variant="premium" className="p-8 mb-8" glow>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Test Results</h2>
-              <GlassButton 
+              <h2 className="text-2xl font-bold text-white">System Test Results</h2>
+              <TouchOptimizedButton 
                 variant="primary" 
                 onClick={runTests}
                 disabled={testing}
+                loading={testing}
               >
-                {testing ? 'Testing...' : 'Run Tests'}
-              </GlassButton>
+                Run Tests
+              </TouchOptimizedButton>
             </div>
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50">
-                <span className="text-gray-900 dark:text-white">Backend Models Implementation</span>
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-[#1a2942]/40">
+                <span className="text-white">Backend Models Implementation</span>
                 {testResults.backendModels ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-6 h-6 text-green-400" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-gray-400" />
+                  <XCircle className="w-6 h-6 text-white/40" />
                 )}
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50">
-                <span className="text-gray-900 dark:text-white">API Endpoints Functionality</span>
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-[#1a2942]/40">
+                <span className="text-white">API Endpoints Functionality</span>
                 {testResults.apiEndpoints ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-6 h-6 text-green-400" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-gray-400" />
+                  <XCircle className="w-6 h-6 text-white/40" />
                 )}
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50">
-                <span className="text-gray-900 dark:text-white">Frontend Components</span>
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-[#1a2942]/40">
+                <span className="text-white">Frontend Components</span>
                 {testResults.frontendComponents ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-6 h-6 text-green-400" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-gray-400" />
+                  <XCircle className="w-6 h-6 text-white/40" />
                 )}
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50">
-                <span className="text-gray-900 dark:text-white">Report Generation</span>
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-[#1a2942]/40">
+                <span className="text-white">Report Generation</span>
                 {testResults.reportGeneration ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-6 h-6 text-green-400" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-gray-400" />
+                  <XCircle className="w-6 h-6 text-white/40" />
                 )}
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50">
-                <span className="text-gray-900 dark:text-white">Bulk Report Generation</span>
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-[#1a2942]/40">
+                <span className="text-white">Bulk Report Generation</span>
                 {testResults.bulkGeneration ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-6 h-6 text-green-400" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-gray-400" />
+                  <XCircle className="w-6 h-6 text-white/40" />
                 )}
               </div>
             </div>
-          </GlassCard>
+          </SpaceCard>
 
           {/* Navigation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <GlassCard 
-              variant="default" 
+            <SpaceCard 
+              variant="premium" 
               className="p-6 text-center cursor-pointer hover:shadow-lg transition-shadow"
               onClick={navigateToPeople}
+              glow
             >
-              <Users className="w-12 h-12 text-purple-600 dark:text-purple-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">People Management</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <Users className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">People Management</h3>
+              <p className="text-white/70 text-sm">
                 Manage multiple people for numerology reports
               </p>
-            </GlassCard>
+            </SpaceCard>
             
-            <GlassCard 
-              variant="default" 
+            <SpaceCard 
+              variant="premium" 
               className="p-6 text-center cursor-pointer hover:shadow-lg transition-shadow"
               onClick={navigateToReports}
+              glow
             >
-              <FileText className="w-12 h-12 text-purple-600 dark:text-purple-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">View Reports</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <FileText className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">View Reports</h3>
+              <p className="text-white/70 text-sm">
                 Browse generated numerology reports
               </p>
-            </GlassCard>
+            </SpaceCard>
             
-            <GlassCard 
-              variant="default" 
+            <SpaceCard 
+              variant="premium" 
               className="p-6 text-center cursor-pointer hover:shadow-lg transition-shadow"
               onClick={navigateToGenerate}
+              glow
             >
-              <Calculator className="w-12 h-12 text-purple-600 dark:text-purple-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Generate Reports</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <Calculator className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Generate Reports</h3>
+              <p className="text-white/70 text-sm">
                 Create new numerology reports for people
               </p>
-            </GlassCard>
+            </SpaceCard>
           </div>
         </motion.div>
-        </div>      </div>
-    </div>
+      </div>
+    </CosmicPageLayout>
   );
 }

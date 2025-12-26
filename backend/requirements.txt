@@ -67,3 +67,15 @@ stripe==10.1.0
 pytest==8.0.0
 pytest-django==4.8.0
 pytest-cov==4.1.0
+
+# Error Tracking & Monitoring
+sentry-sdk==1.40.0
+
+# GraphQL
+graphene-django==3.1.5
+django-graphql-jwt==0.4.0
+
+# WebSocket & Real-time
+channels==4.0.0
+channels-redis==4.1.0
+daphne==4.0.0

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MessageSquare, Send, Paperclip } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
+import { SpaceCard } from '@/components/space/space-card';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { ChatMessageThread } from '@/components/consultations/chat/ChatMessageThread';
 import { ChatInput } from '@/components/consultations/chat/ChatInput';
 import { chatAPI } from '@/lib/chat-api';
@@ -128,19 +129,21 @@ function ChatPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 p-8">
-      <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)]">
+    <CosmicPageLayout>
+      <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)] p-8">
         <div className="grid grid-cols-3 gap-4 h-full">
           {/* Conversations List */}
-          <GlassCard className="p-4 overflow-y-auto">
-            <h2 className="text-xl font-semibold mb-4">Conversations</h2>
+          <SpaceCard variant="elevated" className="p-4 overflow-y-auto">
+            <h2 className="text-xl font-semibold mb-4 text-white">Conversations</h2>
             <div className="space-y-2">
               {conversations.map((conv) => {
                 const expert = typeof conv.expert === 'object' ? conv.expert : null;
@@ -154,16 +157,16 @@ function ChatPageContent() {
                     }}
                     className={`w-full text-left p-3 rounded-lg transition-colors ${
                       activeConversation?.id === conv.id
-                        ? 'bg-blue-100 dark:bg-blue-900'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-cyan-500/20 border border-cyan-500/40'
+                        : 'hover:bg-[#1a2942]/40 border border-transparent'
                     }`}
                   >
-                    <div className="font-medium">{expert?.name || 'Expert'}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    <div className="font-medium text-white">{expert?.name || 'Expert'}</div>
+                    <div className="text-sm text-white/70 truncate">
                       {conv.last_message_preview || 'No messages yet'}
                     </div>
                     {conv.unread_count_user > 0 && (
-                      <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      <div className="text-xs text-cyan-400 mt-1">
                         {conv.unread_count_user} unread
                       </div>
                     )}
@@ -171,20 +174,20 @@ function ChatPageContent() {
                 );
               })}
             </div>
-          </GlassCard>
+          </SpaceCard>
 
           {/* Chat Area */}
           <div className="col-span-2 flex flex-col">
             {activeConversation ? (
               <>
-                <GlassCard className="p-4 mb-4">
-                  <h3 className="text-lg font-semibold">
+                <SpaceCard variant="elevated" className="p-4 mb-4">
+                  <h3 className="text-lg font-semibold text-white">
                     {typeof activeConversation.expert === 'object'
                       ? activeConversation.expert.name
                       : 'Expert'}
                   </h3>
-                </GlassCard>
-                <GlassCard className="flex-1 flex flex-col overflow-hidden">
+                </SpaceCard>
+                <SpaceCard variant="elevated" className="flex-1 flex flex-col overflow-hidden">
                   <ChatMessageThread
                     messages={messages}
                     currentUserId={user?.id}
@@ -193,29 +196,31 @@ function ChatPageContent() {
                     onSendMessage={handleSendMessage}
                     disabled={sending}
                   />
-                </GlassCard>
+                </SpaceCard>
               </>
             ) : (
-              <GlassCard className="flex-1 flex items-center justify-center">
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <SpaceCard variant="elevated" className="flex-1 flex items-center justify-center">
+                <div className="text-center text-white/70">
+                  <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50 text-cyan-400" />
                   <p>Select a conversation to start chatting</p>
                 </div>
-              </GlassCard>
+              </SpaceCard>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }
 
 export default function ChatPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     }>
       <ChatPageContent />
     </Suspense>

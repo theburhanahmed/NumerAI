@@ -1,180 +1,306 @@
 """
-Analytics services for processing user behavior and generating insights.
+Analytics services for tracking and analyzing user behavior.
 """
-from typing import List, Dict
-from datetime import date, timedelta
 from django.utils import timezone
-from django.db.models import Count, Avg, Q
-from .models import UserBehavior, AnalyticsInsight, GrowthMetric
-from dashboard.models import UserActivity
+from django.db.models import Count, Q, Avg, Sum, F
+from django.db.models.functions import TruncDate, TruncHour
+from datetime import timedelta
+from .models import (
+    UserActivityLog, EventTracking, UserJourney,
+    ABTest, ConversionFunnel, BusinessMetric
+)
+from accounts.models import User
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-class AnalyticsService:
-    """Service for analytics operations."""
+def track_activity(user, activity_type, activity_data=None, request=None, **kwargs):
+    """
+    Track a user activity.
     
-    def track_behavior(self, user, action_type: str, action_details: Dict = None, **kwargs):
-        """Track user behavior."""
-        if action_details is None:
-            action_details = {}
-        
-        UserBehavior.objects.create(
-            user=user,
-            action_type=action_type,
-            action_details=action_details,
+    Args:
+        user: User instance or None for anonymous
+        activity_type: Type of activity (e.g., 'page_view', 'button_click', 'feature_used')
+        activity_data: Additional data about the activity
+        request: Django request object (optional)
+        **kwargs: Additional fields (page_path, feature_name, session_id)
+    """
+    try:
+        log_entry = UserActivityLog.objects.create(
+            user=user if user and user.is_authenticated else None,
+            activity_type=activity_type,
+            activity_data=activity_data or {},
+            ip_address=request.META.get('REMOTE_ADDR') if request else None,
+            user_agent=request.META.get('HTTP_USER_AGENT', '') if request else '',
             session_id=kwargs.get('session_id', ''),
-            ip_address=kwargs.get('ip_address'),
-            user_agent=kwargs.get('user_agent', '')
+            page_path=kwargs.get('page_path', ''),
+            feature_name=kwargs.get('feature_name', ''),
         )
-        
-        # Also track in UserActivity for dashboard
-        activity_type_map = {
-            'feature_used': 'ai_chat_used',
-            'calculation_performed': 'birth_chart_viewed',
-            'report_generated': 'report_generated',
-        }
-        
-        activity_type = activity_type_map.get(action_type)
-        if activity_type:
-            UserActivity.objects.create(
-                user=user,
-                activity_type=activity_type,
-                metadata=action_details
-            )
-    
-    def get_personal_analytics(self, user, days: int = 30) -> Dict:
-        """Get personal analytics for user."""
-        start_date = timezone.now() - timedelta(days=days)
-        
-        # Feature usage
-        behaviors = UserBehavior.objects.filter(
-            user=user,
-            created_at__gte=start_date
-        )
-        
-        feature_usage = behaviors.values('action_type').annotate(
-            count=Count('id')
-        ).order_by('-count')
-        
-        # Engagement score (based on daily activity)
-        daily_activity = {}
-        for i in range(days):
-            day = start_date + timedelta(days=i)
-            day_start = day.replace(hour=0, minute=0, second=0)
-            day_end = day.replace(hour=23, minute=59, second=59)
-            
-            day_behaviors = behaviors.filter(
-                created_at__gte=day_start,
-                created_at__lte=day_end
-            ).count()
-            
-            daily_activity[day.date().isoformat()] = day_behaviors
-        
-        engagement_score = sum(daily_activity.values()) / days if days > 0 else 0
-        
-        # Most used features
-        top_features = list(feature_usage[:5])
-        
-        return {
-            'period_days': days,
-            'total_actions': behaviors.count(),
-            'engagement_score': round(engagement_score, 2),
-            'feature_usage': top_features,
-            'daily_activity': daily_activity,
-            'average_daily_actions': round(engagement_score, 2)
-        }
-    
-    def generate_insights(self, user) -> List[Dict]:
-        """Generate behavioral insights."""
-        insights = []
-        
-        # Insight 1: Engagement level
-        analytics = self.get_personal_analytics(user, 7)
-        if analytics['engagement_score'] > 5:
-            insights.append({
-                'type': 'engagement',
-                'title': 'High Engagement',
-                'content': f"You've been very active this week with {analytics['total_actions']} actions. Keep exploring!",
-                'insight_data': analytics,
-                'confidence_score': 0.9
-            })
-        elif analytics['engagement_score'] < 2:
-            insights.append({
-                'type': 'engagement',
-                'title': 'Explore More Features',
-                'content': "You haven't been active recently. Discover new numerology insights waiting for you.",
-                'insight_data': analytics,
-                'confidence_score': 0.8
-            })
-        
-        # Insight 2: Feature usage patterns
-        top_feature = analytics['feature_usage'][0] if analytics['feature_usage'] else None
-        if top_feature:
-            insights.append({
-                'type': 'usage_pattern',
-                'title': 'Most Used Feature',
-                'content': f"Your most used feature is {top_feature['action_type']}. Explore related features for deeper insights.",
-                'insight_data': {'top_feature': top_feature},
-                'confidence_score': 0.85
-            })
-        
-        # Save insights
-        for insight_data in insights:
-            AnalyticsInsight.objects.update_or_create(
-                user=user,
-                title=insight_data['title'],
-                defaults={
-                    'insight_type': insight_data['type'],
-                    'content': insight_data['content'],
-                    'insight_data': insight_data.get('insight_data', {}),
-                    'confidence_score': insight_data['confidence_score'],
-                    'is_read': False
-                }
-            )
-        
-        return insights
-    
-    def get_growth_metrics(self, user, period_days: int = 30) -> Dict:
-        """Get personal growth metrics."""
-        end_date = date.today()
-        start_date = end_date - timedelta(days=period_days)
-        
-        # Feature adoption
-        behaviors = UserBehavior.objects.filter(
-            user=user,
-            created_at__date__gte=start_date,
-            created_at__date__lte=end_date
-        )
-        
-        unique_features = behaviors.values('action_type').distinct().count()
-        total_features_available = 10  # Approximate number of features
-        feature_adoption = (unique_features / total_features_available) * 100
-        
-        # Consistency (days active)
-        active_days = behaviors.values('created_at__date').distinct().count()
-        consistency = (active_days / period_days) * 100 if period_days > 0 else 0
-        
-        # Save metrics
-        GrowthMetric.objects.create(
-            user=user,
-            metric_type='feature_adoption',
-            metric_value=feature_adoption,
-            period_start=start_date,
-            period_end=end_date
-        )
-        
-        GrowthMetric.objects.create(
-            user=user,
-            metric_type='consistency',
-            metric_value=consistency,
-            period_start=start_date,
-            period_end=end_date
-        )
-        
-        return {
-            'feature_adoption': round(feature_adoption, 2),
-            'consistency': round(consistency, 2),
-            'active_days': active_days,
-            'total_days': period_days,
-            'unique_features_used': unique_features
-        }
+        return log_entry
+    except Exception as e:
+        logger.error(f"Failed to track activity: {str(e)}", exc_info=True)
+        return None
 
+
+def track_event(user, event_name, event_category='engagement', event_properties=None, 
+                funnel_name=None, funnel_step=None, experiment_id=None, variant_id=None,
+                request=None, **kwargs):
+    """
+    Track a specific event for conversion funnels and A/B testing.
+    
+    Args:
+        user: User instance or None
+        event_name: Name of the event
+        event_category: Category (e.g., 'conversion', 'engagement', 'error')
+        event_properties: Additional event properties
+        funnel_name: Name of the funnel (if part of a funnel)
+        funnel_step: Step in the funnel
+        experiment_id: A/B test experiment ID
+        variant_id: A/B test variant ID
+        request: Django request object
+        **kwargs: Additional fields
+    """
+    try:
+        # Determine funnel position if funnel_name is provided
+        funnel_position = None
+        if funnel_name:
+            funnel = ConversionFunnel.objects.filter(name=funnel_name, is_active=True).first()
+            if funnel and funnel_step:
+                try:
+                    funnel_position = funnel.steps.index(funnel_step) + 1
+                except ValueError:
+                    pass
+        
+        event = EventTracking.objects.create(
+            user=user if user and user.is_authenticated else None,
+            event_name=event_name,
+            event_category=event_category,
+            event_properties=event_properties or {},
+            funnel_name=funnel_name or '',
+            funnel_step=funnel_step or '',
+            funnel_position=funnel_position,
+            experiment_id=experiment_id or '',
+            variant_id=variant_id or '',
+            session_id=kwargs.get('session_id', ''),
+            page_path=kwargs.get('page_path', ''),
+            referrer=kwargs.get('referrer', ''),
+        )
+        return event
+    except Exception as e:
+        logger.error(f"Failed to track event: {str(e)}", exc_info=True)
+        return None
+
+
+def get_user_behavior_metrics(user, days=30):
+    """
+    Get user behavior metrics for a specific user.
+    
+    Returns:
+        dict: User behavior metrics
+    """
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=days)
+    
+    # Activity counts
+    activities = UserActivityLog.objects.filter(
+        user=user,
+        created_at__gte=start_date
+    )
+    
+    activity_counts = activities.values('activity_type').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Feature usage
+    feature_usage = activities.filter(
+        feature_name__isnull=False
+    ).exclude(feature_name='').values('feature_name').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Daily activity
+    daily_activity = activities.annotate(
+        date=TruncDate('created_at')
+    ).values('date').annotate(
+        count=Count('id')
+    ).order_by('date')
+    
+    return {
+        'total_activities': activities.count(),
+        'activity_breakdown': list(activity_counts),
+        'feature_usage': list(feature_usage),
+        'daily_activity': list(daily_activity),
+        'period_days': days,
+    }
+
+
+def get_conversion_funnel_metrics(funnel_name, days=30):
+    """
+    Get conversion funnel metrics.
+    
+    Returns:
+        dict: Funnel metrics with conversion rates
+    """
+    try:
+        funnel = ConversionFunnel.objects.get(name=funnel_name, is_active=True)
+    except ConversionFunnel.DoesNotExist:
+        return None
+    
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=days)
+    
+    # Get events for this funnel
+    events = EventTracking.objects.filter(
+        funnel_name=funnel_name,
+        created_at__gte=start_date
+    )
+    
+    # Count users at each step
+    step_counts = {}
+    for i, step in enumerate(funnel.steps, 1):
+        step_events = events.filter(funnel_position=i)
+        unique_users = step_events.values('user').distinct().count()
+        step_counts[step] = {
+            'position': i,
+            'users': unique_users,
+            'events': step_events.count(),
+        }
+    
+    # Calculate conversion rates
+    if step_counts:
+        first_step_count = list(step_counts.values())[0]['users']
+        if first_step_count > 0:
+            for step_name, step_data in step_counts.items():
+                step_data['conversion_rate'] = (step_data['users'] / first_step_count) * 100
+        else:
+            for step_data in step_counts.values():
+                step_data['conversion_rate'] = 0
+    
+    return {
+        'funnel_name': funnel_name,
+        'steps': step_counts,
+        'total_users_entered': list(step_counts.values())[0]['users'] if step_counts else 0,
+        'total_users_completed': list(step_counts.values())[-1]['users'] if step_counts else 0,
+        'overall_conversion_rate': (
+            (list(step_counts.values())[-1]['users'] / list(step_counts.values())[0]['users'] * 100)
+            if step_counts and list(step_counts.values())[0]['users'] > 0 else 0
+        ),
+        'period_days': days,
+    }
+
+
+def get_business_metrics(days=30, metric_category=None):
+    """
+    Get aggregated business metrics.
+    
+    Returns:
+        dict: Business metrics
+    """
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=days)
+    
+    # User metrics
+    total_users = User.objects.filter(is_active=True).count()
+    new_users = User.objects.filter(
+        date_joined__gte=start_date,
+        is_active=True
+    ).count()
+    
+    # Active users
+    dau = User.objects.filter(
+        last_login__date=timezone.now().date(),
+        is_active=True
+    ).count()
+    
+    mau = User.objects.filter(
+        last_login__gte=start_date,
+        is_active=True
+    ).distinct().count()
+    
+    # Engagement metrics
+    activities_count = UserActivityLog.objects.filter(
+        created_at__gte=start_date
+    ).count()
+    
+    events_count = EventTracking.objects.filter(
+        created_at__gte=start_date
+    ).count()
+    
+    # Feature usage
+    feature_usage = UserActivityLog.objects.filter(
+        created_at__gte=start_date,
+        feature_name__isnull=False
+    ).exclude(feature_name='').values('feature_name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    return {
+        'users': {
+            'total': total_users,
+            'new': new_users,
+            'dau': dau,
+            'mau': mau,
+            'retention_rate': (dau / mau * 100) if mau > 0 else 0,
+        },
+        'engagement': {
+            'total_activities': activities_count,
+            'total_events': events_count,
+            'avg_activities_per_user': activities_count / mau if mau > 0 else 0,
+        },
+        'feature_usage': list(feature_usage),
+        'period_days': days,
+    }
+
+
+def get_ab_test_results(experiment_id):
+    """
+    Get A/B test results.
+    
+    Returns:
+        dict: A/B test results with statistical significance
+    """
+    try:
+        test = ABTest.objects.get(id=experiment_id)
+    except ABTest.DoesNotExist:
+        return None
+    
+    # Get events for each variant
+    variant_results = {}
+    for variant in test.variants:
+        variant_id = variant.get('id', '')
+        events = EventTracking.objects.filter(
+            experiment_id=str(test.id),
+            variant_id=variant_id
+        )
+        
+        # Calculate metrics
+        unique_users = events.values('user').distinct().count()
+        total_events = events.count()
+        
+        # Get primary metric value
+        primary_metric_value = 0
+        if test.primary_metric == 'conversion_rate':
+            # Count conversions (events with specific name)
+            conversions = events.filter(
+                event_name__icontains='conversion'
+            ).count()
+            primary_metric_value = (conversions / total_events * 100) if total_events > 0 else 0
+        elif test.primary_metric == 'engagement_score':
+            # Calculate engagement score
+            primary_metric_value = total_events / unique_users if unique_users > 0 else 0
+        
+        variant_results[variant_id] = {
+            'variant_name': variant.get('name', variant_id),
+            'users': unique_users,
+            'events': total_events,
+            'primary_metric': primary_metric_value,
+        }
+    
+    return {
+        'experiment_id': str(test.id),
+        'experiment_name': test.name,
+        'primary_metric': test.primary_metric,
+        'variants': variant_results,
+        'is_active': test.is_active,
+    }

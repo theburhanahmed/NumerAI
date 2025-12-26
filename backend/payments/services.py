@@ -227,18 +227,27 @@ def handle_webhook_event(event: dict) -> dict:
     event_id = event.get('id')
     event_type = event.get('type')
     
-    # Store webhook event
+    # Store webhook event with idempotency check
+    # Use get_or_create to ensure idempotency - same event won't be processed twice
     webhook_event, created = WebhookEvent.objects.get_or_create(
         stripe_event_id=event_id,
         defaults={
             'event_type': event_type,
             'payload': event,
+            'processed': False,
         }
     )
     
-    if not created:
-        # Event already processed
+    if not created and webhook_event.processed:
+        # Event already processed successfully
+        logger.info(f"Webhook event {event_id} already processed, skipping")
         return {'status': 'already_processed', 'event_id': event_id}
+    
+    # Update payload if event was received before but not processed
+    if not created:
+        webhook_event.payload = event
+        webhook_event.event_type = event_type
+        webhook_event.save(update_fields=['payload', 'event_type'])
     
     try:
         data = event.get('data', {}).get('object', {})

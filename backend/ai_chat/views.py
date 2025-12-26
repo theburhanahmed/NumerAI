@@ -12,6 +12,7 @@ from .models import AIConversation, AIMessage
 from .serializers import (
     AIConversationSerializer, AIMessageSerializer, ChatMessageSerializer
 )
+from utils.activity_logger import log_user_activity
 from openai import OpenAI
 import os
 import logging
@@ -199,6 +200,12 @@ def ai_chat(request):
         conversation.last_message_at = timezone.now()
         conversation.message_count = conversation.messages.count()
         conversation.save()
+        
+        # Log activity
+        log_user_activity(user, 'ai_chat_used', {
+            'conversation_id': str(conversation.id),
+            'tokens_used': tokens_used
+        })
         
         serializer = AIMessageSerializer(ai_msg)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AlertCircleIcon, TrendingUpIcon, SparklesIcon, BookOpenIcon } from 'lucide-react';
-import { PageLayout } from '@/components/ui/page-layout';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { CosmicCosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
 import { useAuth } from '@/contexts/auth-context';
 import { numerologyAPI } from '@/lib/numerology-api';
 import { userAPI } from '@/lib/api-client';
@@ -180,31 +180,31 @@ export default function AdvancedNumerology() {
 
   if (loading) {
     return (
-      <PageLayout>
+      <CosmicPageLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading advanced numerology...</p>
+            <p className="text-white/70">Loading advanced numerology...</p>
           </div>
         </div>
-      </PageLayout>
+      </CosmicPageLayout>
     );
   }
 
   if (!profile) {
     return (
-      <PageLayout>
-        <GlassCard className="p-8 text-center">
-          <AlertCircleIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-4">Profile Not Found</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+      <CosmicPageLayout>
+        <SpaceCard className="p-8 text-center">
+          <AlertCircleIcon className="w-16 h-16 text-white/60 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4 text-white">Profile Not Found</h2>
+          <p className="text-white/70 mb-6">
             Please calculate your numerology profile first.
           </p>
-          <GlassButton onClick={() => router.push('/dashboard')}>
+          <TouchOptimizedButton onClick={() => router.push('/dashboard')}>
             Go to Dashboard
-          </GlassButton>
-        </GlassCard>
-      </PageLayout>
+          </TouchOptimizedButton>
+        </SpaceCard>
+      </CosmicPageLayout>
     );
   }
 
@@ -213,7 +213,7 @@ export default function AdvancedNumerology() {
   const challenges = calculateChallenges();
 
   return (
-    <PageLayout>
+    <CosmicPageLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Page Header */}
         <motion.div
@@ -223,37 +223,37 @@ export default function AdvancedNumerology() {
         >
           <div className="flex items-center justify-center gap-3 mb-4">
             <motion.div
-              className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg"
+              className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg"
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
               <SparklesIcon className="w-6 h-6 text-white" />
             </motion.div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-purple-600 bg-clip-text text-transparent">
               Advanced Numerology
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-white/70">
             Deep insights into your karmic lessons and life cycles
           </p>
         </motion.div>
 
         {/* Tabs */}
         <div className="flex gap-2 justify-center mb-6">
-          <GlassButton
-            variant={activeTab === 'karmic' ? 'liquid' : 'ghost'}
+          <TouchOptimizedButton
+            variant={activeTab === 'karmic' ? 'primary' : 'secondary'}
             onClick={() => setActiveTab('karmic')}
-            icon={<AlertCircleIcon className="w-4 h-4" />}
           >
+            <AlertCircleIcon className="w-4 h-4 mr-2" />
             Karmic Lessons
-          </GlassButton>
-          <GlassButton
-            variant={activeTab === 'pinnacle' ? 'liquid' : 'ghost'}
+          </TouchOptimizedButton>
+          <TouchOptimizedButton
+            variant={activeTab === 'pinnacle' ? 'primary' : 'secondary'}
             onClick={() => setActiveTab('pinnacle')}
-            icon={<TrendingUpIcon className="w-4 h-4" />}
           >
+            <TrendingUpIcon className="w-4 h-4 mr-2" />
             Pinnacles & Challenges
-          </GlassButton>
+          </TouchOptimizedButton>
         </div>
 
         {/* Karmic Lessons Tab */}
@@ -263,21 +263,21 @@ export default function AdvancedNumerology() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <GlassCard className="p-6 md:p-8">
+            <SpaceCard className="p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <AlertCircleIcon className="w-8 h-8 text-purple-600" />
-                <h2 className="text-2xl font-bold">Karmic Lessons</h2>
+                <AlertCircleIcon className="w-8 h-8 text-purple-400" />
+                <h2 className="text-2xl font-bold text-white">Karmic Lessons</h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-white/70 mb-6">
                 Karmic lessons are numbers missing from your birth date. These represent areas where you need to grow and develop throughout your life.
               </p>
 
               {karmicLessons.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="text-white/70 mb-4">
                     Congratulations! All numbers are present in your birth date.
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">
+                  <p className="text-sm text-white/60">
                     You have a balanced numerological foundation.
                   </p>
                 </div>
@@ -290,22 +290,22 @@ export default function AdvancedNumerology() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <GlassCard variant="elevated" className="p-6">
+                      <SpaceCard variant="elevated" className="p-6">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                          <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
                             {lesson.number}
                           </div>
-                          <h3 className="text-lg font-semibold">Missing Number {lesson.number}</h3>
+                          <h3 className="text-lg font-semibold text-white">Missing Number {lesson.number}</h3>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-white/70">
                           {lesson.lesson}
                         </p>
-                      </GlassCard>
+                      </SpaceCard>
                     </motion.div>
                   ))}
                 </div>
               )}
-            </GlassCard>
+            </SpaceCard>
           </motion.div>
         )}
 
@@ -318,12 +318,12 @@ export default function AdvancedNumerology() {
             className="space-y-6"
           >
             {/* Pinnacles */}
-            <GlassCard className="p-6 md:p-8">
+            <SpaceCard className="p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <TrendingUpIcon className="w-8 h-8 text-blue-600" />
-                <h2 className="text-2xl font-bold">Pinnacles</h2>
+                <TrendingUpIcon className="w-8 h-8 text-cyan-400" />
+                <h2 className="text-2xl font-bold text-white">Pinnacles</h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-white/70 mb-6">
                 Pinnacles represent the four major cycles of achievement and opportunity in your life.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,32 +334,32 @@ export default function AdvancedNumerology() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <GlassCard variant="elevated" className="p-6">
+                    <SpaceCard variant="elevated" className="p-6">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold">{pinnacle.title}</h3>
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                        <h3 className="text-lg font-semibold text-white">{pinnacle.title}</h3>
+                        <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
                           {pinnacle.number}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      <p className="text-sm text-white/60 mb-2">
                         Ages: {pinnacle.period}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-white/70">
                         {getPinnacleDescription(pinnacle.number)}
                       </p>
-                    </GlassCard>
+                    </SpaceCard>
                   </motion.div>
                 ))}
               </div>
-            </GlassCard>
+            </SpaceCard>
 
             {/* Challenges */}
-            <GlassCard className="p-6 md:p-8">
+            <SpaceCard className="p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <AlertCircleIcon className="w-8 h-8 text-amber-600" />
-                <h2 className="text-2xl font-bold">Challenges</h2>
+                <AlertCircleIcon className="w-8 h-8 text-orange-400" />
+                <h2 className="text-2xl font-bold text-white">Challenges</h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-white/70 mb-6">
                 Challenges represent the obstacles and lessons you&apos;ll face during each life cycle.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,24 +370,24 @@ export default function AdvancedNumerology() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <GlassCard variant="elevated" className="p-6">
+                    <SpaceCard variant="elevated" className="p-6">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold">{challenge.title}</h3>
-                        <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                        <h3 className="text-lg font-semibold text-white">{challenge.title}</h3>
+                        <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
                           {challenge.number}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      <p className="text-sm text-white/60 mb-2">
                         Ages: {challenge.period}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-white/70">
                         {getChallengeDescription(challenge.number)}
                       </p>
-                    </GlassCard>
+                    </SpaceCard>
                   </motion.div>
                 ))}
               </div>
-            </GlassCard>
+            </SpaceCard>
           </motion.div>
         )}
 
@@ -398,16 +398,16 @@ export default function AdvancedNumerology() {
           transition={{ delay: 0.3 }}
           className="text-center"
         >
-          <GlassButton
+          <TouchOptimizedButton
             variant="secondary"
             onClick={() => router.push('/dashboard')}
-            icon={<BookOpenIcon className="w-4 h-4" />}
           >
+            <BookOpenIcon className="w-4 h-4 mr-2" />
             Back to Dashboard
-          </GlassButton>
+          </TouchOptimizedButton>
         </motion.div>
       </div>
-    </PageLayout>
+    </CosmicPageLayout>
   );
 }
 

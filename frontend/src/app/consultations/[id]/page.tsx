@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Calendar, Clock, Video, MessageSquare, Phone, X, RefreshCw, Star } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { consultationsAPI } from '@/lib/consultations-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
@@ -97,9 +98,11 @@ export default function ConsultationDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     );
   }
 
@@ -132,12 +135,12 @@ export default function ConsultationDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 p-8">
+    <CosmicPageLayout>
       <div className="max-w-4xl mx-auto">
-        <GlassCard className="p-8">
+        <SpaceCard variant="premium" className="p-8" glow>
           <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-2">Consultation Details</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Consultation Details</h1>
+            <p className="text-white/70">
               {expert?.name || 'Expert'} - {format(scheduledDate, 'MMM dd, yyyy HH:mm')}
             </p>
           </div>
@@ -145,7 +148,7 @@ export default function ConsultationDetailPage() {
           <div className="space-y-6">
             {/* Status */}
             <div>
-              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 {consultation.status}
               </span>
             </div>
@@ -153,68 +156,66 @@ export default function ConsultationDetailPage() {
             {/* Details */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Type</label>
-                <p className="capitalize">{consultation.consultation_type}</p>
+                <label className="text-sm font-medium text-white/70">Type</label>
+                <p className="capitalize text-white">{consultation.consultation_type}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Duration</label>
-                <p>{consultation.duration_minutes} minutes</p>
+                <label className="text-sm font-medium text-white/70">Duration</label>
+                <p className="text-white">{consultation.duration_minutes} minutes</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date</label>
-                <p>{format(scheduledDate, 'MMM dd, yyyy')}</p>
+                <label className="text-sm font-medium text-white/70">Date</label>
+                <p className="text-white">{format(scheduledDate, 'MMM dd, yyyy')}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Time</label>
-                <p>{format(scheduledDate, 'HH:mm')}</p>
+                <label className="text-sm font-medium text-white/70">Time</label>
+                <p className="text-white">{format(scheduledDate, 'HH:mm')}</p>
               </div>
             </div>
 
             {consultation.notes && (
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Notes</label>
-                <p className="mt-1">{consultation.notes}</p>
+                <label className="text-sm font-medium text-white/70">Notes</label>
+                <p className="mt-1 text-white/80">{consultation.notes}</p>
               </div>
             )}
 
             {/* Actions */}
             <div className="flex gap-4">
               {consultation.consultation_type === 'video' && consultation.status === 'confirmed' && (
-                <GlassButton onClick={handleJoinMeeting}>
-                  <Video className="w-4 h-4 mr-2" />
+                <TouchOptimizedButton onClick={handleJoinMeeting} icon={<Video className="w-4 h-4" />}>
                   Join Meeting
-                </GlassButton>
+                </TouchOptimizedButton>
               )}
               {consultation.can_be_cancelled && (
-                <GlassButton
-                  variant="liquid"
+                <TouchOptimizedButton
+                  variant="secondary"
                   onClick={handleCancel}
-                  className="bg-red-500 hover:bg-red-600"
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  icon={<X className="w-4 h-4" />}
                 >
-                  <X className="w-4 h-4 mr-2" />
                   Cancel
-                </GlassButton>
+                </TouchOptimizedButton>
               )}
               {consultation.can_be_rescheduled && (
-                <GlassButton variant="liquid" onClick={handleReschedule}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                <TouchOptimizedButton variant="secondary" onClick={handleReschedule} icon={<RefreshCw className="w-4 h-4" />}>
                   Reschedule
-                </GlassButton>
+                </TouchOptimizedButton>
               )}
             </div>
 
             {/* Review Section */}
             {consultation.status === 'completed' && (
-              <GlassCard className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Leave a Review</h2>
+              <SpaceCard variant="premium" className="p-6" glow>
+                <h2 className="text-xl font-semibold mb-4 text-white">Leave a Review</h2>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Rating</label>
+                  <label className="block text-sm font-medium mb-2 text-white/90">Rating</label>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         onClick={() => setRating(star)}
-                        className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-white/30'}`}
                       >
                         <Star className="w-6 h-6 fill-current" />
                       </button>
@@ -222,24 +223,24 @@ export default function ConsultationDetailPage() {
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Review</label>
+                  <label className="block text-sm font-medium mb-2 text-white/90">Review</label>
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+                    className="w-full px-4 py-2 border border-cyan-500/20 rounded-lg bg-[#1a2942]/40 text-white placeholder-white/50"
                     placeholder="Share your experience..."
                   />
                 </div>
-                <GlassButton onClick={handleSubmitReview}>
+                <TouchOptimizedButton onClick={handleSubmitReview}>
                   Submit Review
-                </GlassButton>
-              </GlassCard>
+                </TouchOptimizedButton>
+              </SpaceCard>
             )}
           </div>
-        </GlassCard>
+        </SpaceCard>
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }
 

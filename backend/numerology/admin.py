@@ -130,7 +130,6 @@ class PersonNumerologyProfileAdmin(admin.ModelAdmin):
         ('Person', {'fields': ('person',)}),
         ('Core Numbers', {'fields': ('life_path_number', 'destiny_number', 'soul_urge_number', 'personality_number', 'attitude_number', 'maturity_number', 'balance_number')}),
         ('Cycles', {'fields': ('personal_year_number', 'personal_month_number')}),
-        ('Enhanced Numbers', {'fields': ('karmic_debt_number', 'hidden_passion_number', 'subconscious_self_number')}),
         ('Metadata', {'fields': ('calculation_system', 'calculated_at', 'updated_at')}),
     )
     

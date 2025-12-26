@@ -4,9 +4,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
 import OTPForm from './otp-form';
 
 function VerifyOTPContent() {
@@ -19,9 +17,7 @@ function VerifyOTPContent() {
 
 export default function VerifyOTPPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -30,34 +26,34 @@ export default function VerifyOTPPage() {
       >
         <div className="text-center mb-8">
           <motion.div 
-            className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+            className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <SparklesIcon className="w-8 h-8 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
             Verify Your Account
           </h1>
         </div>
         
         <Suspense 
           fallback={
-            <GlassCard variant="elevated" className="p-8">
+            <SpaceCard variant="premium" className="p-8" glow>
               <div className="space-y-6">
-                <div className="h-6 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
-                <div className="h-4 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
+                <div className="h-6 bg-[#1a2942]/40 rounded animate-pulse"></div>
+                <div className="h-4 bg-[#1a2942]/40 rounded animate-pulse"></div>
                 <div className="space-y-4">
-                  <div className="h-4 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
-                  <div className="h-12 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
-                  <div className="h-4 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
+                  <div className="h-4 bg-[#1a2942]/40 rounded animate-pulse"></div>
+                  <div className="h-12 bg-[#1a2942]/40 rounded animate-pulse"></div>
+                  <div className="h-4 bg-[#1a2942]/40 rounded animate-pulse"></div>
                 </div>
                 <div className="space-y-4">
-                  <div className="h-12 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
-                  <div className="h-12 bg-white/50 dark:bg-gray-800/50 rounded animate-pulse"></div>
+                  <div className="h-12 bg-[#1a2942]/40 rounded animate-pulse"></div>
+                  <div className="h-12 bg-[#1a2942]/40 rounded animate-pulse"></div>
                 </div>
               </div>
-            </GlassCard>
+            </SpaceCard>
           }
         >
           <VerifyOTPContent />
@@ -66,7 +62,7 @@ export default function VerifyOTPPage() {
         <div className="mt-6 text-center">
           <a 
             href="/" 
-            className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
+            className="text-sm text-white/70 hover:text-white hover:underline"
           >
             ← Back to home
           </a>

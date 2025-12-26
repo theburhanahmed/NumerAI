@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { numerologyAPI } from '@/lib/numerology-api';
+import { numerologyAPI, peopleAPI } from '@/lib/numerology-api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -25,10 +25,10 @@ export default function GenerationalNumerologyPage() {
     try {
       setLoading(true);
       // Load people with family relationships
-      const peopleResponse = await numerologyAPI.getPeople();
-      const family = peopleResponse.results?.filter(
+      const people = await peopleAPI.getPeople();
+      const family = people.filter(
         (p: any) => ['parent', 'child', 'sibling', 'spouse'].includes(p.relationship)
-      ) || [];
+      );
       setFamilyMembers(family);
 
       // Load existing analysis

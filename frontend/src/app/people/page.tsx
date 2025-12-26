@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UsersIcon, PlusIcon, HeartIcon, BriefcaseIcon, HomeIcon, UserIcon, CalendarIcon, SparklesIcon, EditIcon, TrashIcon, XIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { PageDescription } from '@/components/ui/page-description';
 import { peopleAPI, numerologyAPI } from '@/lib/numerology-api';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
@@ -125,10 +124,9 @@ export default function PeopleManager() {
   const handleDeletePerson = (id: string) => {
     setPeople(people.filter(p => p.id !== id));
   };
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex flex-col relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <main className="flex-1 section-spacing px-4 md:px-6 relative z-10">
+  return (
+    <CosmicPageLayout>
+      <main className="flex-1 section-spacing px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <motion.div initial={{
@@ -139,17 +137,37 @@ export default function PeopleManager() {
           y: 0
         }} className="flex items-center justify-between mb-12">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 My People
               </h1>
-              <p className="text-lg text-gray-600 dark:text-white/70">
+              <p className="text-lg text-white/70">
                 Manage and explore numerology profiles of people in your life
               </p>
             </div>
-            <GlassButton variant="liquid" size="lg" icon={<PlusIcon className="w-5 h-5" />} onClick={() => setShowAddModal(true)} className="glass-glow">
+            <TouchOptimizedButton variant="primary" size="lg" icon={<PlusIcon className="w-5 h-5" />} onClick={() => setShowAddModal(true)}>
               Add Person
-            </GlassButton>
+            </TouchOptimizedButton>
           </motion.div>
+
+          {/* Page Description */}
+          <PageDescription
+            title="My People - Numerology Profiles"
+            description="Store and analyze the numerology profiles of family members, friends, partners, and colleagues. Each person's profile is automatically calculated when you add them, giving you instant insights into their life path, destiny, and compatibility with you."
+            features={[
+              "Automatically calculate numerology profiles when adding people",
+              "View detailed numerology numbers for each person",
+              "Track compatibility scores between you and others",
+              "Generate reports for any person in your list",
+              "Organize people by relationship type"
+            ]}
+            usage="Click 'Add Person' to add someone new. Enter their full name and birth date, and their numerology profile will be calculated automatically. You can then view their complete numerology analysis, check compatibility, and generate detailed reports."
+            examples={[
+              "Add family members to understand family numerology dynamics",
+              "Track your partner's numerology for relationship insights",
+              "Analyze business partners for compatibility",
+              "Store friends' profiles for social numerology analysis"
+            ]}
+          />
 
           {/* People Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -162,69 +180,68 @@ export default function PeopleManager() {
           }} transition={{
             delay: index * 0.1
           }}>
-                <MagneticCard variant="liquid" className="card-padding h-full">
-                  <div className="liquid-glass-content">
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`w-12 h-12 bg-gradient-to-br ${relationshipColors[person.relationship]} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
-                        {relationshipIcons[person.relationship]}
-                      </div>
-                      <div className="flex gap-2">
-                        <motion.button className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors" whileHover={{
+                <SpaceCard variant="premium" className="p-6 h-full" glow>
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${relationshipColors[person.relationship]} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
+                      {relationshipIcons[person.relationship]}
+                    </div>
+                    <div className="flex gap-2">
+                      <motion.button className="p-2 rounded-lg hover:bg-[#1a2942]/40 transition-colors" whileHover={{
                       scale: 1.1
                     }} whileTap={{
                       scale: 0.95
                     }}>
-                          <EditIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          <EditIcon className="w-4 h-4 text-white/70" />
                         </motion.button>
-                        <motion.button onClick={() => handleDeletePerson(person.id)} className="p-2 rounded-lg hover:bg-red-500/10 transition-colors" whileHover={{
+                        <motion.button onClick={() => handleDeletePerson(person.id)} className="p-2 rounded-lg hover:bg-red-500/20 transition-colors" whileHover={{
                       scale: 1.1
                     }} whileTap={{
                       scale: 0.95
                     }}>
-                          <TrashIcon className="w-4 h-4 text-red-600 dark:text-red-400" />
+                          <TrashIcon className="w-4 h-4 text-red-400" />
                         </motion.button>
                       </div>
                     </div>
 
                     {/* Info */}
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                    <h3 className="text-xl font-bold text-white mb-1">
                       {person.name}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-white/70 mb-4 capitalize">
+                    <p className="text-sm text-white/70 mb-4 capitalize">
                       {person.relationship}
                     </p>
 
                     {/* Stats */}
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-white/70">
                           Life Path
                         </span>
-                        <span className="font-bold text-gray-900 dark:text-white">
+                        <span className="font-bold text-white">
                           {person.lifePathNumber}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-white/70">
                           Personal Year
                         </span>
-                        <span className="font-bold text-gray-900 dark:text-white">
+                        <span className="font-bold text-white">
                           {person.personalYear}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-white/70">
                           Compatibility
                         </span>
-                        <span className="font-bold text-green-600 dark:text-green-400">
+                        <span className="font-bold text-green-400">
                           {person.compatibility}%
                         </span>
                       </div>
                     </div>
 
                     {/* Birth Date */}
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-white/70 mb-4">
                       <CalendarIcon className="w-4 h-4" />
                       <span>
                         {new Date(person.birthDate).toLocaleDateString('en-US', {
@@ -236,11 +253,10 @@ export default function PeopleManager() {
                     </div>
 
                     {/* Action Button */}
-                    <GlassButton variant="secondary" size="sm" className="w-full" icon={<SparklesIcon className="w-4 h-4" />}>
+                    <TouchOptimizedButton variant="secondary" size="sm" className="w-full" icon={<SparklesIcon className="w-4 h-4" />}>
                       View Full Profile
-                    </GlassButton>
-                  </div>
-                </MagneticCard>
+                    </TouchOptimizedButton>
+                </SpaceCard>
               </motion.div>)}
           </div>
 
@@ -252,23 +268,21 @@ export default function PeopleManager() {
           opacity: 1,
           y: 0
         }} className="text-center py-16">
-              <MagneticCard variant="liquid-premium" className="card-padding-lg max-w-md mx-auto">
-                <div className="liquid-glass-content">
+              <SpaceCard variant="premium" className="p-8 max-w-md mx-auto" glow>
                   <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-3xl flex items-center justify-center text-white mb-6 mx-auto shadow-xl">
                     <UsersIcon className="w-10 h-10" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                  <h3 className="text-2xl font-bold text-white mb-3">
                     No People Added Yet
                   </h3>
-                  <p className="text-gray-600 dark:text-white/70 mb-6">
+                  <p className="text-white/70 mb-6">
                     Start building your numerology network by adding people in
                     your life
                   </p>
-                  <GlassButton variant="liquid" size="lg" icon={<PlusIcon className="w-5 h-5" />} onClick={() => setShowAddModal(true)} className="glass-glow">
+                  <TouchOptimizedButton variant="primary" size="lg" icon={<PlusIcon className="w-5 h-5" />} onClick={() => setShowAddModal(true)}>
                     Add Your First Person
-                  </GlassButton>
-                </div>
-              </MagneticCard>
+                  </TouchOptimizedButton>
+              </SpaceCard>
             </motion.div>}
         </div>
       </main>
@@ -295,50 +309,49 @@ export default function PeopleManager() {
           scale: 0.9,
           y: 20
         }} onClick={e => e.stopPropagation()} className="w-full max-w-md">
-              <MagneticCard variant="liquid-premium" className="card-padding-lg">
-                <div className="liquid-glass-content">
+              <SpaceCard variant="premium" className="p-6" glow>
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <h3 className="text-2xl font-bold text-white">
                       Add New Person
                     </h3>
-                    <motion.button onClick={() => setShowAddModal(false)} className="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors" whileHover={{
+                    <motion.button onClick={() => setShowAddModal(false)} className="p-2 rounded-xl hover:bg-[#1a2942]/40 transition-colors" whileHover={{
                   scale: 1.1
                 }} whileTap={{
                   scale: 0.95
                 }}>
-                      <XIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      <XIcon className="w-5 h-5 text-white/70" />
                     </motion.button>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-semibold text-white/90 mb-2">
                         Name
                       </label>
                       <input type="text" value={newPerson.name} onChange={e => setNewPerson({
                     ...newPerson,
                     name: e.target.value
-                  })} placeholder="Enter name" className="w-full px-4 py-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500" />
+                  })} placeholder="Enter name" className="w-full px-4 py-3 bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white placeholder-white/50" />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-semibold text-white/90 mb-2">
                         Birth Date
                       </label>
                       <input type="date" value={newPerson.birthDate} onChange={e => setNewPerson({
                     ...newPerson,
                     birthDate: e.target.value
-                  })} className="w-full px-4 py-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white" />
+                  })} className="w-full px-4 py-3 bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white" />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-semibold text-white/90 mb-2">
                         Relationship
                       </label>
                       <select value={newPerson.relationship} onChange={e => setNewPerson({
                     ...newPerson,
                     relationship: e.target.value as any
-                  })} className="w-full px-4 py-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white">
+                  })} className="w-full px-4 py-3 bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white">
                         <option value="family">Family</option>
                         <option value="friend">Friend</option>
                         <option value="partner">Partner</option>
@@ -348,18 +361,18 @@ export default function PeopleManager() {
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                      <GlassButton variant="ghost" size="md" onClick={() => setShowAddModal(false)} className="flex-1">
+                      <TouchOptimizedButton variant="secondary" size="md" onClick={() => setShowAddModal(false)} className="flex-1">
                         Cancel
-                      </GlassButton>
-                      <GlassButton variant="liquid" size="md" onClick={handleAddPerson} className="flex-1 glass-glow" disabled={!newPerson.name || !newPerson.birthDate}>
+                      </TouchOptimizedButton>
+                      <TouchOptimizedButton variant="primary" size="md" onClick={handleAddPerson} className="flex-1" disabled={!newPerson.name || !newPerson.birthDate}>
                         Add Person
-                      </GlassButton>
+                      </TouchOptimizedButton>
                     </div>
                   </div>
-                </div>
-              </MagneticCard>
+              </SpaceCard>
             </motion.div>
           </motion.div>}
       </AnimatePresence>
-    </div>;
+    </CosmicPageLayout>
+  );
 }

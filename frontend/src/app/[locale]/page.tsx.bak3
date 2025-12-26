@@ -1,0 +1,724 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+
+}
+import { 
+  SparklesIcon, 
+  StarIcon, 
+  HeartIcon, 
+  TrendingUpIcon, 
+  UsersIcon, 
+  ShieldCheckIcon, 
+  BookOpenIcon, 
+  PlusIcon, 
+  MinusIcon,
+  ArrowRightIcon,
+  CheckIcon
+} from 'lucide-react';
+import { LandingFooter } from '@/components/landing/landing-footer';
+import { LandingNav } from '@/components/landing/landing-nav';
+import { AccessibleSpaceBackground } from '@/components/space/accessible-space-background';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicHero } from '@/components/layout/cosmic-hero';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
+import { MobileFloatingParticles } from '@/components/cosmic/mobile-optimized-cosmic-elements';
+import { useIsMobile } from '@/hooks/use-media-query';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
+
+// #region agent log
+const logDebug = (message: string, data: any) => {
+  fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      location: '[locale]/page.tsx',
+      message,
+      data,
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'run1',
+      hypothesisId: 'B'
+    })
+  }).catch(() => {});
+};
+// #endregion agent log
+
+export default function Home() {
+  const router = useRouter();
+  const isMobile = useIsMobile();
+
+  // #region agent log
+  // Log immediately on component render (not just in useEffect)
+  // This should fire if the component is being called at all
+  try {
+    if (typeof window !== 'undefined') {
+      logDebug('Home component rendering - CLIENT', {
+        pathname: window.location.pathname,
+        href: window.location.href,
+        isMobile,
+        timestamp: Date.now()
+      });
+    } else {
+      logDebug('Home component rendering - SERVER', {
+        timestamp: Date.now()
+      });
+    }
+  } catch (e) {
+    // Log even if there's an error
+    logDebug('Home component rendering - ERROR', {
+      error: String(e),
+      timestamp: Date.now()
+    });
+  }
+  
+  useEffect(() => {
+    logDebug('Home component mounted (useEffect)', {
+      pathname: window.location.pathname,
+      href: window.location.href,
+      isMobile
+    });
+  }, [isMobile]);
+  // #endregion agent log
+
+  const features = [
+    {
+      icon: <SparklesIcon className="w-8 h-8" />,
+      title: 'AI Numerologist',
+      description:
+        'Chat with our AI-powered numerologist for instant personalized insights',
+      tooltip: 'Get real-time answers to your numerology questions 24/7',
+    },
+    {
+      icon: <StarIcon className="w-8 h-8" />,
+      title: 'Birth Chart Analysis',
+      description: 'Detailed visualization of your complete numerology profile',
+      tooltip: 'Discover your Life Path, Destiny, and Soul Urge numbers',
+    },
+    {
+      icon: <TrendingUpIcon className="w-8 h-8" />,
+      title: 'Life Path Insights',
+      description:
+        'Discover your purpose and destiny through the wisdom of numbers',
+      tooltip: "Understand your life's journey and core purpose",
+    },
+  ];
+
+  const pricingPlans = [
+    {
+      name: 'Free',
+      price: 0,
+      icon: <SparklesIcon className="w-6 h-6" />,
+      features: ['Basic readings', '3 daily insights', 'Community access'],
+      popular: false,
+    },
+    {
+      name: 'Premium',
+      price: 9.99,
+      icon: <SparklesIcon className="w-6 h-6" />,
+      features: [
+        'Unlimited readings',
+        'AI chat access',
+        'Full reports',
+        'Priority support',
+      ],
+      popular: true,
+    },
+    {
+      name: 'Enterprise',
+      price: 29.99,
+      icon: <SparklesIcon className="w-6 h-6" />,
+      features: [
+        'Everything in Premium',
+        'Expert consultations',
+        'Custom reports',
+        'API access',
+      ],
+      popular: false,
+    },
+  ];
+
+  return (
+    <div className="relative min-h-screen">
+      <AccessibleSpaceBackground />
+      <LandingNav />
+
+      {/* Mobile-optimized particles */}
+      <MobileFloatingParticles count={isMobile ? 15 : 30} />
+
+      {/* ENHANCED COSMIC HERO SECTION */}
+      <CosmicHero
+        badge="✨ AI-Powered Cosmic Wisdom"
+        heading="Unlock Your"
+        highlightText="Cosmic Destiny"
+        subheading="Discover the ancient wisdom of numerology combined with cutting-edge AI. Your personalized cosmic journey begins here."
+        primaryCTA={{
+          label: 'Start Free Reading',
+          onClick: () => router.push('/register'),
+        }}
+        secondaryCTA={{
+          label: 'View Pricing',
+          onClick: () => router.push('/subscription'),
+        }}
+        stats={[
+          {
+            value: '50K+',
+            label: 'Active Users',
+          },
+          {
+            value: '500K+',
+            label: 'Readings',
+          },
+          {
+            value: '4.9★',
+            label: 'Rating',
+          },
+        ]}
+      />
+
+      {/* FEATURE CARDS */}
+      <section
+        id="features"
+        className="relative z-10 section-spacing px-4 sm:px-6"
+      >
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Explore the Universe
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600">
+                of Numerology
+              </span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              Powerful insights through our AI-powered cosmic platform
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                viewport={{
+                  once: true,
+                }}
+                transition={{
+                  delay: index * 0.1,
+                }}
+                whileHover={{
+                  y: -8,
+                  scale: 1.02,
+                }}
+              >
+                <SpaceCard
+                  variant="premium"
+                  className="p-8 h-full group cursor-pointer"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-cyan-400 mb-4 group-hover:from-cyan-500/30 group-hover:to-blue-600/30 transition-all border border-cyan-500/20">
+                      {feature.icon}
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-xl font-['Playfair_Display'] font-bold text-white">
+                        {feature.title}
+                      </h3>
+                      <CosmicTooltip
+                        content={feature.tooltip}
+                        icon
+                        position="top"
+                      />
+                    </div>
+                    <p className="text-white/70 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </SpaceCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING PLANS */}
+      <section
+        id="pricing"
+        className="relative z-10 section-spacing px-4 sm:px-6"
+      >
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Choose Your
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600">
+                Cosmic Plan
+              </span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              Start free, upgrade anytime. All plans include our core features.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {pricingPlans.map((plan, index) => (
+              <motion.div
+                key={plan.name}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                viewport={{
+                  once: true,
+                }}
+                transition={{
+                  delay: index * 0.1,
+                }}
+                className="relative"
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                    <span className="px-4 py-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold rounded-full shadow-lg">
+                      MOST POPULAR
+                    </span>
+                  </div>
+                )}
+
+                <SpaceCard
+                  variant={plan.popular ? 'premium' : 'default'}
+                  className={`p-8 h-full ${plan.popular ? 'border-cyan-500/50' : ''}`}
+                >
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
+                      {plan.icon}
+                    </div>
+                    <h3 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-2">
+                      {plan.name}
+                    </h3>
+                    <div className="flex items-baseline justify-center gap-1 mb-4">
+                      <span className="text-5xl font-bold text-white">
+                        ${plan.price}
+                      </span>
+                      {plan.price > 0 && (
+                        <span className="text-white/70">/mo</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <SparklesIcon className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-white/80">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <TouchOptimizedButton
+                    variant={plan.popular ? 'primary' : 'secondary'}
+                    size="lg"
+                    onClick={() => router.push('/register')}
+                    className="w-full"
+                    ariaLabel={`Get started with ${plan.name} plan`}
+                  >
+                    Get Started
+                  </TouchOptimizedButton>
+                </SpaceCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section with Enhanced Cards */}
+      <section id="features-secondary" className="section-spacing px-4 sm:px-6 scroll-mt-24 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+              Powerful Features
+            </h2>
+            <p className="text-lg text-gray-700 dark:text-white/70 max-w-2xl mx-auto">
+              Everything you need for your numerology journey
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard 
+              icon={<SparklesIcon className="w-8 h-8" />} 
+              title="AI Numerologist" 
+              description="Chat with our AI-powered numerologist for instant insights and guidance" 
+              delay={0.2} 
+            />
+            <FeatureCard 
+              icon={<TrendingUpIcon className="w-8 h-8" />} 
+              title="Personalized Remedies" 
+              description="Get custom recommendations for gemstones, colors, and rituals" 
+              delay={0.3} 
+            />
+            <FeatureCard 
+              icon={<UsersIcon className="w-8 h-8" />} 
+              title="Expert Consultations" 
+              description="Book sessions with professional numerologists" 
+              delay={0.4} 
+            />
+            <FeatureCard 
+              icon={<HeartIcon className="w-8 h-8" />} 
+              title="Compatibility Checker" 
+              description="Analyze relationships and business partnerships" 
+              delay={0.5} 
+            />
+            <FeatureCard 
+              icon={<StarIcon className="w-8 h-8" />} 
+              title="Birth Chart" 
+              description="Detailed visualization of your numerology profile" 
+              delay={0.6} 
+            />
+            <FeatureCard 
+              icon={<ShieldCheckIcon className="w-8 h-8" />} 
+              title="Daily Insights" 
+              description="Receive personalized readings and affirmations" 
+              delay={0.7} 
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials with Enhanced Design */}
+      <section id="testimonials" className="section-spacing px-4 sm:px-6 scroll-mt-24 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+              What Our Users Say
+            </h2>
+            <p className="text-lg text-gray-700 dark:text-white/70">
+              Join thousands of satisfied users
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <TestimonialCard 
+              name="Sarah Johnson" 
+              text="NumerAI helped me understand my life path and make better decisions. The daily readings are incredibly accurate!" 
+              rating={5} 
+              delay={0.2} 
+            />
+            <TestimonialCard 
+              name="Michael Chen" 
+              text="The AI numerologist is amazing! It's like having a personal guide available 24/7. Highly recommend!" 
+              rating={5} 
+              delay={0.3} 
+            />
+            <TestimonialCard 
+              name="Emma Davis" 
+              text="I was skeptical at first, but the compatibility checker was spot-on. It saved my business partnership!" 
+              rating={5} 
+              delay={0.4} 
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="section-spacing px-4 sm:px-6 scroll-mt-24 relative z-10">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
+              Everything you need to know about NumerAI
+            </p>
+          </motion.div>
+          <div className="space-y-4">
+            <FAQItem 
+              question="What is numerology?" 
+              answer="Numerology is the ancient practice of understanding the mystical relationship between numbers and life events. It helps reveal insights about your personality, life path, and destiny through the analysis of numbers derived from your birth date and name." 
+              delay={0.1} 
+            />
+            <FAQItem 
+              question="How accurate is NumerAI?" 
+              answer="NumerAI combines traditional numerology wisdom with advanced AI technology to provide highly personalized and accurate readings. Our AI is trained on thousands of numerology texts and real-world cases to deliver insights that resonate with your unique journey." 
+              delay={0.2} 
+            />
+            <FAQItem 
+              question="Is my data secure?" 
+              answer="Absolutely. We take your privacy seriously and use industry-standard encryption to protect your personal information. Your birth details and readings are stored securely and never shared with third parties." 
+              delay={0.3} 
+            />
+            <FAQItem 
+              question="Can I try NumerAI for free?" 
+              answer="Yes! We offer a free tier that includes basic numerology readings and limited AI chat access. You can upgrade to our premium plans anytime to unlock advanced features like detailed reports, compatibility analysis, and unlimited AI consultations." 
+              delay={0.4} 
+            />
+            <FAQItem 
+              question="What makes NumerAI different from other numerology apps?" 
+              answer="NumerAI is the first platform to combine traditional numerology with AI-powered insights. Our intelligent system learns from your interactions to provide increasingly personalized guidance, making it like having a personal numerologist available 24/7." 
+              delay={0.5} 
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section with Enhanced Glass */}
+      <section className="section-spacing px-4 sm:px-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="max-w-4xl mx-auto"
+        >
+          <MagneticCard variant="liquid-premium" className="card-padding-lg text-center bg-gradient-to-br from-purple-100/50 to-blue-100/50 dark:from-purple-500/20 dark:to-blue-500/20">
+            <div className="liquid-glass-content">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+                Ready to Discover Your Path?
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-700 dark:text-white/90 mb-8 max-w-2xl mx-auto">
+                Join thousands of users who have found clarity and direction
+                through numerology
+              </p>
+              <GlassButton 
+                variant="liquid" 
+                size="lg" 
+                onClick={() => router.push('/register')} 
+                className="glass-glow" 
+                icon={<SparklesIcon className="w-5 h-5" />}
+              >
+                Start Your Journey Today
+              </GlassButton>
+            </div>
+          </MagneticCard>
+        </motion.div>
+      </section>
+
+      <LandingFooter />
+    </div>
+  );
+}
+
+function FeaturePreviewCard({
+  icon,
+  title,
+  description,
+  delay
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+    >
+      <MagneticCard variant="liquid-premium" className="card-padding text-center h-full">
+        <div className="liquid-glass-content">
+          <motion.div
+            className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-white mb-4 mx-auto shadow-lg"
+            whileHover={{ rotate: 360, scale: 1.1 }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          >
+            {icon}
+          </motion.div>
+          <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+            {title}
+          </h3>
+          <p className="text-gray-700 dark:text-white/70 text-sm leading-relaxed">
+            {description}
+          </p>
+        </div>
+      </MagneticCard>
+    </motion.div>
+  );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+  delay
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5 }}
+    >
+      <MagneticCard variant="liquid" className="card-padding h-full">
+        <div className="liquid-glass-content">
+          <motion.div
+            className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-white mb-4 shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          >
+            {icon}
+          </motion.div>
+          <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white transition-colors duration-300">
+            {title}
+          </h3>
+          <p className="text-gray-700 dark:text-white/70 leading-relaxed transition-colors duration-300">
+            {description}
+          </p>
+        </div>
+      </MagneticCard>
+    </motion.div>
+  );
+}
+
+function TestimonialCard({
+  name,
+  text,
+  rating,
+  delay
+}: {
+  name: string;
+  text: string;
+  rating: number;
+  delay: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5 }}
+    >
+      <MagneticCard variant="liquid" className="card-padding h-full flex flex-col">
+        <div className="liquid-glass-content flex flex-col h-full">
+          <div className="flex gap-1 mb-4">
+            {[...Array(rating)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: delay + i * 0.1, duration: 0.3 }}
+              >
+                <StarIcon className="w-5 h-5 fill-amber-400 text-amber-400" />
+              </motion.div>
+            ))}
+          </div>
+          <p className="text-gray-800 dark:text-white/90 mb-4 leading-relaxed flex-grow">
+            &quot;{text}&quot;
+          </p>
+          <p className="font-semibold text-gray-900 dark:text-white">{name}</p>
+        </div>
+      </MagneticCard>
+    </motion.div>
+  );
+}
+
+function FAQItem({
+  question,
+  answer,
+  delay
+}: {
+  question: string;
+  answer: string;
+  delay: number;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+    >
+      <MagneticCard variant="liquid" className="overflow-hidden">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full p-6 flex items-center justify-between text-left hover:bg-purple-500/5 transition-colors"
+          aria-expanded={isOpen}
+        >
+          <span className="text-lg font-semibold text-gray-900 dark:text-white pr-4">
+            {question}
+          </span>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex-shrink-0"
+          >
+            {isOpen ? (
+              <MinusIcon className="w-5 h-5 text-purple-600" />
+            ) : (
+              <PlusIcon className="w-5 h-5 text-purple-600" />
+            )}
+          </motion.div>
+        </button>
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
+          <div className="px-6 pb-6 text-gray-600 dark:text-gray-400 leading-relaxed">
+            {answer}
+          </div>
+        </motion.div>
+      </MagneticCard>
+    </motion.div>
+  );
+}

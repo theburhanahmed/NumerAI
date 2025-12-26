@@ -3,11 +3,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BriefcaseIcon, SparklesIcon, ChevronRightIcon, TrendingUpIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
 export default function BusinessNameNumerology() {
   const [businessName, setBusinessName] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -24,9 +23,7 @@ export default function BusinessNameNumerology() {
       setShowResults(true);
     }
   };
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 flex flex-col relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
+  return <CosmicPageLayout>
       <main className="flex-1 section-spacing px-4 md:px-6 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -67,7 +64,7 @@ export default function BusinessNameNumerology() {
         }} className="mb-8">
             <MagneticCard variant="liquid-premium" className="card-padding-lg">
               <div className="liquid-glass-content">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h2 className="text-2xl font-bold text-white mb-4">
                   Business Name Analysis
                 </h2>
                 <p className="text-gray-700 dark:text-white/90 mb-6">
@@ -79,12 +76,12 @@ export default function BusinessNameNumerology() {
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Business Name
                   </label>
-                  <input type="text" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="Enter your business name" className="w-full px-4 py-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500" />
+                  <input type="text" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="Enter your business name" className="w-full px-4 py-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-500" />
                 </div>
 
-                <GlassButton variant="liquid" size="lg" onClick={handleCalculate} className="w-full glass-glow" disabled={!businessName.trim()}>
+                <TouchOptimizedButton variant="liquid" size="lg" onClick={handleCalculate} className="w-full glass-glow" disabled={!businessName.trim()}>
                   Analyze Business Name
-                </GlassButton>
+                </TouchOptimizedButton>
               </div>
             </MagneticCard>
           </motion.div>
@@ -103,7 +100,7 @@ export default function BusinessNameNumerology() {
                     <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl flex items-center justify-center text-white font-bold text-4xl mx-auto mb-4 shadow-xl">
                       {businessAnalysis.number}
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-2xl font-bold text-white mb-2">
                       {businessAnalysis.name}
                     </h3>
                     <p className="text-gray-700 dark:text-white/90">
@@ -113,7 +110,7 @@ export default function BusinessNameNumerology() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="p-6 bg-green-500/10 rounded-2xl">
-                      <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <h4 className="font-bold text-white mb-4 flex items-center gap-2">
                         <TrendingUpIcon className="w-5 h-5 text-green-600" />
                         Strengths
                       </h4>
@@ -126,7 +123,7 @@ export default function BusinessNameNumerology() {
                     </div>
 
                     <div className="p-6 bg-amber-500/10 rounded-2xl">
-                      <h4 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <h4 className="font-bold text-white mb-4 flex items-center gap-2">
                         <SparklesIcon className="w-5 h-5 text-amber-600" />
                         Considerations
                       </h4>
@@ -143,7 +140,7 @@ export default function BusinessNameNumerology() {
 
               <MagneticCard variant="liquid" className="card-padding-lg">
                 <div className="liquid-glass-content">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+                  <h4 className="font-semibold text-white mb-4">
                     Best Industries for Number {businessAnalysis.number}
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -156,7 +153,7 @@ export default function BusinessNameNumerology() {
                 }} transition={{
                   delay: index * 0.1
                 }} className="px-4 py-3 bg-white/50 dark:bg-gray-800/50 rounded-xl text-center">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <p className="text-sm font-semibold text-white">
                           {industry}
                         </p>
                       </motion.div>)}
@@ -166,7 +163,7 @@ export default function BusinessNameNumerology() {
 
               <MagneticCard variant="liquid" className="card-padding">
                 <div className="liquid-glass-content">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+                  <h4 className="font-semibold text-white mb-4">
                     Business Name Number Guide
                   </h4>
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-white/90">
@@ -204,5 +201,5 @@ export default function BusinessNameNumerology() {
             </motion.div>}
         </div>
       </main>
-    </div>;
+    </CosmicPageLayout>;
 }

@@ -56,20 +56,45 @@ function CheckoutForm({ plan, onSuccess, onError }: StripeFormProps) {
         throw new Error('Card element not found');
       }
 
-      const { error, paymentIntent } = await stripe.confirmCardPayment(
-        client_secret,
-        {
-          payment_method: {
-            card: cardElement,
-          },
+      // For subscriptions, we need to confirm the payment intent from the invoice
+      // The client_secret can be from either a payment intent or setup intent
+      let confirmed = null;
+      
+      if (client_secret.startsWith('seti_')) {
+        // Setup intent - confirm to save payment method
+        const { error: setupError, setupIntent } = await stripe.confirmCardSetup(
+          client_secret,
+          {
+            payment_method: {
+              card: cardElement,
+            },
+          }
+        );
+        
+        if (setupError) {
+          throw new Error(setupError.message);
         }
-      );
-
-      if (error) {
-        throw new Error(error.message);
+        
+        confirmed = setupIntent;
+      } else {
+        // Payment intent - confirm the payment
+        const { error: paymentError, paymentIntent } = await stripe.confirmCardPayment(
+          client_secret,
+          {
+            payment_method: {
+              card: cardElement,
+            },
+          }
+        );
+        
+        if (paymentError) {
+          throw new Error(paymentError.message);
+        }
+        
+        confirmed = paymentIntent;
       }
 
-      if (paymentIntent && paymentIntent.status === 'succeeded') {
+      if (confirmed && (confirmed.status === 'succeeded' || (confirmed as any).status === 'setup')) {
         toast({
           title: 'Success!',
           description: 'Your subscription has been activated.',
@@ -129,8 +154,7 @@ function CheckoutForm({ plan, onSuccess, onError }: StripeFormProps) {
 
 export default function StripeForm({ plan, onSuccess, onError }: StripeFormProps) {
   const options: StripeElementsOptions = {
-    mode: 'payment',
-    amount: 0, // Will be set by backend
+    mode: 'subscription',
     currency: 'usd',
   };
 

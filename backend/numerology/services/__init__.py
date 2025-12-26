@@ -13,6 +13,8 @@ from .name_correction import NameCorrectionService
 from .spiritual_numerology import SpiritualNumerologyService
 from .predictive_numerology import PredictiveNumerologyService
 from .generational import GenerationalAnalyzer
+from .feng_shui_hybrid import FengShuiHybridService
+from .mental_state_ai import MentalStateAIService
 
 __all__ = [
     'EssenceCycleCalculator',
@@ -27,4 +29,6 @@ __all__ = [
     'SpiritualNumerologyService',
     'PredictiveNumerologyService',
     'GenerationalAnalyzer',
+    'FengShuiHybridService',
+    'MentalStateAIService',
 ]

@@ -11,10 +11,8 @@ import {
   SparklesIcon,
   AlertCircleIcon
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
 import { useToast } from '@/components/ui/use-toast';
 import { authAPI } from '@/lib/api-client';
 import { useAuth } from '@/contexts/auth-context';
@@ -115,9 +113,7 @@ function ResetPasswordConfirmContent() {
 
   if (passwordReset) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,29 +128,29 @@ function ResetPasswordConfirmContent() {
             >
               <SparklesIcon className="w-8 h-8 text-white" />
             </motion.div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-teal-400 bg-clip-text text-transparent mb-2">
               Password Reset Successful
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-white/70">
               Your password has been successfully reset
             </p>
           </div>
 
-          <GlassCard variant="elevated" className="p-8">
+          <SpaceCard variant="premium" className="p-8" glow>
             <div className="text-center space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-white/90">
                 You can now login with your new password
               </p>
 
-              <GlassButton
+              <TouchOptimizedButton
                 onClick={() => router.push('/login')}
                 variant="primary"
                 className="w-full"
               >
                 Go to Login
-              </GlassButton>
+              </TouchOptimizedButton>
             </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
       </div>
     );
@@ -163,11 +159,9 @@ function ResetPasswordConfirmContent() {
   // Show loading while checking auth
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         <div className="w-full max-w-md relative z-10 text-center">
-          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       </div>
     );
@@ -176,9 +170,7 @@ function ResetPasswordConfirmContent() {
   // Show error if no token
   if (!formData.token) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,45 +185,43 @@ function ResetPasswordConfirmContent() {
             >
               <AlertCircleIcon className="w-8 h-8 text-white" />
             </motion.div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent mb-2">
               Invalid Reset Link
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-white/70">
               The password reset link is missing or invalid
             </p>
           </div>
 
-          <GlassCard variant="elevated" className="p-8">
+          <SpaceCard variant="premium" className="p-8" glow>
             <div className="text-center space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-white/90">
                 Please use the link from your password reset email, or request a new reset link.
               </p>
               <div className="space-y-3">
-                <GlassButton
+                <TouchOptimizedButton
                   onClick={() => router.push('/reset-password')}
                   variant="primary"
                   className="w-full"
                 >
                   Request New Reset Link
-                </GlassButton>
+                </TouchOptimizedButton>
                 <Link
                   href="/login"
-                  className="block text-sm text-purple-600 dark:text-purple-400 hover:underline"
+                  className="block text-sm text-cyan-400 hover:text-cyan-300 hover:underline"
                 >
                   ← Back to Login
                 </Link>
               </div>
             </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -240,30 +230,30 @@ function ResetPasswordConfirmContent() {
       >
         <div className="text-center mb-8">
           <motion.div
-            className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+            className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <SparklesIcon className="w-8 h-8 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">
             Reset Your Password
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-white/70">
             Enter your new password below
           </p>
         </div>
 
-        <GlassCard variant="elevated" className="p-8">
+        <SpaceCard variant="premium" className="p-8" glow>
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="new_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="new_password" className="block text-sm font-medium text-white/90">
                   New Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-gray-400" />
+                    <LockIcon className="h-5 w-5 text-cyan-400/70" />
                   </div>
                   <input
                     id="new_password"
@@ -274,7 +264,7 @@ function ResetPasswordConfirmContent() {
                     required
                     minLength={8}
                     disabled={loading}
-                    className="w-full pl-10 pr-10 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
                   />
                   <button
                     type="button"
@@ -282,24 +272,24 @@ function ResetPasswordConfirmContent() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     {showPassword ? (
-                      <EyeOffIcon className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                      <EyeOffIcon className="h-5 w-5 text-white/60 hover:text-white/90" />
                     ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                      <EyeIcon className="h-5 w-5 text-white/60 hover:text-white/90" />
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-white/70">
                   Password must be at least 8 characters long
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirm_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="confirm_password" className="block text-sm font-medium text-white/90">
                   Confirm New Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-gray-400" />
+                    <LockIcon className="h-5 w-5 text-cyan-400/70" />
                   </div>
                   <input
                     id="confirm_password"
@@ -310,7 +300,7 @@ function ResetPasswordConfirmContent() {
                     required
                     minLength={8}
                     disabled={loading}
-                    className="w-full pl-10 pr-10 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
                   />
                   <button
                     type="button"
@@ -318,42 +308,36 @@ function ResetPasswordConfirmContent() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     {showConfirmPassword ? (
-                      <EyeOffIcon className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                      <EyeOffIcon className="h-5 w-5 text-white/60 hover:text-white/90" />
                     ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                      <EyeIcon className="h-5 w-5 text-white/60 hover:text-white/90" />
                     )}
                   </button>
                 </div>
               </div>
 
-              <GlassButton
+              <TouchOptimizedButton
                 type="submit"
                 variant="primary"
                 size="lg"
                 className="w-full"
                 disabled={loading}
+                loading={loading}
               >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Resetting Password...
-                  </div>
-                ) : (
-                  "Reset Password"
-                )}
-              </GlassButton>
+                Reset Password
+              </TouchOptimizedButton>
             </div>
           </form>
 
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+              className="text-sm text-cyan-400 hover:text-cyan-300 hover:underline"
             >
               ← Back to Login
             </Link>
           </div>
-        </GlassCard>
+        </SpaceCard>
       </motion.div>
     </div>
   );
@@ -363,7 +347,7 @@ export default function ResetPasswordConfirmPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <ResetPasswordConfirmContent />

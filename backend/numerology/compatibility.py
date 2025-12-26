@@ -455,3 +455,527 @@ class CompatibilityAnalyzer:
             print(f"Compatibility analysis error: {str(e)}")
             print(f"Traceback: {error_details}")
             raise
+    
+    def detailed_compatibility_breakdown(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int]
+    ) -> Dict[str, Any]:
+        """
+        Provide detailed number-by-number compatibility breakdown.
+        
+        Args:
+            user_numbers: User's numerology numbers
+            partner_numbers: Partner's numerology numbers
+            
+        Returns:
+            Detailed breakdown analysis
+        """
+        breakdown = {}
+        
+        # Analyze each number pair
+        number_types = ['life_path_number', 'destiny_number', 'soul_urge_number', 
+                       'personality_number', 'attitude_number', 'maturity_number']
+        
+        for num_type in number_types:
+            user_num = user_numbers.get(num_type, 0)
+            partner_num = partner_numbers.get(num_type, 0)
+            
+            if user_num and partner_num:
+                compatibility = self._calculate_factor_compatibility(user_num, partner_num)
+                breakdown[num_type] = {
+                    'user_number': user_num,
+                    'partner_number': partner_num,
+                    'compatibility_score': compatibility,
+                    'compatibility_level': 'excellent' if compatibility >= 80 else 'good' if compatibility >= 65 else 'moderate' if compatibility >= 50 else 'challenging',
+                    'analysis': self._get_number_pair_analysis(num_type, user_num, partner_num),
+                    'strengths': self._get_number_pair_strengths(user_num, partner_num),
+                    'challenges': self._get_number_pair_challenges(user_num, partner_num)
+                }
+        
+        return {
+            'breakdown': breakdown,
+            'overall_assessment': self._generate_overall_assessment(breakdown),
+            'key_insights': self._extract_key_insights(breakdown)
+        }
+    
+    def relationship_timeline_predictions(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int],
+        relationship_start_date: date,
+        years_ahead: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Predict relationship compatibility over time.
+        
+        Args:
+            user_numbers: User's numerology numbers
+            partner_numbers: Partner's numerology numbers
+            relationship_start_date: When relationship started
+            years_ahead: Years to predict ahead
+            
+        Returns:
+            Timeline predictions
+        """
+        from datetime import timedelta
+        
+        calculator = NumerologyCalculator()
+        user_birth_date = user_numbers.get('birth_date')
+        partner_birth_date = partner_numbers.get('birth_date')
+        
+        if not user_birth_date or not partner_birth_date:
+            return {'error': 'Birth dates required for timeline predictions'}
+        
+        timeline = []
+        current_date = relationship_start_date
+        
+        for year_offset in range(years_ahead + 1):
+            year = relationship_start_date.year + year_offset
+            
+            # Calculate personal years
+            user_py = calculator.calculate_personal_year_number(user_birth_date, year)
+            partner_py = calculator.calculate_personal_year_number(partner_birth_date, year)
+            
+            # Calculate compatibility for this year
+            year_compatibility = self._calculate_year_compatibility(
+                user_py, partner_py, user_numbers, partner_numbers
+            )
+            
+            timeline.append({
+                'year': year,
+                'years_together': year_offset,
+                'user_personal_year': user_py,
+                'partner_personal_year': partner_py,
+                'compatibility_score': year_compatibility['score'],
+                'compatibility_level': year_compatibility['level'],
+                'key_themes': year_compatibility['themes'],
+                'predictions': year_compatibility['predictions']
+            })
+        
+        return {
+            'relationship_start_date': relationship_start_date.isoformat(),
+            'timeline': timeline,
+            'trend': self._calculate_timeline_trend(timeline),
+            'critical_periods': [t for t in timeline if t['compatibility_score'] < 50],
+            'peak_periods': [t for t in timeline if t['compatibility_score'] >= 80]
+        }
+    
+    def conflict_resolution_guidance(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int],
+        conflict_type: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Provide conflict resolution guidance based on numerology.
+        
+        Args:
+            user_numbers: User's numerology numbers
+            partner_numbers: Partner's numerology numbers
+            conflict_type: Type of conflict (optional)
+            
+        Returns:
+            Conflict resolution guidance
+        """
+        # Identify potential conflict areas
+        conflict_areas = self._identify_conflict_areas(user_numbers, partner_numbers)
+        
+        # Get communication styles
+        user_style = self._get_communication_style(user_numbers)
+        partner_style = self._get_communication_style(partner_numbers)
+        
+        # Generate resolution strategies
+        strategies = self._generate_resolution_strategies(
+            user_numbers, partner_numbers, conflict_areas, user_style, partner_style
+        )
+        
+        return {
+            'conflict_areas': conflict_areas,
+            'user_communication_style': user_style,
+            'partner_communication_style': partner_style,
+            'resolution_strategies': strategies,
+            'prevention_tips': self._get_conflict_prevention_tips(user_numbers, partner_numbers)
+        }
+    
+    def communication_style_analysis(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int]
+    ) -> Dict[str, Any]:
+        """
+        Analyze communication styles based on numerology.
+        
+        Args:
+            user_numbers: User's numerology numbers
+            partner_numbers: Partner's numerology numbers
+            
+        Returns:
+            Communication style analysis
+        """
+        user_style = self._get_communication_style(user_numbers)
+        partner_style = self._get_communication_style(partner_numbers)
+        
+        # Calculate communication compatibility
+        compatibility = self._calculate_communication_compatibility(user_style, partner_style)
+        
+        return {
+            'user_style': user_style,
+            'partner_style': partner_style,
+            'compatibility': compatibility,
+            'communication_tips': self._get_communication_tips(user_style, partner_style),
+            'potential_challenges': self._identify_communication_challenges(user_style, partner_style)
+        }
+    
+    def _get_number_pair_analysis(
+        self,
+        num_type: str,
+        user_num: int,
+        partner_num: int
+    ) -> str:
+        """Get analysis for a number pair."""
+        diff = abs(user_num - partner_num)
+        
+        if diff == 0:
+            return f'Both have {num_type.replace("_", " ")} {user_num} - shared energy and understanding'
+        elif diff <= 2:
+            return f'Numbers {user_num} and {partner_num} are complementary - good harmony'
+        elif diff <= 4:
+            return f'Numbers {user_num} and {partner_num} have moderate alignment'
+        else:
+            return f'Numbers {user_num} and {partner_num} differ significantly - may require understanding'
+    
+    def _get_number_pair_strengths(self, user_num: int, partner_num: int) -> List[str]:
+        """Get strengths for a number pair."""
+        strengths = []
+        
+        if user_num == partner_num:
+            strengths.append('Shared energy creates strong connection')
+        elif abs(user_num - partner_num) == 1:
+            strengths.append('Complementary energies enhance each other')
+        elif user_num + partner_num in [10, 11, 22]:
+            strengths.append('Numbers combine to create powerful synergy')
+        
+        return strengths
+    
+    def _get_number_pair_challenges(self, user_num: int, partner_num: int) -> List[str]:
+        """Get challenges for a number pair."""
+        challenges = []
+        
+        if abs(user_num - partner_num) > 6:
+            challenges.append('Significant differences may require compromise')
+        
+        # Specific challenging combinations
+        challenging_pairs = [(1, 1), (5, 5), (7, 7)]
+        if (user_num, partner_num) in challenging_pairs or (partner_num, user_num) in challenging_pairs:
+            challenges.append('Both share same energy - may need balance')
+        
+        return challenges
+    
+    def _generate_overall_assessment(self, breakdown: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate overall assessment from breakdown."""
+        scores = [b['compatibility_score'] for b in breakdown.values()]
+        avg_score = sum(scores) / len(scores) if scores else 0
+        
+        excellent = sum(1 for s in scores if s >= 80)
+        good = sum(1 for s in scores if 65 <= s < 80)
+        moderate = sum(1 for s in scores if 50 <= s < 65)
+        challenging = sum(1 for s in scores if s < 50)
+        
+        return {
+            'average_score': round(avg_score),
+            'score_distribution': {
+                'excellent': excellent,
+                'good': good,
+                'moderate': moderate,
+                'challenging': challenging
+            },
+            'strongest_area': max(breakdown.items(), key=lambda x: x[1]['compatibility_score'])[0] if breakdown else None,
+            'weakest_area': min(breakdown.items(), key=lambda x: x[1]['compatibility_score'])[0] if breakdown else None
+        }
+    
+    def _extract_key_insights(self, breakdown: Dict[str, Any]) -> List[str]:
+        """Extract key insights from breakdown."""
+        insights = []
+        
+        for num_type, data in breakdown.items():
+            if data['compatibility_score'] >= 80:
+                insights.append(f'Strong {num_type.replace("_", " ")} compatibility')
+            elif data['compatibility_score'] < 50:
+                insights.append(f'{num_type.replace("_", " ")} may require attention')
+        
+        return insights
+    
+    def _calculate_year_compatibility(
+        self,
+        user_py: int,
+        partner_py: int,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int]
+    ) -> Dict[str, Any]:
+        """Calculate compatibility for a specific year."""
+        # Base compatibility from personal years
+        py_compatibility = self._calculate_factor_compatibility(user_py, partner_py)
+        
+        # Adjust based on base numbers
+        base_score = self.calculate_compatibility_score(user_numbers, partner_numbers)[0]
+        
+        # Combine scores
+        year_score = (py_compatibility * 0.6 + base_score * 0.4)
+        
+        return {
+            'score': round(year_score),
+            'level': 'excellent' if year_score >= 80 else 'good' if year_score >= 65 else 'moderate' if year_score >= 50 else 'challenging',
+            'themes': self._get_year_themes(user_py, partner_py),
+            'predictions': self._get_year_predictions(user_py, partner_py, year_score)
+        }
+    
+    def _get_year_themes(self, user_py: int, partner_py: int) -> List[str]:
+        """Get themes for a year based on personal years."""
+        themes = []
+        
+        if user_py == partner_py:
+            themes.append('Synchronized personal years - strong alignment')
+        elif abs(user_py - partner_py) <= 2:
+            themes.append('Harmonious personal year cycles')
+        else:
+            themes.append('Different personal year cycles - may require understanding')
+        
+        return themes
+    
+    def _get_year_predictions(
+        self,
+        user_py: int,
+        partner_py: int,
+        score: float
+    ) -> List[str]:
+        """Get predictions for a year."""
+        predictions = []
+        
+        if score >= 80:
+            predictions.append('Excellent year for relationship growth')
+            predictions.append('Strong support for joint goals')
+        elif score >= 65:
+            predictions.append('Good year for relationship development')
+        elif score >= 50:
+            predictions.append('Moderate year - focus on communication')
+        else:
+            predictions.append('Challenging year - extra effort needed')
+            predictions.append('Consider relationship counseling or support')
+        
+        return predictions
+    
+    def _calculate_timeline_trend(self, timeline: List[Dict[str, Any]]) -> str:
+        """Calculate overall trend from timeline."""
+        if len(timeline) < 2:
+            return 'stable'
+        
+        first_half = sum(t['compatibility_score'] for t in timeline[:len(timeline)//2]) / (len(timeline)//2)
+        second_half = sum(t['compatibility_score'] for t in timeline[len(timeline)//2:]) / (len(timeline) - len(timeline)//2)
+        
+        if second_half > first_half + 5:
+            return 'improving'
+        elif second_half < first_half - 5:
+            return 'declining'
+        else:
+            return 'stable'
+    
+    def _identify_conflict_areas(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int]
+    ) -> List[Dict[str, Any]]:
+        """Identify potential conflict areas."""
+        conflict_areas = []
+        
+        number_types = ['life_path_number', 'destiny_number', 'soul_urge_number', 'personality_number']
+        
+        for num_type in number_types:
+            user_num = user_numbers.get(num_type, 0)
+            partner_num = partner_numbers.get(num_type, 0)
+            
+            if user_num and partner_num:
+                diff = abs(user_num - partner_num)
+                if diff > 6:  # Significant difference
+                    conflict_areas.append({
+                        'area': num_type.replace('_', ' '),
+                        'user_number': user_num,
+                        'partner_number': partner_num,
+                        'difference': diff,
+                        'severity': 'high' if diff > 7 else 'moderate'
+                    })
+        
+        return conflict_areas
+    
+    def _get_communication_style(self, numbers: Dict[str, int]) -> Dict[str, Any]:
+        """Get communication style based on numerology."""
+        personality = numbers.get('personality_number', 1)
+        soul_urge = numbers.get('soul_urge_number', 1)
+        
+        styles = {
+            1: {'style': 'direct', 'approach': 'assertive', 'preference': 'clear and concise'},
+            2: {'style': 'diplomatic', 'approach': 'cooperative', 'preference': 'harmonious discussion'},
+            3: {'style': 'expressive', 'approach': 'creative', 'preference': 'enthusiastic sharing'},
+            4: {'style': 'practical', 'approach': 'structured', 'preference': 'organized communication'},
+            5: {'style': 'dynamic', 'approach': 'flexible', 'preference': 'varied and exciting'},
+            6: {'style': 'nurturing', 'approach': 'caring', 'preference': 'supportive dialogue'},
+            7: {'style': 'analytical', 'approach': 'thoughtful', 'preference': 'deep meaningful talks'},
+            8: {'style': 'authoritative', 'approach': 'decisive', 'preference': 'goal-oriented discussion'},
+            9: {'style': 'compassionate', 'approach': 'understanding', 'preference': 'empathetic communication'}
+        }
+        
+        # Combine personality and soul urge
+        primary_style = styles.get(personality, styles[1])
+        secondary_style = styles.get(soul_urge, styles[1])
+        
+        return {
+            'primary_style': primary_style,
+            'secondary_influence': secondary_style,
+            'overall_approach': self._combine_communication_styles(primary_style, secondary_style)
+        }
+    
+    def _combine_communication_styles(
+        self,
+        primary: Dict[str, Any],
+        secondary: Dict[str, Any]
+    ) -> str:
+        """Combine primary and secondary communication styles."""
+        if primary['style'] == secondary['style']:
+            return f"Strong {primary['style']} communicator"
+        else:
+            return f"{primary['style']} with {secondary['style']} influences"
+    
+    def _generate_resolution_strategies(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int],
+        conflict_areas: List[Dict[str, Any]],
+        user_style: Dict[str, Any],
+        partner_style: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Generate conflict resolution strategies."""
+        strategies = []
+        
+        for conflict in conflict_areas:
+            strategies.append({
+                'conflict_area': conflict['area'],
+                'strategy': self._get_area_specific_strategy(conflict, user_style, partner_style),
+                'communication_approach': self._get_conflict_communication_approach(user_style, partner_style)
+            })
+        
+        return strategies
+    
+    def _get_area_specific_strategy(
+        self,
+        conflict: Dict[str, Any],
+        user_style: Dict[str, Any],
+        partner_style: Dict[str, Any]
+    ) -> str:
+        """Get strategy for specific conflict area."""
+        area = conflict['area']
+        
+        if 'life path' in area.lower():
+            return 'Focus on understanding each other\'s life paths and finding common ground'
+        elif 'soul urge' in area.lower():
+            return 'Acknowledge each other\'s inner desires and find ways to support them'
+        elif 'personality' in area.lower():
+            return 'Respect different personality expressions and communication styles'
+        else:
+            return 'Open dialogue and mutual understanding are key'
+    
+    def _get_conflict_communication_approach(
+        self,
+        user_style: Dict[str, Any],
+        partner_style: Dict[str, Any]
+    ) -> str:
+        """Get communication approach for conflicts."""
+        user_primary = user_style['primary_style']['style']
+        partner_primary = partner_style['primary_style']['style']
+        
+        if user_primary == 'direct' and partner_primary == 'diplomatic':
+            return 'User should be mindful of tone, partner should express needs directly'
+        elif user_primary == 'analytical' and partner_primary == 'expressive':
+            return 'Balance logical discussion with emotional expression'
+        else:
+            return 'Use each other\'s communication strengths to resolve conflicts'
+    
+    def _get_conflict_prevention_tips(
+        self,
+        user_numbers: Dict[str, int],
+        partner_numbers: Dict[str, int]
+    ) -> List[str]:
+        """Get tips for preventing conflicts."""
+        tips = []
+        
+        tips.append('Regular communication about needs and expectations')
+        tips.append('Respect each other\'s numerology-based tendencies')
+        tips.append('Find activities that align with both numerologies')
+        tips.append('Use numerology insights to understand differences')
+        
+        return tips
+    
+    def _calculate_communication_compatibility(
+        self,
+        user_style: Dict[str, Any],
+        partner_style: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Calculate communication compatibility."""
+        user_primary = user_style['primary_style']['style']
+        partner_primary = partner_style['primary_style']['style']
+        
+        # Compatible style pairs
+        compatible_pairs = [
+            ('direct', 'diplomatic'),
+            ('expressive', 'nurturing'),
+            ('analytical', 'compassionate'),
+            ('practical', 'authoritative')
+        ]
+        
+        is_compatible = (user_primary, partner_primary) in compatible_pairs or \
+                       (partner_primary, user_primary) in compatible_pairs
+        
+        score = 70 if is_compatible else 50
+        
+        return {
+            'score': score,
+            'level': 'good' if score >= 65 else 'moderate',
+            'compatibility': 'compatible' if is_compatible else 'different but workable'
+        }
+    
+    def _get_communication_tips(
+        self,
+        user_style: Dict[str, Any],
+        partner_style: Dict[str, Any]
+    ) -> List[str]:
+        """Get communication tips based on styles."""
+        tips = []
+        
+        user_primary = user_style['primary_style']['style']
+        partner_primary = partner_style['primary_style']['style']
+        
+        if user_primary == 'direct' and partner_primary == 'diplomatic':
+            tips.append('User: soften directness, Partner: be more direct when needed')
+        elif user_primary == 'analytical' and partner_primary == 'expressive':
+            tips.append('Balance logic with emotion in discussions')
+        else:
+            tips.append('Adapt communication to each other\'s style')
+        
+        return tips
+    
+    def _identify_communication_challenges(
+        self,
+        user_style: Dict[str, Any],
+        partner_style: Dict[str, Any]
+    ) -> List[str]:
+        """Identify potential communication challenges."""
+        challenges = []
+        
+        user_primary = user_style['primary_style']['style']
+        partner_primary = partner_style['primary_style']['style']
+        
+        if user_primary == 'direct' and partner_primary == 'sensitive':
+            challenges.append('Direct communication may be too harsh for partner')
+        elif user_primary == 'analytical' and partner_primary == 'emotional':
+            challenges.append('Logic vs emotion may create misunderstandings')
+        
+        return challenges

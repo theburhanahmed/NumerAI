@@ -24,7 +24,7 @@ except ImportError:
     logger.warning("OpenAI not available. AI features will be limited.")
 
 
-class MentalStateAnalyzer:
+class MentalStateAIService:
     """Service for analyzing mental state using numerology and AI."""
     
     def __init__(self, system: str = 'pythagorean'):

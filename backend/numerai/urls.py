@@ -33,6 +33,9 @@ urlpatterns = [
     # Django Allauth
     path('accounts/', include('allauth.urls')),
     
+    # GraphQL API
+    path('api/v1/graphql/', include('graphql_api.urls')),
+    
     # API Schema & Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

@@ -9,9 +9,9 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models import Q
 from datetime import timedelta, date, datetime
-from .models import ReportTemplate, GeneratedReport
+from .models import ReportTemplate, GeneratedReport, ScheduledReport, ReportComparison
 from .serializers import (
-    ReportTemplateSerializer, GeneratedReportSerializer
+    ReportTemplateSerializer, GeneratedReportSerializer, ScheduledReportSerializer, ReportComparisonSerializer
 )
 from numerology.models import Person, PersonNumerologyProfile
 from io import BytesIO
@@ -352,3 +352,293 @@ def export_generated_report_pdf(request, report_id):
     buffer.close()
     response.write(pdf)
     return response
+
+
+# Enhanced reports endpoints
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generate_custom_report(request):
+    """Generate a custom report with selected sections."""
+    user = request.user
+    
+    person_id = request.data.get('person_id')
+    sections = request.data.get('sections', [])
+    custom_config = request.data.get('custom_config', {})
+    
+    if not person_id:
+        return Response({
+            'error': 'person_id is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        person = Person.objects.get(id=person_id, user=user, is_active=True)
+    except Person.DoesNotExist:
+        return Response({
+            'error': 'Person not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        numerology_profile = PersonNumerologyProfile.objects.get(person=person)
+    except PersonNumerologyProfile.DoesNotExist:
+        return Response({
+            'error': 'Numerology profile not found for this person. Please calculate it first.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        from .services.reports_service import ReportsService
+        service = ReportsService()
+        content = service.generate_custom_report(person, numerology_profile, sections, custom_config)
+        
+        # Create a temporary template for custom reports
+        template, _ = ReportTemplate.objects.get_or_create(
+            name='Custom Report',
+            defaults={
+                'description': 'Custom generated report',
+                'report_type': 'detailed',
+                'is_active': True
+            }
+        )
+        
+        report = GeneratedReport.objects.create(
+            user=user,
+            person=person,
+            template=template,
+            title=f"Custom Report for {person.name}",
+            content=content,
+            expires_at=timezone.now() + timedelta(days=30)
+        )
+        
+        serializer = GeneratedReportSerializer(report)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    except Exception as e:
+        return Response({
+            'error': f'Failed to generate custom report: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_report_template(request):
+    """Create a custom report template."""
+    user = request.user
+    
+    name = request.data.get('name')
+    description = request.data.get('description')
+    report_type = request.data.get('report_type')
+    template_config = request.data.get('template_config', {})
+    is_premium = request.data.get('is_premium', False)
+    
+    if not all([name, description, report_type]):
+        return Response({
+            'error': 'name, description, and report_type are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        from .services.reports_service import ReportsService
+        service = ReportsService()
+        template = service.create_report_template(
+            user, name, description, report_type, template_config, is_premium
+        )
+        
+        serializer = ReportTemplateSerializer(template)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    except Exception as e:
+        return Response({
+            'error': f'Failed to create template: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_report_templates(request):
+    """Get user's custom report templates."""
+    user = request.user
+    
+    templates = ReportTemplate.objects.filter(owner=user, is_custom=True, is_active=True)
+    serializer = ReportTemplateSerializer(templates, many=True)
+    
+    return Response({
+        'count': templates.count(),
+        'results': serializer.data
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def schedule_report(request):
+    """Schedule a recurring report."""
+    user = request.user
+    
+    template_id = request.data.get('template_id')
+    person_id = request.data.get('person_id')
+    schedule_frequency = request.data.get('schedule_frequency', 'monthly')
+    next_run_date_str = request.data.get('next_run_date')
+    
+    if not all([template_id, person_id, next_run_date_str]):
+        return Response({
+            'error': 'template_id, person_id, and next_run_date are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        template = ReportTemplate.objects.get(id=template_id, is_active=True)
+    except ReportTemplate.DoesNotExist:
+        return Response({
+            'error': 'Template not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        person = Person.objects.get(id=person_id, user=user, is_active=True)
+    except Person.DoesNotExist:
+        return Response({
+            'error': 'Person not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        next_run_date = datetime.strptime(next_run_date_str, '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        try:
+            next_run_date = datetime.strptime(next_run_date_str, '%Y-%m-%d')
+        except ValueError:
+            return Response({
+                'error': 'Invalid date format. Use YYYY-MM-DD or YYYY-MM-DD HH:MM:SS'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        from .services.reports_service import ReportsService
+        service = ReportsService()
+        scheduled = service.schedule_report(user, template, person, schedule_frequency, next_run_date)
+        
+        from .serializers import ScheduledReportSerializer
+        serializer = ScheduledReportSerializer(scheduled)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    except Exception as e:
+        return Response({
+            'error': f'Failed to schedule report: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_scheduled_reports(request):
+    """Get user's scheduled reports."""
+    user = request.user
+    
+    scheduled = ScheduledReport.objects.filter(user=user, is_active=True).order_by('next_run_date')
+    
+    serializer = ScheduledReportSerializer(scheduled, many=True)
+    
+    return Response({
+        'count': scheduled.count(),
+        'results': serializer.data
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def cancel_scheduled_report(request, scheduled_id):
+    """Cancel a scheduled report."""
+    user = request.user
+    
+    try:
+        scheduled = ScheduledReport.objects.get(id=scheduled_id, user=user)
+        scheduled.is_active = False
+        scheduled.save()
+        
+        return Response({
+            'message': 'Scheduled report cancelled successfully'
+        }, status=status.HTTP_200_OK)
+    
+    except ScheduledReport.DoesNotExist:
+        return Response({
+            'error': 'Scheduled report not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def compare_reports(request):
+    """Compare two reports side-by-side."""
+    user = request.user
+    
+    report1_id = request.data.get('report1_id')
+    report2_id = request.data.get('report2_id')
+    
+    if not all([report1_id, report2_id]):
+        return Response({
+            'error': 'report1_id and report2_id are required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        report1 = GeneratedReport.objects.get(id=report1_id, user=user)
+        report2 = GeneratedReport.objects.get(id=report2_id, user=user)
+    except GeneratedReport.DoesNotExist:
+        return Response({
+            'error': 'One or both reports not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        from .services.reports_service import ReportsService
+        service = ReportsService()
+        comparison_data = service.compare_reports(user, report1, report2)
+        
+        return Response(comparison_data, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response({
+            'error': f'Failed to compare reports: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_report_format(request, report_id, format_type):
+    """Export report in multiple formats."""
+    user = request.user
+    
+    valid_formats = ['pdf', 'docx', 'json', 'html']
+    if format_type not in valid_formats:
+        return Response({
+            'error': f'Invalid format. Supported formats: {", ".join(valid_formats)}'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        report = GeneratedReport.objects.get(id=report_id, user=user)
+    except GeneratedReport.DoesNotExist:
+        return Response({
+            'error': 'Report not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        from .services.reports_service import ReportsService
+        service = ReportsService()
+        
+        if format_type == 'pdf':
+            # Use existing PDF endpoint
+            return export_generated_report_pdf(request, report_id)
+        else:
+            content = service.export_report_multiple_formats(report, format_type)
+            
+            if content is None:
+                return Response({
+                    'error': 'Export failed'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # Determine content type
+            content_types = {
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'json': 'application/json',
+                'html': 'text/html'
+            }
+            
+            response = HttpResponse(content, content_type=content_types.get(format_type, 'application/octet-stream'))
+            response['Content-Disposition'] = f'attachment; filename="{report.title.replace(" ", "_")}.{format_type}"'
+            return response
+    
+    except Exception as e:
+        return Response({
+            'error': f'Failed to export report: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

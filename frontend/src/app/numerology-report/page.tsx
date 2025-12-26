@@ -3,10 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SparklesIcon, StarIcon, HeartIcon, BriefcaseIcon, TrendingUpIcon, CalendarIcon, DownloadIcon, CheckCircleIcon, AlertCircleIcon, ShieldIcon, ZapIcon, TypeIcon, PhoneIcon, ArrowRightIcon, UserIcon } from 'lucide-react';
-import { PageLayout } from '@/components/ui/page-layout';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { SpaceCard } from '@/components/space/space-card';
+import { SpaceButton } from '@/components/space/space-button';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
+import { CrystalNumerologyCube } from '@/components/3d/crystal-numerology-cube';
+import { CosmicSkeletonLoader } from '@/components/cosmic/cosmic-skeleton-loader';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { SubscriptionPricingCards } from '@/components/SubscriptionPricingCards';
 import { useSubscription, SubscriptionTier } from '@/contexts/SubscriptionContext';
@@ -144,7 +149,10 @@ export default function NumerologyReport() {
       phoneNumber: ''
     });
   };
-  return <PageLayout>
+  return (
+    <div className="relative min-h-screen">
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#0B0F19] via-[#1a2942] to-[#0B0F19]" />
+      <div className="relative z-10">
       {/* Page Header */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 border-b border-gray-200 dark:border-white/10">
         <div className="flex items-center justify-between">
@@ -169,12 +177,13 @@ export default function NumerologyReport() {
             </div>
           </div>
           {currentStep === 'report' && <div className="flex gap-2">
-              <GlassButton variant="ghost" size="sm" onClick={handleStartOver}>
+              <TouchOptimizedButton variant="secondary" size="sm" onClick={handleStartOver}>
                 New Report
-              </GlassButton>
-              <GlassButton variant="liquid" size="sm" icon={<DownloadIcon className="w-4 h-4" />} onClick={handleDownload} className="glass-glow">
+              </TouchOptimizedButton>
+              <TouchOptimizedButton variant="primary" size="sm" onClick={handleDownload}>
+                <DownloadIcon className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Download</span>
-              </GlassButton>
+              </TouchOptimizedButton>
             </div>}
         </div>
       </div>
@@ -324,9 +333,10 @@ export default function NumerologyReport() {
                       </div>
                     </div>
 
-                    <GlassButton variant="liquid" size="lg" onClick={handleGenerateReport} className="w-full glass-glow" icon={<ArrowRightIcon className="w-5 h-5" />} disabled={!formData.name || !formData.birthDate}>
+                    <TouchOptimizedButton variant="primary" size="lg" onClick={handleGenerateReport} className="w-full" disabled={!formData.name || !formData.birthDate}>
+                      <ArrowRightIcon className="w-5 h-5 mr-2" />
                       Continue to Subscription
-                    </GlassButton>
+                    </TouchOptimizedButton>
                   </div>
                 </div>
               </MagneticCard>
@@ -362,10 +372,11 @@ export default function NumerologyReport() {
             opacity: 1,
             y: 0
           }} className="max-w-md mx-auto mt-8">
-                  <GlassButton variant="liquid" size="lg" onClick={handleConfirmSubscription} className="w-full glass-glow" icon={<CheckCircleIcon className="w-5 h-5" />}>
+                  <TouchOptimizedButton variant="primary" size="lg" onClick={handleConfirmSubscription} className="w-full">
+                    <CheckCircleIcon className="w-5 h-5 mr-2" />
                     Generate Report with{' '}
                     {selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)}
-                  </GlassButton>
+                  </TouchOptimizedButton>
                 </motion.div>}
             </motion.div>}
 
@@ -384,7 +395,9 @@ export default function NumerologyReport() {
             </motion.div>}
         </AnimatePresence>
       </div>
-    </PageLayout>;
+      </div>
+    </div>
+  );
 }
 // Report Content Component - Enhanced with AI-generated content
 function ReportContent({
@@ -449,7 +462,8 @@ function ReportContent({
   const soulUrgeData = detailedAnalysis.soul_urge;
   const personalityData = detailedAnalysis.personality;
 
-  return <>
+  return (
+    <div>
       {/* Subscription Tier Badge */}
       <motion.div initial={{
       opacity: 0,
@@ -458,25 +472,29 @@ function ReportContent({
       opacity: 1,
       y: 0
     }} className="mb-6 text-center">
-        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${tier === 'free' ? 'bg-gray-500/20 text-gray-700 dark:text-gray-300' : tier === 'premium' ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'}`}>
+        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${tier === 'free' ? 'bg-gray-500/20 text-gray-700 dark:text-gray-300' : tier === 'premium' ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300' : tier === 'elite' ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300' : 'bg-blue-500/20 text-blue-700 dark:text-blue-300'}`}>
           {tier === 'free' && '🆓 Free Report'}
           {tier === 'premium' && '✨ Premium Report'}
-          {tier === 'enterprise' && '👑 Enterprise Report'}
+          {tier === 'elite' && '👑 Elite Report'}
+          {tier === 'enterprise' && '🏢 Enterprise Report'}
         </span>
       </motion.div>
 
       {/* Profile Header */}
-      <motion.div initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      delay: 0.1
-    }}>
-        <GlassCard variant="liquid-premium" className="p-6 md:p-8 mb-6 md:mb-8 bg-gradient-to-br from-blue-500/90 to-purple-600/90 text-white relative overflow-hidden">
-          <div className="liquid-glass-content">
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          delay: 0.1,
+        }}
+      >
+        <SpaceCard variant="premium" className="p-6 md:p-8 mb-6 md:mb-8 bg-gradient-to-br from-cyan-500/90 to-blue-600/90 text-white relative overflow-hidden">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">
@@ -513,20 +531,98 @@ function ReportContent({
               </div>
             </div>
             {profile ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-                <CoreNumberCard label="Life Path" number={profile.life_path_number?.toString() || '-'} delay={0.2} />
-                <CoreNumberCard label="Expression" number={profile.destiny_number?.toString() || '-'} delay={0.3} />
-                <CoreNumberCard label="Soul Urge" number={profile.soul_urge_number?.toString() || '-'} delay={0.4} />
-                <CoreNumberCard label="Personality" number={profile.personality_number?.toString() || '-'} delay={0.5} />
-                <CoreNumberCard label="Personal Year" number={profile.personal_year_number?.toString() || '-'} delay={0.6} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 md:gap-6">
+                {profile.life_path_number && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col items-center"
+                  >
+                    <CrystalNumerologyCube
+                      number={profile.life_path_number}
+                      size="sm"
+                      color="cyan"
+                    />
+                    <p className="text-xs md:text-sm text-white/80 mt-3 text-center">
+                      Life Path
+                    </p>
+                  </motion.div>
+                )}
+                {profile.destiny_number && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex flex-col items-center"
+                  >
+                    <CrystalNumerologyCube
+                      number={profile.destiny_number}
+                      size="sm"
+                      color="purple"
+                    />
+                    <p className="text-xs md:text-sm text-white/80 mt-3 text-center">
+                      Destiny
+                    </p>
+                  </motion.div>
+                )}
+                {profile.soul_urge_number && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="flex flex-col items-center"
+                  >
+                    <CrystalNumerologyCube
+                      number={profile.soul_urge_number}
+                      size="sm"
+                      color="blue"
+                    />
+                    <p className="text-xs md:text-sm text-white/80 mt-3 text-center">
+                      Soul Urge
+                    </p>
+                  </motion.div>
+                )}
+                {profile.personality_number && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex flex-col items-center"
+                  >
+                    <CrystalNumerologyCube
+                      number={profile.personality_number}
+                      size="sm"
+                      color="pink"
+                    />
+                    <p className="text-xs md:text-sm text-white/80 mt-3 text-center">
+                      Personality
+                    </p>
+                  </motion.div>
+                )}
+                {profile.personal_year_number && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="flex flex-col items-center"
+                  >
+                    <CoreNumberCard
+                      label="Personal Year"
+                      number={profile.personal_year_number?.toString() || '-'}
+                      delay={0.6}
+                    />
+                  </motion.div>
+                )}
               </div>
             ) : (
               <div className="text-center py-4">
-                <p className="text-white/80 text-sm">Calculate your profile to see your numbers</p>
+                <p className="text-white/80 text-sm">
+                  Calculate your profile to see your numbers
+                </p>
               </div>
             )}
-          </div>
-        </GlassCard>
+        </SpaceCard>
       </motion.div>
 
       {/* Life Path Analysis - Always visible */}
@@ -563,63 +659,53 @@ function ReportContent({
                 </div>
                 
                 {lifePathData.career_insights && (
-                  <GlassCard variant="liquid" className="p-5 bg-gradient-to-br from-blue-500/10 to-indigo-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-3">
-                        <BriefcaseIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Career Insights</h3>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{lifePathData.career_insights}</p>
+                  <SpaceCard variant="elevated" className="p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BriefcaseIcon className="w-5 h-5 text-cyan-400" />
+                      <h3 className="font-semibold text-white">Career Insights</h3>
                     </div>
-                  </GlassCard>
+                    <p className="text-sm text-white/70">{lifePathData.career_insights}</p>
+                  </SpaceCard>
                 )}
                 
                 {lifePathData.relationship_insights && (
-                  <GlassCard variant="liquid" className="p-5 bg-gradient-to-br from-pink-500/10 to-rose-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-3">
-                        <HeartIcon className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Relationship Insights</h3>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{lifePathData.relationship_insights}</p>
+                  <SpaceCard variant="elevated" className="p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <HeartIcon className="w-5 h-5 text-pink-400" />
+                      <h3 className="font-semibold text-white">Relationship Insights</h3>
                     </div>
-                  </GlassCard>
+                    <p className="text-sm text-white/70">{lifePathData.relationship_insights}</p>
+                  </SpaceCard>
                 )}
                 
                 {lifePathData.life_purpose && (
-                  <GlassCard variant="liquid" className="p-5 bg-gradient-to-br from-purple-500/10 to-violet-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-3">
-                        <StarIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Life Purpose</h3>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{lifePathData.life_purpose}</p>
+                  <SpaceCard variant="elevated" className="p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <StarIcon className="w-5 h-5 text-purple-400" />
+                      <h3 className="font-semibold text-white">Life Purpose</h3>
                     </div>
-                  </GlassCard>
+                    <p className="text-sm text-white/70">{lifePathData.life_purpose}</p>
+                  </SpaceCard>
                 )}
                 
                 {lifePathData.challenges_and_growth && (
-                  <GlassCard variant="liquid" className="p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertCircleIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Challenges & Growth</h3>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{lifePathData.challenges_and_growth}</p>
+                  <SpaceCard variant="elevated" className="p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertCircleIcon className="w-5 h-5 text-orange-400" />
+                      <h3 className="font-semibold text-white">Challenges & Growth</h3>
                     </div>
-                  </GlassCard>
+                    <p className="text-sm text-white/70">{lifePathData.challenges_and_growth}</p>
+                  </SpaceCard>
                 )}
                 
                 {lifePathData.personalized_advice && (
-                  <GlassCard variant="liquid" className="p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-3">
-                        <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        <h3 className="font-semibold text-gray-900 dark:text-white">Personalized Advice</h3>
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{lifePathData.personalized_advice}</p>
+                  <SpaceCard variant="elevated" className="p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircleIcon className="w-5 h-5 text-green-400" />
+                      <h3 className="font-semibold text-white">Personalized Advice</h3>
                     </div>
-                  </GlassCard>
+                    <p className="text-sm text-white/70">{lifePathData.personalized_advice}</p>
+                  </SpaceCard>
                 )}
               </div>
             ) : (
@@ -745,23 +831,21 @@ function ReportContent({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {fullReport.pinnacle_cycles.map((cycle: any, index: number) => (
-                  <GlassCard key={index} variant="liquid" className="p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        {cycle.pinnacle_number}
-                      </div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                        Pinnacle {cycle.cycle_number}
-                      </h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{cycle.age_range}</p>
-                      {cycle.theme && (
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{cycle.theme}</p>
-                      )}
-                      {cycle.description && (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3">{cycle.description}</p>
-                      )}
+                  <SpaceCard key={index} variant="elevated" className="p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+                    <div className="text-3xl font-bold text-white mb-2">
+                      {cycle.pinnacle_number}
                     </div>
-                  </GlassCard>
+                    <h3 className="font-semibold text-white mb-2">
+                      Pinnacle {cycle.cycle_number}
+                    </h3>
+                    <p className="text-xs text-white/70 mb-2">{cycle.age_range}</p>
+                    {cycle.theme && (
+                      <p className="text-sm font-medium text-white/80 mb-2">{cycle.theme}</p>
+                    )}
+                    {cycle.description && (
+                      <p className="text-xs text-white/70 line-clamp-3">{cycle.description}</p>
+                    )}
+                  </SpaceCard>
                 ))}
               </div>
             </div>
@@ -882,28 +966,28 @@ function ReportContent({
       {/* Personal Year - Dynamic from report */}
       {profile?.personal_year_number && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-          <GlassCard variant="liquid-premium" className="p-6 md:p-8 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-            <div className="liquid-glass-content">
-              <div className="flex items-center gap-3 mb-6">
-                <CalendarIcon className="w-6 h-6 md:w-8 md:h-8 text-purple-600 dark:text-purple-400" />
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+          <SpaceCard variant="premium" className="p-6 md:p-8 bg-[#1a2942]/40 border border-cyan-500/20" glow>
+            <div className="flex items-center gap-3 mb-6">
+              <CalendarIcon className="w-6 h-6 md:w-8 md:h-8 text-purple-400" />
+                <h2 className="text-xl md:text-2xl font-bold text-white">
                   Personal Year {profile.personal_year_number} Forecast
                 </h2>
               </div>
               {fullReport.birth_date_interpretations?.personal_year_number && (
                 <div className="space-y-4">
                   {fullReport.birth_date_interpretations.personal_year_number.description && (
-                    <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 leading-relaxed">
+                    <p className="text-sm md:text-base text-white/80 leading-relaxed">
                       {fullReport.birth_date_interpretations.personal_year_number.description}
                     </p>
                   )}
                 </div>
               )}
             </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
       )}
-    </>;
+    </div>
+  );
 }
 function CoreNumberCard({
   label,
@@ -914,23 +998,31 @@ function CoreNumberCard({
   number: string;
   delay: number;
 }) {
-  return <motion.div initial={{
-    opacity: 0,
-    scale: 0.8
-  }} animate={{
-    opacity: 1,
-    scale: 1
-  }} transition={{
-    delay,
-    type: 'spring',
-    stiffness: 200
-  }} className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 md:p-5 text-center border border-white/30" whileHover={{
-    scale: 1.05,
-    y: -4
-  }}>
+  return (
+    <motion.div 
+      initial={{
+        opacity: 0,
+        scale: 0.8
+      }} 
+      animate={{
+        opacity: 1,
+        scale: 1
+      }} 
+      transition={{
+        delay,
+        type: 'spring',
+        stiffness: 200
+      }} 
+      className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 md:p-5 text-center border border-white/30" 
+      whileHover={{
+        scale: 1.05,
+        y: -4
+      }}
+    >
       <p className="text-xs md:text-sm text-white/80 mb-2">{label}</p>
       <p className="text-3xl md:text-4xl font-bold">{number}</p>
-    </motion.div>;
+    </motion.div>
+  );
 }
 function ForecastCard({
   label,
@@ -941,24 +1033,28 @@ function ForecastCard({
   value: string;
   delay: number;
 }) {
-  return <motion.div initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    delay
-  }}>
-      <GlassCard variant="liquid" className="p-4 md:p-5">
-        <div className="liquid-glass-content">
-          <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            {label}
-          </p>
-          <p className="text-sm md:text-base text-gray-900 dark:text-white font-medium">
-            {value}
-          </p>
-        </div>
-      </GlassCard>
-    </motion.div>;
+  return (
+    <motion.div 
+      initial={{
+        opacity: 0,
+        y: 20
+      }} 
+      animate={{
+        opacity: 1,
+        y: 0
+      }} 
+      transition={{
+        delay
+      }}
+    >
+      <SpaceCard variant="elevated" className="p-4 md:p-5 bg-[#1a2942]/40 border border-cyan-500/20">
+        <p className="text-xs md:text-sm font-semibold text-white/70 mb-2">
+          {label}
+        </p>
+        <p className="text-sm md:text-base text-white font-medium">
+          {value}
+        </p>
+      </SpaceCard>
+    </motion.div>
+  );
 }

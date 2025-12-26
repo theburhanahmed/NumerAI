@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useLocale } from 'next-intl';
+import { useRouter, usePathname } from 'next/navigation';
 import { Globe, ChevronDown } from 'lucide-react';
 import { locales, localeNames, type Locale } from '@/i18n/config';
 import { cn } from '@/lib/utils';
 
 export function LanguageSelector() {
-  const [currentLocale, setCurrentLocale] = useState<Locale>('en');
+  const locale = useLocale() as Locale;
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load saved locale from localStorage
-    const saved = localStorage.getItem('locale');
-    if (saved && locales.includes(saved as Locale)) {
-      setCurrentLocale(saved as Locale);
-    }
-
     // Close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -28,14 +26,19 @@ export function LanguageSelector() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLocaleChange = (locale: Locale) => {
-    setCurrentLocale(locale);
-    localStorage.setItem('locale', locale);
+  const handleLocaleChange = (newLocale: Locale) => {
     setIsOpen(false);
-    // Trigger custom event for locale change
-    window.dispatchEvent(new CustomEvent('locale-change', { detail: { locale } }));
-    // Reload to apply new locale
-    window.location.reload();
+    
+    // Remove current locale from pathname
+    const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
+    
+    // Navigate to new locale path
+    if (newLocale === 'en') {
+      // Default locale doesn't need prefix
+      router.push(pathWithoutLocale);
+    } else {
+      router.push(`/${newLocale}${pathWithoutLocale}`);
+    }
   };
 
   return (
@@ -46,25 +49,25 @@ export function LanguageSelector() {
       >
         <Globe className="w-4 h-4" />
         <span className="text-sm font-medium hidden sm:inline">
-          {localeNames[currentLocale].split(' ')[0]}
+          {localeNames[locale].split(' ')[0]}
         </span>
         <ChevronDown className={cn('w-4 h-4 transition-transform', isOpen && 'rotate-180')} />
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
-          {locales.map((locale) => (
+          {locales.map((localeItem) => (
             <button
-              key={locale}
-              onClick={() => handleLocaleChange(locale)}
+              key={localeItem}
+              onClick={() => handleLocaleChange(localeItem)}
               className={cn(
                 'w-full px-4 py-3 text-left text-sm transition-colors',
-                currentLocale === locale
+                locale === localeItem
                   ? 'bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-blue-700 dark:text-blue-300'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               )}
             >
-              {localeNames[locale]}
+              {localeNames[localeItem]}
             </button>
           ))}
         </div>

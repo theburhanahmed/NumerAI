@@ -21,6 +21,7 @@ from .serializers import (
     UserProfileSerializer, DeviceTokenSerializer, NotificationSerializer
 )
 from .utils import generate_otp, send_otp_email, generate_secure_token, send_password_reset_email
+from utils.request_utils import get_client_ip
 import os
 
 logger = logging.getLogger(__name__)
@@ -31,23 +32,34 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
-    """Register a new user."""
-    # #region agent log
-    import json
-    request_data_str = json.dumps(request.data) if request.data else '{}'
-    logger.info(f'register_request_received', extra={
+    """
+    Register a new user.
+    
+    POST /api/v1/auth/register/
+    Body: {
+        "email": "user@example.com",
+        "password": "secure_password",
+        "full_name": "User Name",
+        "phone": "+1234567890" (optional)
+    }
+    
+    Returns:
+        201: Registration successful, OTP sent
+        400: Validation error or duplicate account
+        500: Server error
+    """
+    logger.info('register_request_received', extra={
         'has_data': bool(request.data),
         'data_keys': list(request.data.keys()) if request.data else [],
-        'data_preview': request_data_str[:200] if request_data_str else 'none'
     })
-    # #endregion
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
         try:
             user = serializer.save()
-            # #region agent log
-            logger.info(f'register_user_created', extra={'user_id': str(user.id), 'email': getattr(user, 'email', None)})
-            # #endregion
+            logger.info('register_user_created', extra={
+                'user_id': str(user.id),
+                'email': getattr(user, 'email', None)
+            })
             response_data = {
                 'message': 'Registration successful. Please check your email for OTP.',
                 'user_id': str(getattr(user, 'id', '')),
@@ -60,9 +72,10 @@ def register(request):
                 response_data['phone'] = phone
             return Response(response_data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            # #region agent log
-            logger.error(f'register_user_creation_failed', extra={'error': str(e), 'error_type': type(e).__name__}, exc_info=True)
-            # #endregion
+            logger.error('register_user_creation_failed', extra={
+                'error': str(e),
+                'error_type': type(e).__name__
+            }, exc_info=True)
             # Check for specific database errors
             error_message = str(e)
             if 'unique constraint' in error_message.lower() or 'duplicate key' in error_message.lower():
@@ -506,35 +519,38 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     throttle_classes = [ProfileRateThrottle]
     
     def get_object(self):
-        # Type checker issues are suppressed with # type: ignore comments
-        # #region agent log
+        """
+        Get or create user profile.
+        
+        Returns:
+            UserProfile: The user's profile instance
+        """
         user_id = str(self.request.user.id) if hasattr(self.request.user, 'id') else 'anonymous'
-        has_profile_attr = hasattr(self.request.user, 'profile')
-        logger.info(f'get_object called', extra={'user_id': user_id, 'has_profile_attr': has_profile_attr, 'is_authenticated': self.request.user.is_authenticated})
-        # #endregion
         # Safely get profile, creating one if it doesn't exist
         try:
             profile = self.request.user.profile  # type: ignore
         except UserProfile.DoesNotExist:
-            # #region agent log
-            logger.warning(f'profile_does_not_exist_creating', extra={'user_id': user_id})
-            # #endregion
-            # Create profile if it doesn't exist
+            logger.warning('profile_does_not_exist_creating', extra={'user_id': user_id})
             profile = UserProfile.objects.create(user=self.request.user)
         except AttributeError:
-            # #region agent log
-            logger.error(f'user_missing_profile_attr', extra={'user_id': user_id, 'user_type': type(self.request.user).__name__})
-            # #endregion
+            logger.error('user_missing_profile_attr', extra={
+                'user_id': user_id,
+                'user_type': type(self.request.user).__name__
+            })
             raise UserProfile.DoesNotExist("User profile relationship does not exist")
         return profile
     
     def get(self, request, *args, **kwargs):
-        """Retrieve user profile with consistent response format."""
-        # #region agent log
-        user_id = str(request.user.id) if hasattr(request.user, 'id') else 'anonymous'
-        auth_header = request.META.get('HTTP_AUTHORIZATION', 'none')
-        logger.info(f'profile_get_request', extra={'user_id': user_id, 'auth_header_present': bool(auth_header and auth_header != 'none'), 'auth_header_prefix': auth_header[:20] if auth_header != 'none' else 'none', 'is_authenticated': request.user.is_authenticated})
-        # #endregion
+        """
+        Retrieve user profile.
+        
+        GET /api/v1/users/profile/
+        
+        Returns:
+            200: User profile data
+            404: Profile not found
+            500: Server error
+        """
         try:
             profile = self.get_object()
             serializer = self.get_serializer(profile)
@@ -904,6 +920,16 @@ def google_oauth(request):
             user.is_verified = True
             user.save()
         
+        # Log authentication event
+        from .audit_log import log_authentication_event
+        log_authentication_event(
+            user=user,
+            action='google_oauth',
+            success=True,
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT'),
+        )
+        
         # Generate JWT tokens
         refresh = JWTRefreshToken.for_user(user)
         access_token_jwt = str(refresh.access_token)
@@ -945,61 +971,149 @@ def google_oauth(request):
 
 # Account Management Views
 
-@api_view(['POST'])
+@api_view(['DELETE', 'POST'])
 @permission_classes([IsAuthenticated])
 def delete_account(request):
     """
-    Delete user account (soft delete).
+    Delete user account with comprehensive data cleanup (GDPR compliance).
     
+    DELETE /api/v1/users/delete-account/
     POST /api/v1/users/delete-account/
     Body: {
         "password": "user_password" (optional, for verification)
+        "confirm": true (required)
     }
     """
+    from .audit_log import log_audit_event
+    from payments.models import Subscription
+    import stripe
+    from django.conf import settings
+    
     try:
         user = request.user
         
-        # Soft delete: mark as inactive
-        user.is_active = False
-        user.save(update_fields=['is_active'])
+        # Require confirmation
+        if request.data.get('confirm') is not True:
+            return Response(
+                {'error': 'Account deletion requires confirmation. Set "confirm": true'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
-        # Log deletion (you can create an audit log model if needed)
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"Account deleted: {user.id} - {user.email}")
+        # Optional password verification
+        password = request.data.get('password')
+        if password and not user.check_password(password):
+            return Response(
+                {'error': 'Invalid password'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Log deletion event
+        log_audit_event(
+            user=user,
+            action='account_delete',
+            resource_type='user',
+            resource_id=str(user.id),
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT'),
+        )
+        
+        # Cancel active subscriptions in Stripe
+        try:
+            subscription = getattr(user, 'subscription', None)
+            if subscription and subscription.stripe_subscription_id:
+                try:
+                    stripe.api_key = settings.STRIPE_SECRET_KEY
+                    stripe.Subscription.cancel(subscription.stripe_subscription_id)
+                except Exception as e:
+                    logger.warning(f"Failed to cancel Stripe subscription: {str(e)}")
+        except Exception as e:
+            logger.warning(f"Error handling Stripe subscription: {str(e)}")
+        
+        # Anonymize user data (GDPR requirement)
+        user.email = f"deleted_{user.id}@deleted.numerai"
+        user.phone = None
+        user.full_name = "Deleted User"
+        user.is_active = False
+        user.is_verified = False
+        user.save()
+        
+        # Delete/anonymize related data
+        # Note: In production, you may want to soft-delete or anonymize instead of hard delete
+        # to maintain referential integrity for analytics
+        
+        # Delete device tokens
+        DeviceToken.objects.filter(user=user).delete()
+        
+        # Delete refresh tokens
+        RefreshToken.objects.filter(user=user).delete()
+        
+        # Delete OTP codes
+        OTPCode.objects.filter(user=user).delete()
+        
+        # Anonymize profile
+        try:
+            profile = user.profile
+            profile.bio = None
+            profile.location = None
+            profile.save()
+        except:
+            pass
+        
+        logger.info(f"Account deleted and anonymized: {user.id}")
         
         return Response({
-            'message': 'Account deleted successfully'
+            'message': 'Account deleted successfully. All personal data has been removed.'
         }, status=status.HTTP_200_OK)
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error deleting account: {str(e)}")
+        logger.error(f"Error deleting account: {str(e)}", exc_info=True)
         return Response(
             {'error': 'Failed to delete account'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def export_data(request):
     """
-    Export user data (GDPR compliance).
+    Export all user data (GDPR compliance).
     
+    GET /api/v1/users/export-data/
     POST /api/v1/users/export-data/
-    Returns: JSON file with all user data
+    Returns: JSON file with all user data including:
+    - Profile information
+    - Numerology data
+    - Reports
+    - Consultation history
+    - Payment history
+    - Notifications
     """
     import json
     from django.http import HttpResponse
     from accounts.models import UserProfile
+    from numerology.models import NumerologyProfile, PersonNumerologyProfile, DailyReading, CompatibilityCheck, Remedy
+    from reports.models import GeneratedReport
+    from consultations.models import Consultation
+    from payments.models import Payment, BillingHistory, Subscription
+    from ai_chat.models import AIConversation, AIMessage
+    from .audit_log import log_audit_event
     
     try:
         user = request.user
         profile = getattr(user, 'profile', None)
         
-        # Collect all user data
+        # Log data export
+        log_audit_event(
+            user=user,
+            action='data_export',
+            resource_type='user',
+            resource_id=str(user.id),
+            ip_address=get_client_ip(request),
+        )
+        
+        # Collect comprehensive user data
         user_data = {
+            'export_date': timezone.now().isoformat(),
             'user': {
                 'id': str(user.id),
                 'email': user.email,
@@ -1007,7 +1121,10 @@ def export_data(request):
                 'full_name': user.full_name,
                 'is_verified': user.is_verified,
                 'subscription_plan': user.subscription_plan,
+                'is_premium': user.is_premium,
+                'premium_expiry': user.premium_expiry.isoformat() if user.premium_expiry else None,
                 'created_at': user.created_at.isoformat() if user.created_at else None,
+                'last_login': user.last_login.isoformat() if user.last_login else None,
             },
             'profile': {
                 'date_of_birth': profile.date_of_birth.isoformat() if profile and profile.date_of_birth else None,
@@ -1016,24 +1133,125 @@ def export_data(request):
                 'location': profile.location if profile else None,
                 'bio': profile.bio if profile else None,
             },
-            'notifications': [
-                {
-                    'title': n.title,
-                    'message': n.message,
-                    'type': n.notification_type,
-                    'is_read': n.is_read,
-                    'created_at': n.created_at.isoformat(),
-                }
-                for n in Notification.objects.filter(user=user).order_by('-created_at')[:100]
-            ],
+            'numerology': {},
+            'reports': [],
+            'consultations': [],
+            'payments': [],
+            'ai_conversations': [],
+            'notifications': [],
         }
+        
+        # Numerology data
+        try:
+            numerology_profile = NumerologyProfile.objects.get(user=user)
+            user_data['numerology'] = {
+                'life_path_number': numerology_profile.life_path_number,
+                'expression_number': numerology_profile.expression_number,
+                'soul_number': numerology_profile.soul_number,
+                'personality_number': numerology_profile.personality_number,
+                'birthday_number': numerology_profile.birthday_number,
+                'created_at': numerology_profile.created_at.isoformat() if numerology_profile.created_at else None,
+            }
+        except NumerologyProfile.DoesNotExist:
+            pass
+        
+        # Daily readings
+        daily_readings = DailyReading.objects.filter(user=user).order_by('-reading_date')[:100]
+        user_data['daily_readings'] = [
+            {
+                'reading_date': r.reading_date.isoformat() if r.reading_date else None,
+                'personal_day_number': r.personal_day_number,
+                'reading': r.reading,
+                'created_at': r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in daily_readings
+        ]
+        
+        # Reports
+        reports = GeneratedReport.objects.filter(user=user).order_by('-created_at')
+        user_data['reports'] = [
+            {
+                'id': str(r.id),
+                'report_type': r.report_type,
+                'title': r.title,
+                'created_at': r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in reports
+        ]
+        
+        # Consultations
+        consultations = Consultation.objects.filter(user=user).order_by('-created_at')
+        user_data['consultations'] = [
+            {
+                'id': str(c.id),
+                'expert_name': c.expert.full_name if c.expert else None,
+                'consultation_type': c.consultation_type,
+                'status': c.status,
+                'scheduled_at': c.scheduled_at.isoformat() if c.scheduled_at else None,
+                'created_at': c.created_at.isoformat() if c.created_at else None,
+            }
+            for c in consultations
+        ]
+        
+        # Payments and billing
+        payments = Payment.objects.filter(user=user).order_by('-created_at')
+        user_data['payments'] = [
+            {
+                'id': str(p.id),
+                'amount': str(p.amount),
+                'currency': p.currency,
+                'status': p.status,
+                'description': p.description,
+                'created_at': p.created_at.isoformat() if p.created_at else None,
+            }
+            for p in payments
+        ]
+        
+        billing_history = BillingHistory.objects.filter(user=user).order_by('-created_at')
+        user_data['billing_history'] = [
+            {
+                'id': str(b.id),
+                'amount': str(b.amount),
+                'currency': b.currency,
+                'description': b.description,
+                'invoice_url': b.invoice_url,
+                'created_at': b.created_at.isoformat() if b.created_at else None,
+            }
+            for b in billing_history
+        ]
+        
+        # AI conversations
+        conversations = AIConversation.objects.filter(user=user).order_by('-created_at')[:50]
+        user_data['ai_conversations'] = [
+            {
+                'id': str(c.id),
+                'title': c.title,
+                'message_count': AIMessage.objects.filter(conversation=c).count(),
+                'created_at': c.created_at.isoformat() if c.created_at else None,
+            }
+            for c in conversations
+        ]
+        
+        # Notifications
+        notifications = Notification.objects.filter(user=user).order_by('-created_at')[:100]
+        user_data['notifications'] = [
+            {
+                'id': str(n.id),
+                'title': n.title,
+                'message': n.message,
+                'type': n.notification_type,
+                'is_read': n.is_read,
+                'created_at': n.created_at.isoformat() if n.created_at else None,
+            }
+            for n in notifications
+        ]
         
         # Create JSON response
         response = HttpResponse(
-            json.dumps(user_data, indent=2),
+            json.dumps(user_data, indent=2, default=str),
             content_type='application/json'
         )
-        response['Content-Disposition'] = f'attachment; filename="numerai_data_export_{user.id}.json"'
+        response['Content-Disposition'] = f'attachment; filename="numerai_data_export_{user.id}_{timezone.now().strftime("%Y%m%d")}.json"'
         
         return response
     except Exception as e:

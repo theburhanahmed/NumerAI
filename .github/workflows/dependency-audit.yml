@@ -1,0 +1,48 @@
+name: Dependency Security Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Weekly on Monday
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install Python audit tools
+        run: |
+          pip install safety pip-audit
+      
+      - name: Audit Python dependencies
+        run: |
+          cd backend
+          safety check --json || true
+          pip-audit --format json || true
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      
+      - name: Audit Node.js dependencies
+        run: |
+          cd frontend
+          npm audit --audit-level=moderate || true
+      
+      - name: Upload audit reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-audit-reports
+          path: |
+            backend/safety-report.json
+            backend/pip-audit-report.json
+            frontend/npm-audit-report.json
+

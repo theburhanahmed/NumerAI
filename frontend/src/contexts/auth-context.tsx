@@ -8,6 +8,7 @@ import { User, AuthResponse, RegisterData, LoginData, OTPVerificationData } from
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticated: boolean;
   login: (data: LoginData) => Promise<AuthResponse>;
   register: (data: RegisterData) => Promise<void>;
   verifyOTP: (data: OTPVerificationData) => Promise<AuthResponse>;
@@ -264,6 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
+        isAuthenticated: !!user,
         login,
         register,
         verifyOTP,

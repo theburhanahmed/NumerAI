@@ -3,12 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { StarIcon, SparklesIcon, TrendingUpIcon, HeartIcon, BriefcaseIcon, CalendarIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import {
+  CalendarIcon,
+  SunIcon,
+  MoonIcon,
+  StarIcon,
+  TrendingUpIcon,
+} from 'lucide-react';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { SpaceCard } from '@/components/space/space-card';
+import { SpaceButton } from '@/components/space/space-button';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
 import { numerologyAPI } from '@/lib/numerology-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
@@ -16,7 +21,9 @@ import { toast } from 'sonner';
 export default function DailyReadings() {
   const router = useRouter();
   const { user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split('T')[0],
+  );
   const [reading, setReading] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [softError, setSoftError] = useState<string | null>(null);
@@ -24,7 +31,7 @@ export default function DailyReadings() {
   useEffect(() => {
     const fetchReading = async () => {
       if (!user) return;
-      
+
       try {
         setLoading(true);
         setSoftError(null);
@@ -32,31 +39,42 @@ export default function DailyReadings() {
         if (data) {
           setReading(data);
         } else {
-          // API returned null - profile not calculated yet
           setReading(null);
-          setSoftError('Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.');
+          setSoftError(
+            'Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.',
+          );
         }
       } catch (error: any) {
         console.error('Failed to fetch daily reading:', error);
         setReading(null);
-        const backendMessage = error?.response?.data?.error as string | undefined;
+        const backendMessage = error?.response?.data?.error as
+          | string
+          | undefined;
 
         if (backendMessage) {
           const msg = backendMessage.toLowerCase();
 
-          // New user cases: missing DOB or numerology profile
-          if (msg.includes('birth date is required') || msg.includes('complete your profile')) {
-            setSoftError('Please complete your profile with your birth date so we can generate your personalized daily reading.');
+          if (
+            msg.includes('birth date is required') ||
+            msg.includes('complete your profile')
+          ) {
+            setSoftError(
+              'Please complete your profile with your birth date so we can generate your personalized daily reading.',
+            );
             return;
           }
 
-          if (msg.includes('profile not found') || msg.includes('calculate your profile')) {
-            setSoftError('You have not generated your numerology profile yet. Calculate it to unlock personalized daily readings.');
+          if (
+            msg.includes('profile not found') ||
+            msg.includes('calculate your profile')
+          ) {
+            setSoftError(
+              'You have not generated your numerology profile yet. Calculate it to unlock personalized daily readings.',
+            );
             return;
           }
         }
 
-        // Fallback for unexpected errors
         setSoftError('Unable to load your daily reading. Please try again later.');
       } finally {
         setLoading(false);
@@ -66,382 +84,317 @@ export default function DailyReadings() {
     fetchReading();
   }, [user, selectedDate]);
 
-  const todayReading = reading ? {
-    personalDay: reading.personal_day_number,
-    theme: `Personal Day ${reading.personal_day_number}`,
-    message: reading.llm_explanation || reading.actionable_tip || `Today is a Personal Day ${reading.personal_day_number}. This day brings unique energies and opportunities aligned with your numerology profile.`,
-    luckyNumber: reading.lucky_number,
-    luckyColor: reading.lucky_color,
-    advice: [
-      reading.llm_explanation ? null : reading.actionable_tip, // Only show if no LLM explanation
-      reading.activity_recommendation,
-      reading.warning ? `Note: ${reading.warning}` : null,
-      reading.affirmation,
-      reading.raj_yog_insight ? `✨ Raj Yog Insight: ${reading.raj_yog_insight}` : null
-    ].filter(Boolean) as string[]
-  } : {
-    personalDay: 5,
-    theme: 'Change and Adventure',
-    message: 'Loading your personalized reading...',
-    luckyNumber: 8,
-    luckyColor: 'Gold',
-    advice: ['Stay flexible and open to change', 'Try something new today', 'Connect with adventurous people', 'Trust your instincts']
-  };
-  const weeklyForecast = [{
-    day: 'Mon',
-    number: 3,
-    energy: 'high'
-  }, {
-    day: 'Tue',
-    number: 4,
-    energy: 'medium'
-  }, {
-    day: 'Wed',
-    number: 5,
-    energy: 'high'
-  }, {
-    day: 'Thu',
-    number: 6,
-    energy: 'medium'
-  }, {
-    day: 'Fri',
-    number: 7,
-    energy: 'low'
-  }, {
-    day: 'Sat',
-    number: 8,
-    energy: 'high'
-  }, {
-    day: 'Sun',
-    number: 9,
-    energy: 'medium'
-  }];
+  const today = new Date(selectedDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-8">
-        {/* Page Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <motion.div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg" animate={{
-            rotate: [0, 5, -5, 0]
-          }} transition={{
-            duration: 3,
-            repeat: Infinity
-          }}>
-              <CalendarIcon className="w-6 h-6 text-white" />
-            </motion.div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent">
-                Daily Readings
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Your personalized numerology insights for today
-              </p>
-            </div>
-          </div>
-        </motion.div>
+  const readings = reading
+    ? [
+        {
+          icon: <SunIcon className="w-6 h-6" />,
+          title: 'Daily Energy',
+          content:
+            reading.llm_explanation ||
+            reading.actionable_tip ||
+            `Today's cosmic energy is vibrant and full of potential. The number ${reading.personal_day_number} is strong, bringing opportunities for growth.`,
+          color: 'from-yellow-400 to-orange-600',
+          score: reading.personal_day_number || 7,
+        },
+        {
+          icon: <TrendingUpIcon className="w-6 h-6" />,
+          title: 'Career & Success',
+          content:
+            reading.activity_recommendation ||
+            'Professional matters are favored today. Your natural leadership qualities will shine, making it an excellent day for important meetings or presentations.',
+          color: 'from-green-500 to-emerald-600',
+          score: 9,
+        },
+        {
+          icon: <StarIcon className="w-6 h-6" />,
+          title: 'Love & Relationships',
+          content:
+            reading.affirmation ||
+            'Emotional connections deepen today. Express your feelings openly and listen with your heart. A meaningful conversation could strengthen your bonds.',
+          color: 'from-pink-500 to-rose-600',
+          score: 7,
+        },
+        {
+          icon: <MoonIcon className="w-6 h-6" />,
+          title: 'Personal Growth',
+          content:
+            reading.raj_yog_insight ||
+            'Take time for self-reflection and meditation. The universe is guiding you toward important realizations about your life path and purpose.',
+          color: 'from-purple-500 to-indigo-600',
+          score: 10,
+        },
+      ]
+    : [
+        {
+          icon: <SunIcon className="w-6 h-6" />,
+          title: 'Daily Energy',
+          content:
+            "Today's cosmic energy is vibrant and full of potential. The number 7 is strong, bringing opportunities for introspection and spiritual growth.",
+          color: 'from-yellow-400 to-orange-600',
+          score: 8,
+        },
+        {
+          icon: <TrendingUpIcon className="w-6 h-6" />,
+          title: 'Career & Success',
+          content:
+            'Professional matters are favored today. Your natural leadership qualities will shine, making it an excellent day for important meetings or presentations.',
+          color: 'from-green-500 to-emerald-600',
+          score: 9,
+        },
+        {
+          icon: <StarIcon className="w-6 h-6" />,
+          title: 'Love & Relationships',
+          content:
+            'Emotional connections deepen today. Express your feelings openly and listen with your heart. A meaningful conversation could strengthen your bonds.',
+          color: 'from-pink-500 to-rose-600',
+          score: 7,
+        },
+        {
+          icon: <MoonIcon className="w-6 h-6" />,
+          title: 'Personal Growth',
+          content:
+            'Take time for self-reflection and meditation. The universe is guiding you toward important realizations about your life path and purpose.',
+          color: 'from-purple-500 to-indigo-600',
+          score: 10,
+        },
+      ];
 
-        {softError && (
-          <div className="mb-6">
-            <GlassCard className="p-4 border border-amber-300 bg-amber-50/70 dark:bg-amber-950/40">
-              <p className="text-sm text-amber-900 dark:text-amber-100 mb-3">
-                {softError}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <GlassButton size="sm" onClick={() => router.push('/profile')}>
-                  Complete Profile
-                </GlassButton>
-                <GlassButton size="sm" variant="primary" onClick={() => router.push('/numerology-report')}>
-                  Calculate My Profile
-                </GlassButton>
-              </div>
-            </GlassCard>
+  const luckyNumbers = reading
+    ? [reading.lucky_number || 7, 14, 21, 28]
+    : [7, 14, 21, 28];
+  const luckyColors = reading
+    ? [reading.lucky_color || 'Cyan', 'Silver', 'White']
+    : ['Cyan', 'Silver', 'White'];
+
+  return (
+    <CosmicPageLayout>
+      {/* Header */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        className="mb-8"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg">
+            <CalendarIcon className="w-6 h-6 text-white" />
           </div>
-        )}
+          <div>
+            <h1 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white">
+              Daily Reading
+            </h1>
+            <p className="text-white/70">{today}</p>
+          </div>
+        </div>
 
         {/* Date Selector */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="mb-8">
-          <GlassCard variant="liquid-premium" className="p-6">
-            <div className="liquid-glass-content">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                Select Date
-              </label>
-              <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white" />
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-white mb-2">
+            Select Date
+          </label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="px-4 py-3 bg-[#0a1628]/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 transition-colors"
+          />
+        </div>
+      </motion.div>
+
+      {/* Error Message */}
+      {softError && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="mb-8"
+        >
+          <SpaceCard variant="premium" className="p-6 border-amber-500/30">
+            <p className="text-white mb-4">{softError}</p>
+            <div className="flex gap-3">
+              <SpaceButton
+                variant="secondary"
+                size="sm"
+                onClick={() => router.push('/profile')}
+              >
+                Complete Profile
+              </SpaceButton>
+              <SpaceButton
+                variant="primary"
+                size="sm"
+                onClick={() => router.push('/numerology-report')}
+              >
+                Calculate My Profile
+              </SpaceButton>
             </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
+      )}
 
-        {/* Today's Reading */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.2
-      }} className="mb-8">
-          <GlassCard variant="liquid-premium" className="p-8 bg-gradient-to-br from-purple-500/20 to-pink-500/20 liquid-glass-iridescent">
-            <div className="liquid-glass-content">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                  Today&apos;s Reading
-                </h2>
-                <motion.div className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 backdrop-blur-xl rounded-full border border-blue-500/30" animate={{
-                scale: [1, 1.05, 1]
-              }} transition={{
-                duration: 2,
-                repeat: Infinity
-              }}>
-                  <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                    {new Date().toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                  </span>
-                </motion.div>
+      {/* Today's Overview */}
+      {!softError && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.1,
+          }}
+          className="mb-8"
+        >
+          <SpaceCard variant="premium" className="p-6 md:p-8">
+            <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Today&apos;s Cosmic Overview
+            </h2>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
               </div>
-
-              <MagneticCard variant="liquid" className="p-6 mb-6">
-                <div className="liquid-glass-content">
-                  <div className="flex items-center gap-4 mb-4">
-                    <motion.div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-xl" animate={{
-                    rotate: [0, 5, -5, 0]
-                  }} transition={{
-                    duration: 2,
-                    repeat: Infinity
-                  }}>
-                      {todayReading.personalDay}
-                    </motion.div>
-                    <div>
-                      <p className="font-semibold text-lg text-gray-900 dark:text-white">
-                        Personal Day Number
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {todayReading.theme}
-                      </p>
+            ) : reading ? (
+              <>
+                <p className="text-lg text-white/80 leading-relaxed mb-6">
+                  {reading.llm_explanation ||
+                    reading.actionable_tip ||
+                    `The universe aligns in your favor today. With the number ${reading.personal_day_number} as your daily vibration, this is a powerful day for spiritual insights and inner wisdom. Trust your intuition and pay attention to synchronicities around you.`}
+                </p>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-xl border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-white">Lucky Numbers</h3>
+                      <CosmicTooltip
+                        content="Use these numbers for important decisions today"
+                        icon
+                      />
                     </div>
-                  </div>
-                  {loading ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                    </div>
-                  ) : reading ? (
-                    <>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                        {todayReading.message}
-                      </p>
-                      {reading.llm_explanation && (
-                        <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
-                          <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2">AI-Generated Insight</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                            {reading.llm_explanation}
-                          </p>
+                    <div className="flex gap-2">
+                      {luckyNumbers.map((num) => (
+                        <div
+                          key={num}
+                          className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg"
+                        >
+                          {num}
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-6">
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Your daily reading is not available yet. Calculate your numerology profile first to get personalized daily insights.
-                      </p>
-                      <GlassButton 
-                        variant="primary" 
-                        size="sm" 
-                        onClick={() => router.push('/numerology-report')}
-                      >
-                        Calculate My Profile
-                      </GlassButton>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-600/10 rounded-xl border border-purple-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-white">Lucky Colors</h3>
+                      <CosmicTooltip
+                        content="Wear or surround yourself with these colors"
+                        icon
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      {luckyColors.map((color) => (
+                        <div
+                          key={color}
+                          className="px-4 py-2 bg-white/10 backdrop-blur-xl rounded-lg border border-white/20"
+                        >
+                          <span className="text-sm font-medium text-white">
+                            {color}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </MagneticCard>
+              </>
+            ) : (
+              <p className="text-white/70">
+                Your daily reading is not available yet. Calculate your
+                numerology profile first to get personalized daily insights.
+              </p>
+            )}
+          </SpaceCard>
+        </motion.div>
+      )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <MagneticCard variant="liquid" className="p-5">
-                  <div className="liquid-glass-content">
-                    <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                      Lucky Number
-                    </p>
-                    <motion.p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" animate={{
-                    scale: [1, 1.1, 1]
-                  }} transition={{
-                    duration: 1.5,
-                    repeat: Infinity
-                  }}>
-                      {todayReading.luckyNumber}
-                    </motion.p>
-                  </div>
-                </MagneticCard>
-
-                <MagneticCard variant="liquid" className="p-5">
-                  <div className="liquid-glass-content">
-                    <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                      Lucky Color
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <motion.div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full shadow-lg" animate={{
-                      rotate: 360
-                    }} transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: 'linear'
-                    }} />
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {todayReading.luckyColor}
-                      </p>
+      {/* Detailed Readings */}
+      {!softError && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.2,
+          }}
+        >
+          <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-6">
+            Detailed Readings
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {readings.map((readingItem, index) => (
+              <motion.div
+                key={readingItem.title}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  delay: 0.3 + index * 0.1,
+                }}
+                whileHover={{
+                  y: -4,
+                }}
+              >
+                <SpaceCard variant="default" className="p-6 h-full">
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${readingItem.color} flex items-center justify-center text-white shadow-lg`}
+                    >
+                      {readingItem.icon}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-cyan-400">
+                        {readingItem.score}
+                      </span>
+                      <span className="text-sm text-white/60">/10</span>
                     </div>
                   </div>
-                </MagneticCard>
-              </div>
-
-              <GlassCard variant="liquid" className="p-5">
-                <div className="liquid-glass-content">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                    Today&apos;s Advice
+                  <h3 className="text-xl font-['Playfair_Display'] font-bold text-white mb-3">
+                    {readingItem.title}
                   </h3>
-                  <ul className="space-y-2">
-                    {todayReading.advice.map((item, index) => <motion.li key={index} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300" initial={{
-                    opacity: 0,
-                    x: -20
-                  }} animate={{
-                    opacity: 1,
-                    x: 0
-                  }} transition={{
-                    delay: 0.3 + index * 0.1
-                  }}>
-                        <SparklesIcon className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
-                        {item}
-                      </motion.li>)}
-                  </ul>
-                </div>
-              </GlassCard>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* Weekly Forecast */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.3
-      }} className="mb-8">
-          <GlassCard variant="liquid-premium" className="p-6">
-            <div className="liquid-glass-content">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                Weekly Forecast
-              </h3>
-              <div className="grid grid-cols-7 gap-2">
-                {weeklyForecast.map((day, index) => <motion.div key={day.day} initial={{
-                opacity: 0,
-                y: 20
-              }} animate={{
-                opacity: 1,
-                y: 0
-              }} transition={{
-                delay: 0.4 + index * 0.05
-              }}>
-                    <MagneticCard variant="liquid" className={`p-3 text-center ${day.energy === 'high' ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : day.energy === 'low' ? 'bg-gradient-to-br from-gray-500/20 to-gray-600/20' : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20'}`}>
-                      <div className="liquid-glass-content">
-                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                          {day.day}
-                        </p>
-                        <motion.p className="text-2xl font-bold text-gray-900 dark:text-white" whileHover={{
-                      scale: 1.2
-                    }}>
-                          {day.number}
-                        </motion.p>
-                        <div className="mt-2 flex justify-center">
-                          {day.energy === 'high' && <TrendingUpIcon className="w-4 h-4 text-green-600 dark:text-green-400" />}
-                          {day.energy === 'medium' && <StarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
-                          {day.energy === 'low' && <HeartIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />}
-                        </div>
-                      </div>
-                    </MagneticCard>
-                  </motion.div>)}
-              </div>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* Life Areas Today */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.4
-      }}>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            Life Areas Today
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <MagneticCard variant="liquid-premium" className="p-5">
-              <div className="liquid-glass-content">
-                <div className="flex items-center gap-2 mb-3">
-                  <HeartIcon className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    Love
-                  </h4>
-                </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Open your heart to new connections and deepen existing bonds
-                </p>
-              </div>
-            </MagneticCard>
-
-            <MagneticCard variant="liquid-premium" className="p-5">
-              <div className="liquid-glass-content">
-                <div className="flex items-center gap-2 mb-3">
-                  <BriefcaseIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    Career
-                  </h4>
-                </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Take calculated risks and explore new opportunities
-                </p>
-              </div>
-            </MagneticCard>
-
-            <MagneticCard variant="liquid-premium" className="p-5">
-              <div className="liquid-glass-content">
-                <div className="flex items-center gap-2 mb-3">
-                  <SparklesIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    Spiritual
-                  </h4>
-                </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Trust your intuition and embrace inner guidance
-                </p>
-              </div>
-            </MagneticCard>
+                  <p className="text-white/70 leading-relaxed">
+                    {readingItem.content}
+                  </p>
+                </SpaceCard>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
-      </div>
-    </div>;
+      )}
+    </CosmicPageLayout>
+  );
 }

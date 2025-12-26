@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HeartIcon, SparklesIcon, CheckCircleIcon, AlertCircleIcon, UsersIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { SpaceCard } from '@/components/space/space-card';
+import { SpaceButton } from '@/components/space/space-button';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CrystalNumerologyCube } from '@/components/3d/crystal-numerology-cube';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from 'sonner';
@@ -42,235 +42,274 @@ export default function CompatibilityChecker() {
       toast.success('Compatibility calculated!');
     }, 1500);
   };
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-8">
-        {/* Page Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <motion.div className="w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg" animate={{
-            rotate: [0, 5, -5, 0],
-            scale: [1, 1.05, 1]
-          }} transition={{
-            duration: 3,
-            repeat: Infinity
-          }}>
-              <HeartIcon className="w-8 h-8 text-white" />
-            </motion.div>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 dark:from-pink-400 dark:via-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-3">
-            Compatibility Checker
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
-            Discover the harmony between two souls through numerology
-          </p>
-        </motion.div>
-
-        {/* Input Form */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1
-      }} className="mb-8">
-          <GlassCard variant="liquid-premium" className="p-6 md:p-8">
-            <div className="liquid-glass-content">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-                Enter Your Details
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Person 1 */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <UsersIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    Person 1
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Name
-                      </label>
-                      <input type="text" value={person1.name} onChange={e => setPerson1({
-                      ...person1,
-                      name: e.target.value
-                    })} className="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50" placeholder="Enter name" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Birth Date
-                      </label>
-                      <input type="date" value={person1.birthDate} onChange={e => setPerson1({
-                      ...person1,
-                      birthDate: e.target.value
-                    })} className="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Person 2 */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <UsersIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    Person 2
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Name
-                      </label>
-                      <input type="text" value={person2.name} onChange={e => setPerson2({
-                      ...person2,
-                      name: e.target.value
-                    })} className="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50" placeholder="Enter name" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Birth Date
-                      </label>
-                      <input type="date" value={person2.birthDate} onChange={e => setPerson2({
-                      ...person2,
-                      birthDate: e.target.value
-                    })} className="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-gray-300 dark:border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <GlassButton variant="liquid" size="lg" className="w-full glass-glow" onClick={calculateCompatibility} disabled={isCalculating}>
-                {isCalculating ? <motion.div className="flex items-center gap-2" animate={{
-                opacity: [0.5, 1, 0.5]
-              }} transition={{
-                duration: 1.5,
-                repeat: Infinity
-              }}>
-                    <motion.div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" animate={{
-                  rotate: 360
-                }} transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: 'linear'
-                }} />
-                    Calculating...
-                  </motion.div> : 'Calculate Compatibility'}
-              </GlassButton>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* Results */}
-        <AnimatePresence>
-          {result && <SubscriptionGate feature="compatibility" requiredTier="premium" showPreview={tier === 'free'}>
-            <motion.div initial={{
+  return (
+    <CosmicPageLayout>
+      {/* Header */}
+      <motion.div
+        initial={{
           opacity: 0,
-          y: 20
-        }} animate={{
+          y: 20,
+        }}
+        animate={{
           opacity: 1,
-          y: 0
-        }} exit={{
+          y: 0,
+        }}
+        className="mb-8"
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg">
+            <HeartIcon className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white">
+              Compatibility Checker
+            </h1>
+            <p className="text-white/70">Discover your cosmic connection</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Input Section */}
+      <motion.div
+        initial={{
           opacity: 0,
-          y: -20
-        }}>
-              <GlassCard variant="liquid-premium" className="p-6 md:p-8 mb-6 bg-gradient-to-br from-pink-500/20 to-purple-500/20 liquid-glass-iridescent">
-                <div className="liquid-glass-content">
-                  <div className="text-center mb-8">
-                    <motion.div initial={{
-                  scale: 0
-                }} animate={{
-                  scale: 1
-                }} transition={{
-                  type: 'spring',
-                  stiffness: 200
-                }} className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full text-white font-bold text-4xl shadow-2xl mb-4">
-                      {result.score}%
-                    </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                      {person1.name} & {person2.name}
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300">
-                      Life Path {result.lifePath1} + Life Path{' '}
-                      {result.lifePath2}
-                    </p>
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        transition={{
+          delay: 0.1,
+        }}
+        className="mb-8"
+      >
+        <SpaceCard variant="premium" className="p-6 md:p-8">
+          <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-6">
+            Enter Life Path Numbers
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            {/* Person 1 */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-4">
+                Person 1 - Name
+              </label>
+              <input
+                type="text"
+                value={person1.name}
+                onChange={(e) =>
+                  setPerson1({ ...person1, name: e.target.value })
+                }
+                className="w-full px-4 py-3 bg-[#1a2942]/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-white/50"
+                placeholder="Enter name"
+              />
+              <label className="block text-sm font-medium text-white mb-4 mt-4">
+                Birth Date
+              </label>
+              <input
+                type="date"
+                value={person1.birthDate}
+                onChange={(e) =>
+                  setPerson1({ ...person1, birthDate: e.target.value })
+                }
+                className="w-full px-4 py-3 bg-[#1a2942]/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+              />
+            </div>
+
+            {/* Person 2 */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-4">
+                Person 2 - Name
+              </label>
+              <input
+                type="text"
+                value={person2.name}
+                onChange={(e) =>
+                  setPerson2({ ...person2, name: e.target.value })
+                }
+                className="w-full px-4 py-3 bg-[#1a2942]/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white placeholder-white/50"
+                placeholder="Enter name"
+              />
+              <label className="block text-sm font-medium text-white mb-4 mt-4">
+                Birth Date
+              </label>
+              <input
+                type="date"
+                value={person2.birthDate}
+                onChange={(e) =>
+                  setPerson2({ ...person2, birthDate: e.target.value })
+                }
+                className="w-full px-4 py-3 bg-[#1a2942]/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-white"
+              />
+            </div>
+          </div>
+
+          <TouchOptimizedButton
+            variant="primary"
+            size="lg"
+            onClick={calculateCompatibility}
+            className="w-full"
+            icon={<SparklesIcon className="w-5 h-5" />}
+            ariaLabel="Check compatibility"
+            disabled={isCalculating}
+          >
+            {isCalculating ? 'Calculating...' : 'Calculate Compatibility'}
+          </TouchOptimizedButton>
+        </SpaceCard>
+      </motion.div>
+
+      {/* Results Section */}
+      <AnimatePresence>
+        {result && (
+          <SubscriptionGate
+            feature="compatibility"
+            requiredTier="premium"
+            showPreview={tier === 'free'}
+          >
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                y: -20,
+              }}
+              transition={{
+                delay: 0.2,
+              }}
+              className="mb-8"
+            >
+              <SpaceCard variant="premium" className="p-6 md:p-8 text-center">
+                <h2 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-4">
+                  Compatibility Score
+                </h2>
+                <motion.div
+                  initial={{
+                    scale: 0,
+                  }}
+                  animate={{
+                    scale: 1,
+                  }}
+                  transition={{
+                    delay: 0.3,
+                    type: 'spring',
+                  }}
+                  className="mb-6"
+                >
+                  <div className="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-600 mb-2">
+                    {result.score}%
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <MagneticCard variant="liquid" className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10">
-                      <div className="liquid-glass-content">
-                        <div className="flex items-center gap-2 mb-4">
-                          <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
-                          <h4 className="font-semibold text-gray-900 dark:text-white">
-                            Strengths
-                          </h4>
-                        </div>
-                        <ul className="space-y-2">
-                          {result.strengths.map((strength: string, index: number) => <motion.li key={index} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300" initial={{
-                        opacity: 0,
-                        x: -20
-                      }} animate={{
-                        opacity: 1,
-                        x: 0
-                      }} transition={{
-                        delay: index * 0.1
-                      }}>
-                                <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></span>
-                                {strength}
-                              </motion.li>)}
-                        </ul>
-                      </div>
-                    </MagneticCard>
-
-                    <MagneticCard variant="liquid" className="p-6 bg-gradient-to-br from-amber-500/10 to-orange-500/10">
-                      <div className="liquid-glass-content">
-                        <div className="flex items-center gap-2 mb-4">
-                          <AlertCircleIcon className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                          <h4 className="font-semibold text-gray-900 dark:text-white">
-                            Challenges
-                          </h4>
-                        </div>
-                        <ul className="space-y-2">
-                          {result.challenges.map((challenge: string, index: number) => <motion.li key={index} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300" initial={{
-                        opacity: 0,
-                        x: 20
-                      }} animate={{
-                        opacity: 1,
-                        x: 0
-                      }} transition={{
-                        delay: index * 0.1
-                      }}>
-                                <span className="w-2 h-2 bg-amber-500 rounded-full mt-1.5"></span>
-                                {challenge}
-                              </motion.li>)}
-                        </ul>
-                      </div>
-                    </MagneticCard>
+                  <div className="text-xl text-white/80">
+                    {result.score >= 80
+                      ? 'Excellent'
+                      : result.score >= 60
+                        ? 'Good'
+                        : 'Moderate'}{' '}
+                    Match
                   </div>
-
-                  <GlassCard variant="liquid" className="p-6 mt-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10">
-                    <div className="liquid-glass-content">
-                      <div className="flex items-center gap-2 mb-3">
-                        <SparklesIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          Advice
-                        </h4>
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300">
-                        {result.advice}
-                      </p>
-                    </div>
-                  </GlassCard>
-                </div>
-              </GlassCard>
+                </motion.div>
+                <p className="text-white/70 max-w-2xl mx-auto leading-relaxed">
+                  {person1.name} & {person2.name} - Life Path {result.lifePath1}{' '}
+                  + Life Path {result.lifePath2}
+                </p>
+              </SpaceCard>
             </motion.div>
-          </SubscriptionGate>}
-        </AnimatePresence>
-      </div>
-    </div>;
+
+            {/* Detailed Aspects */}
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                delay: 0.4,
+              }}
+            >
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <SpaceCard variant="default" className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CheckCircleIcon className="w-6 h-6 text-green-400" />
+                    <h4 className="font-semibold text-white">Strengths</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {result.strengths.map(
+                      (strength: string, index: number) => (
+                        <motion.li
+                          key={index}
+                          className="flex items-start gap-2 text-sm text-white/80"
+                          initial={{
+                            opacity: 0,
+                            x: -20,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            x: 0,
+                          }}
+                          transition={{
+                            delay: index * 0.1,
+                          }}
+                        >
+                          <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></span>
+                          {strength}
+                        </motion.li>
+                      ),
+                    )}
+                  </ul>
+                </SpaceCard>
+
+                <SpaceCard variant="default" className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertCircleIcon className="w-6 h-6 text-amber-400" />
+                    <h4 className="font-semibold text-white">Challenges</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {result.challenges.map(
+                      (challenge: string, index: number) => (
+                        <motion.li
+                          key={index}
+                          className="flex items-start gap-2 text-sm text-white/80"
+                          initial={{
+                            opacity: 0,
+                            x: 20,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            x: 0,
+                          }}
+                          transition={{
+                            delay: index * 0.1,
+                          }}
+                        >
+                          <span className="w-2 h-2 bg-amber-500 rounded-full mt-1.5"></span>
+                          {challenge}
+                        </motion.li>
+                      ),
+                    )}
+                  </ul>
+                </SpaceCard>
+              </div>
+
+              <SpaceCard variant="default" className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <SparklesIcon className="w-6 h-6 text-purple-400" />
+                  <h4 className="font-semibold text-white">Advice</h4>
+                </div>
+                <p className="text-white/70">{result.advice}</p>
+              </SpaceCard>
+            </motion.div>
+          </SubscriptionGate>
+        )}
+      </AnimatePresence>
+    </CosmicPageLayout>
+  );
 }

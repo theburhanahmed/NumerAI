@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { Calendar, Clock, Save } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { consultationsAPI } from '@/lib/consultations-api';
 import { toast } from 'sonner';
 import type { ExpertAvailability } from '@/types/consultations';

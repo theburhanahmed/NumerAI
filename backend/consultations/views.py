@@ -182,12 +182,12 @@ def get_upcoming_consultations(request):
     page = int(request.query_params.get('page', 1))
     page_size = int(request.query_params.get('page_size', 10))
     
-    # Get upcoming consultations (pending and confirmed)
+    # Get upcoming consultations (pending and confirmed) with optimized queries
     consultations = Consultation.objects.filter(
         user=user,
         scheduled_at__gte=timezone.now(),
         status__in=['pending', 'confirmed']
-    ).order_by('scheduled_at')
+    ).select_related('expert', 'user').prefetch_related('reviews').order_by('scheduled_at')
     
     # Paginate
     start = (page - 1) * page_size

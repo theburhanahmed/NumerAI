@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useAuth } from '@/contexts/auth-context';
 import { featureFlagsAPI } from '@/lib/numerology-api';
 
-export type SubscriptionTier = 'free' | 'basic' | 'premium' | 'elite';
+export type SubscriptionTier = 'free' | 'basic' | 'premium' | 'elite' | 'enterprise';
 
 interface UsageLimits {
   monthlyReports: {
@@ -42,8 +42,14 @@ const tierLimits: Record<SubscriptionTier, UsageLimits> = {
   free: {
     monthlyReports: { used: 0, limit: 1 },
   },
+  basic: {
+    monthlyReports: { used: 0, limit: 5 },
+  },
   premium: {
     monthlyReports: { used: 0, limit: 10 },
+  },
+  elite: {
+    monthlyReports: { used: 0, limit: 50 },
   },
   enterprise: {
     monthlyReports: { used: 0, limit: -1 }, // -1 means unlimited
@@ -171,6 +177,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         basic: 1,
         premium: 2,
         elite: 3,
+        enterprise: 4,
       };
       return tierHierarchy[tier] >= tierHierarchy[requiredTier as SubscriptionTier] || false;
     },

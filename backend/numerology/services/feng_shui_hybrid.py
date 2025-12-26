@@ -7,7 +7,7 @@ from numerology.numerology import NumerologyCalculator
 from accounts.models import User
 
 
-class FengShuiHybridAnalyzer:
+class FengShuiHybridService:
     """Service for combining Feng Shui and Numerology analysis."""
     
     # Feng Shui direction mappings

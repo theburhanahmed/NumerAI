@@ -1,8 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+
+// Generate static params for all locales
+export function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'hi' },
+    { locale: 'ta' },
+    { locale: 'te' },
+  ];
+}
 import { 
   SparklesIcon, 
   StarIcon, 
@@ -13,91 +23,361 @@ import {
   BookOpenIcon, 
   PlusIcon, 
   MinusIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  CheckIcon
 } from 'lucide-react';
 import { LandingFooter } from '@/components/landing/landing-footer';
-import { GlassButton } from '@/components/ui/glass-button';
-import { LiquidGlassHero } from '@/components/ui/liquid-glass-hero';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { LandingNav } from '@/components/landing/landing-nav';
+import { AccessibleSpaceBackground } from '@/components/space/accessible-space-background';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicHero } from '@/components/layout/cosmic-hero';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
+import { MobileFloatingParticles } from '@/components/cosmic/mobile-optimized-cosmic-elements';
+import { useIsMobile } from '@/hooks/use-media-query';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
+
+// #region agent log
+const logDebug = (message: string, data: any) => {
+  fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      location: '[locale]/page.tsx',
+      message,
+      data,
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'run1',
+      hypothesisId: 'B'
+    })
+  }).catch(() => {});
+};
+// #endregion agent log
 
 export default function Home() {
   const router = useRouter();
+  const isMobile = useIsMobile();
+
+  // #region agent log
+  // Log immediately on component render (not just in useEffect)
+  // This should fire if the component is being called at all
+  try {
+    if (typeof window !== 'undefined') {
+      logDebug('Home component rendering - CLIENT', {
+        pathname: window.location.pathname,
+        href: window.location.href,
+        isMobile,
+        timestamp: Date.now()
+      });
+    } else {
+      logDebug('Home component rendering - SERVER', {
+        timestamp: Date.now()
+      });
+    }
+  } catch (e) {
+    // Log even if there's an error
+    logDebug('Home component rendering - ERROR', {
+      error: String(e),
+      timestamp: Date.now()
+    });
+  }
+  
+  useEffect(() => {
+    logDebug('Home component mounted (useEffect)', {
+      pathname: window.location.pathname,
+      href: window.location.href,
+      isMobile
+    });
+  }, [isMobile]);
+  // #endregion agent log
+
+  const features = [
+    {
+      icon: <SparklesIcon className="w-8 h-8" />,
+      title: 'AI Numerologist',
+      description:
+        'Chat with our AI-powered numerologist for instant personalized insights',
+      tooltip: 'Get real-time answers to your numerology questions 24/7',
+    },
+    {
+      icon: <StarIcon className="w-8 h-8" />,
+      title: 'Birth Chart Analysis',
+      description: 'Detailed visualization of your complete numerology profile',
+      tooltip: 'Discover your Life Path, Destiny, and Soul Urge numbers',
+    },
+    {
+      icon: <TrendingUpIcon className="w-8 h-8" />,
+      title: 'Life Path Insights',
+      description:
+        'Discover your purpose and destiny through the wisdom of numbers',
+      tooltip: "Understand your life's journey and core purpose",
+    },
+  ];
+
+  const pricingPlans = [
+    {
+      name: 'Free',
+      price: 0,
+      icon: <SparklesIcon className="w-6 h-6" />,
+      features: ['Basic readings', '3 daily insights', 'Community access'],
+      popular: false,
+    },
+    {
+      name: 'Premium',
+      price: 9.99,
+      icon: <SparklesIcon className="w-6 h-6" />,
+      features: [
+        'Unlimited readings',
+        'AI chat access',
+        'Full reports',
+        'Priority support',
+      ],
+      popular: true,
+    },
+    {
+      name: 'Enterprise',
+      price: 29.99,
+      icon: <SparklesIcon className="w-6 h-6" />,
+      features: [
+        'Everything in Premium',
+        'Expert consultations',
+        'Custom reports',
+        'API access',
+      ],
+      popular: false,
+    },
+  ];
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
+    <div className="relative min-h-screen">
+      <AccessibleSpaceBackground />
+      <LandingNav />
 
-      {/* Enhanced Hero Section */}
-      <LiquidGlassHero 
-        title="Discover Your Path" 
-        subtitle="Unlock the secrets of your life through AI-powered numerology insights"
+      {/* Mobile-optimized particles */}
+      <MobileFloatingParticles count={isMobile ? 15 : 30} />
+
+      {/* ENHANCED COSMIC HERO SECTION */}
+      <CosmicHero
+        badge="✨ AI-Powered Cosmic Wisdom"
+        heading="Unlock Your"
+        highlightText="Cosmic Destiny"
+        subheading="Discover the ancient wisdom of numerology combined with cutting-edge AI. Your personalized cosmic journey begins here."
+        primaryCTA={{
+          label: 'Start Free Reading',
+          onClick: () => router.push('/register'),
+        }}
+        secondaryCTA={{
+          label: 'View Pricing',
+          onClick: () => router.push('/subscription'),
+        }}
+        stats={[
+          {
+            value: '50K+',
+            label: 'Active Users',
+          },
+          {
+            value: '500K+',
+            label: 'Readings',
+          },
+          {
+            value: '4.9★',
+            label: 'Rating',
+          },
+        ]}
+      />
+
+      {/* FEATURE CARDS */}
+      <section
+        id="features"
+        className="relative z-10 section-spacing px-4 sm:px-6"
       >
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <GlassButton 
-            variant="liquid" 
-            size="lg" 
-            onClick={() => router.push('/register')} 
-            icon={<SparklesIcon className="w-5 h-5" />} 
-            className="glass-glow"
-          >
-            Get Started Free
-          </GlassButton>
-          <GlassButton 
-            variant="secondary" 
-            size="lg" 
-            onClick={() => router.push('/subscription')} 
-            icon={<ArrowRightIcon className="w-5 h-5" />}
-          >
-            View Pricing
-          </GlassButton>
-        </div>
-      </LiquidGlassHero>
-
-      {/* Preview Cards with Magnetic Effect */}
-      <section className="section-spacing px-4 sm:px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-12"
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="text-center mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-              Start Your Journey
+            <h2 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Explore the Universe
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600">
+                of Numerology
+              </span>
             </h2>
-            <p className="text-lg text-gray-700 dark:text-white/70">
-              Choose your path to self-discovery
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              Powerful insights through our AI-powered cosmic platform
             </p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeaturePreviewCard 
-              icon={<StarIcon className="w-6 h-6" />} 
-              title="Life Path Analysis" 
-              description="Understand your core purpose and life direction" 
-              delay={0.1} 
-            />
-            <FeaturePreviewCard 
-              icon={<SparklesIcon className="w-6 h-6" />} 
-              title="Daily Readings" 
-              description="Personalized guidance for each day" 
-              delay={0.2} 
-            />
-            <FeaturePreviewCard 
-              icon={<HeartIcon className="w-6 h-6" />} 
-              title="Compatibility" 
-              description="Check relationship and business compatibility" 
-              delay={0.3} 
-            />
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                viewport={{
+                  once: true,
+                }}
+                transition={{
+                  delay: index * 0.1,
+                }}
+                whileHover={{
+                  y: -8,
+                  scale: 1.02,
+                }}
+              >
+                <SpaceCard
+                  variant="premium"
+                  className="p-8 h-full group cursor-pointer"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-cyan-400 mb-4 group-hover:from-cyan-500/30 group-hover:to-blue-600/30 transition-all border border-cyan-500/20">
+                      {feature.icon}
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-xl font-['Playfair_Display'] font-bold text-white">
+                        {feature.title}
+                      </h3>
+                      <CosmicTooltip
+                        content={feature.tooltip}
+                        icon
+                        position="top"
+                      />
+                    </div>
+                    <p className="text-white/70 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </SpaceCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING PLANS */}
+      <section
+        id="pricing"
+        className="relative z-10 section-spacing px-4 sm:px-6"
+      >
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white mb-4">
+              Choose Your
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600">
+                Cosmic Plan
+              </span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              Start free, upgrade anytime. All plans include our core features.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {pricingPlans.map((plan, index) => (
+              <motion.div
+                key={plan.name}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                viewport={{
+                  once: true,
+                }}
+                transition={{
+                  delay: index * 0.1,
+                }}
+                className="relative"
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                    <span className="px-4 py-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold rounded-full shadow-lg">
+                      MOST POPULAR
+                    </span>
+                  </div>
+                )}
+
+                <SpaceCard
+                  variant={plan.popular ? 'premium' : 'default'}
+                  className={`p-8 h-full ${plan.popular ? 'border-cyan-500/50' : ''}`}
+                >
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
+                      {plan.icon}
+                    </div>
+                    <h3 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-2">
+                      {plan.name}
+                    </h3>
+                    <div className="flex items-baseline justify-center gap-1 mb-4">
+                      <span className="text-5xl font-bold text-white">
+                        ${plan.price}
+                      </span>
+                      {plan.price > 0 && (
+                        <span className="text-white/70">/mo</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <SparklesIcon className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-white/80">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <TouchOptimizedButton
+                    variant={plan.popular ? 'primary' : 'secondary'}
+                    size="lg"
+                    onClick={() => router.push('/register')}
+                    className="w-full"
+                    ariaLabel={`Get started with ${plan.name} plan`}
+                  >
+                    Get Started
+                  </TouchOptimizedButton>
+                </SpaceCard>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features Section with Enhanced Cards */}
-      <section id="features" className="section-spacing px-4 sm:px-6 scroll-mt-24 relative z-10">
+      <section id="features-secondary" className="section-spacing px-4 sm:px-6 scroll-mt-24 relative z-10">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

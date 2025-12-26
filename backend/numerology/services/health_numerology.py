@@ -591,3 +591,300 @@ class HealthNumerologyService:
             strengths.append(strengths_map[soul_urge])
         
         return strengths
+    
+    def identify_health_risk_cycles(
+        self,
+        birth_date: date,
+        full_name: str,
+        years_ahead: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Identify health risk cycles over a period.
+        
+        Args:
+            birth_date: Date of birth
+            full_name: Full name
+            years_ahead: Number of years to analyze (default 10)
+            
+        Returns:
+            Dictionary with risk cycles and warnings
+        """
+        current_year = date.today().year
+        health_cycles = self.calculate_health_cycles(
+            birth_date,
+            full_name,
+            current_year,
+            current_year + years_ahead
+        )
+        
+        risk_periods = []
+        for year_data in health_cycles['yearly_health_analysis']:
+            if year_data['risk_level'] in ['elevated', 'high']:
+                risk_periods.append({
+                    'year': year_data['year'],
+                    'risk_level': year_data['risk_level'],
+                    'health_score': year_data['health_score'],
+                    'stress_level': year_data['stress_level'],
+                    'warnings': self._generate_risk_warnings(year_data),
+                    'preventive_measures': self._get_preventive_measures(year_data)
+                })
+        
+        return {
+            'risk_periods': risk_periods,
+            'total_risk_periods': len(risk_periods),
+            'highest_risk_year': max(risk_periods, key=lambda x: x['health_score']) if risk_periods else None,
+            'recommendations': self._generate_risk_cycle_recommendations(risk_periods)
+        }
+    
+    def calculate_wellness_windows(
+        self,
+        birth_date: date,
+        full_name: str,
+        years_ahead: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Calculate optimal wellness windows for health improvements.
+        
+        Args:
+            birth_date: Date of birth
+            full_name: Full name
+            years_ahead: Number of years to analyze (default 10)
+            
+        Returns:
+            Dictionary with wellness windows
+        """
+        current_year = date.today().year
+        health_cycles = self.calculate_health_cycles(
+            birth_date,
+            full_name,
+            current_year,
+            current_year + years_ahead
+        )
+        
+        wellness_windows = []
+        for year_data in health_cycles['yearly_health_analysis']:
+            if year_data['health_score'] >= 75 and year_data['vitality_level'] == 'high':
+                wellness_windows.append({
+                    'year': year_data['year'],
+                    'health_score': year_data['health_score'],
+                    'vitality_level': year_data['vitality_level'],
+                    'personal_year': year_data['personal_year'],
+                    'optimal_activities': self._get_optimal_wellness_activities(year_data),
+                    'timing_guidance': self._get_wellness_timing_guidance(year_data)
+                })
+        
+        return {
+            'wellness_windows': wellness_windows,
+            'total_windows': len(wellness_windows),
+            'next_wellness_window': next((w for w in wellness_windows if w['year'] >= current_year), None),
+            'recommendations': self._generate_wellness_recommendations(wellness_windows)
+        }
+    
+    def analyze_health_compatibility(
+        self,
+        birth_date1: date,
+        full_name1: str,
+        birth_date2: date,
+        full_name2: str
+    ) -> Dict[str, Any]:
+        """
+        Analyze health compatibility between two people.
+        
+        Args:
+            birth_date1: First person's birth date
+            full_name1: First person's full name
+            birth_date2: Second person's birth date
+            full_name2: Second person's full name
+            
+        Returns:
+            Dictionary with health compatibility analysis
+        """
+        health1 = self.calculate_health_cycles(birth_date1, full_name1)
+        health2 = self.calculate_health_cycles(birth_date2, full_name2)
+        
+        # Compare health numbers
+        health_match = health1['health_number'] == health2['health_number']
+        vitality_match = health1['vitality_number'] == health2['vitality_number']
+        stress_match = health1['stress_number'] == health2['stress_number']
+        
+        # Calculate compatibility score
+        compatibility_score = 50  # Base score
+        
+        if health_match:
+            compatibility_score += 20
+        if vitality_match:
+            compatibility_score += 15
+        if stress_match:
+            compatibility_score += 15
+        
+        # Check for complementary patterns
+        health_diff = abs(health1['health_number'] - health2['health_number'])
+        if health_diff in [1, 8]:  # Complementary numbers
+            compatibility_score += 10
+        
+        compatibility_score = min(100, compatibility_score)
+        
+        return {
+            'person1': {
+                'health_number': health1['health_number'],
+                'vitality_number': health1['vitality_number'],
+                'stress_number': health1['stress_number']
+            },
+            'person2': {
+                'health_number': health2['health_number'],
+                'vitality_number': health2['vitality_number'],
+                'stress_number': health2['stress_number']
+            },
+            'compatibility_score': compatibility_score,
+            'matches': {
+                'health': health_match,
+                'vitality': vitality_match,
+                'stress': stress_match
+            },
+            'analysis': self._generate_health_compatibility_analysis(
+                health1, health2, compatibility_score
+            ),
+            'recommendations': self._get_health_compatibility_recommendations(
+                health1, health2, compatibility_score
+            )
+        }
+    
+    def _generate_risk_warnings(self, year_data: Dict[str, Any]) -> List[str]:
+        """Generate warnings for risk periods."""
+        warnings = []
+        
+        if year_data['risk_level'] == 'high':
+            warnings.append('High risk period - extra caution recommended')
+            warnings.append('Schedule regular health checkups')
+            warnings.append('Monitor stress levels closely')
+        elif year_data['risk_level'] == 'elevated':
+            warnings.append('Elevated risk - be mindful of health')
+            warnings.append('Maintain preventive health measures')
+        
+        if year_data['stress_level'] == 'high':
+            warnings.append('High stress period - prioritize stress management')
+        
+        return warnings
+    
+    def _get_preventive_measures(self, year_data: Dict[str, Any]) -> List[str]:
+        """Get preventive measures for risk periods."""
+        measures = []
+        
+        measures.append('Maintain regular exercise routine')
+        measures.append('Follow a balanced diet')
+        measures.append('Get adequate sleep (7-9 hours)')
+        measures.append('Schedule regular health screenings')
+        
+        if year_data['stress_level'] == 'high':
+            measures.append('Practice stress reduction techniques daily')
+            measures.append('Consider meditation or yoga')
+            measures.append('Limit exposure to stressful situations')
+        
+        return measures
+    
+    def _generate_risk_cycle_recommendations(self, risk_periods: List[Dict[str, Any]]) -> List[str]:
+        """Generate recommendations based on risk cycles."""
+        recommendations = []
+        
+        if not risk_periods:
+            recommendations.append('No major risk periods identified in the analyzed timeframe')
+            return recommendations
+        
+        recommendations.append(f'{len(risk_periods)} risk period(s) identified - plan accordingly')
+        recommendations.append('Focus on preventive health measures during risk periods')
+        recommendations.append('Consider scheduling important health procedures during wellness windows')
+        
+        return recommendations
+    
+    def _get_optimal_wellness_activities(self, year_data: Dict[str, Any]) -> List[str]:
+        """Get optimal wellness activities for wellness windows."""
+        activities = []
+        
+        personal_year = year_data['personal_year']
+        
+        if personal_year in [1, 4, 8]:
+            activities.append('Start new fitness programs')
+            activities.append('Build physical strength and endurance')
+        elif personal_year in [2, 6, 9]:
+            activities.append('Focus on emotional and mental wellness')
+            activities.append('Engage in healing and nurturing activities')
+        elif personal_year in [3, 5, 7]:
+            activities.append('Explore new wellness modalities')
+            activities.append('Balance activity with rest')
+        
+        activities.append('Ideal time for health improvements')
+        activities.append('Good period for establishing new health routines')
+        
+        return activities
+    
+    def _get_wellness_timing_guidance(self, year_data: Dict[str, Any]) -> str:
+        """Get timing guidance for wellness windows."""
+        return f"Year {year_data['year']} is an excellent wellness window with high vitality and favorable health scores. This is an ideal time to focus on health improvements, start new wellness routines, and make positive lifestyle changes."
+    
+    def _generate_wellness_recommendations(self, wellness_windows: List[Dict[str, Any]]) -> List[str]:
+        """Generate recommendations based on wellness windows."""
+        recommendations = []
+        
+        if not wellness_windows:
+            recommendations.append('Plan wellness activities during stable health periods')
+            return recommendations
+        
+        recommendations.append(f'{len(wellness_windows)} optimal wellness window(s) identified')
+        recommendations.append('Schedule major health improvements during these windows')
+        recommendations.append('Use wellness windows to establish lasting health habits')
+        
+        return recommendations
+    
+    def _generate_health_compatibility_analysis(
+        self,
+        health1: Dict[str, Any],
+        health2: Dict[str, Any],
+        score: int
+    ) -> str:
+        """Generate health compatibility analysis text."""
+        parts = []
+        
+        if health1['health_number'] == health2['health_number']:
+            parts.append('You share the same health number - similar health patterns and needs.')
+        
+        if health1['vitality_number'] == health2['vitality_number']:
+            parts.append('Your vitality numbers match - compatible energy levels.')
+        
+        if health1['stress_number'] == health2['stress_number']:
+            parts.append('You have similar stress patterns - can support each other effectively.')
+        
+        if score >= 80:
+            parts.append('Excellent health compatibility - you can support each other\'s wellness journey.')
+        elif score >= 60:
+            parts.append('Good health compatibility - you work well together on health goals.')
+        elif score >= 40:
+            parts.append('Moderate health compatibility - understanding each other\'s health needs will be important.')
+        else:
+            parts.append('Different health patterns - communication about health needs will be essential.')
+        
+        return ' '.join(parts) if parts else 'Health compatibility analysis available.'
+    
+    def _get_health_compatibility_recommendations(
+        self,
+        health1: Dict[str, Any],
+        health2: Dict[str, Any],
+        score: int
+    ) -> List[str]:
+        """Get recommendations for health compatibility."""
+        recommendations = []
+        
+        if score >= 80:
+            recommendations.append('Support each other\'s health goals together')
+            recommendations.append('Plan joint wellness activities')
+        elif score >= 60:
+            recommendations.append('Respect each other\'s different health needs')
+            recommendations.append('Find common ground in wellness activities')
+        else:
+            recommendations.append('Communicate openly about health needs and boundaries')
+            recommendations.append('Respect different approaches to wellness')
+        
+        # Specific recommendations based on numbers
+        if health1['stress_number'] == health2['stress_number']:
+            recommendations.append('You can support each other during stress periods')
+        
+        return recommendations

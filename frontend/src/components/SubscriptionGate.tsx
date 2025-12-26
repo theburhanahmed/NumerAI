@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { LockIcon } from 'lucide-react';
 
 interface SubscriptionGateProps {

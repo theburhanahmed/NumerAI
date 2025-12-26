@@ -4,16 +4,17 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { SparklesIcon, GemIcon, PaletteIcon, FlowerIcon, ClockIcon, CheckCircleIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
+import { SpaceCard } from '@/components/space/space-card';
+import { SpaceButton } from '@/components/space/space-button';
+import { CosmicTooltip } from '@/components/cosmic/cosmic-tooltip';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { numerologyAPI } from '@/lib/numerology-api';
 import { useAuth } from '@/contexts/auth-context';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from 'sonner';
+import { MagneticCard } from '@/components/magnetic/magnetic-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
 
 export default function Remedies() {
   const { user } = useAuth();
@@ -99,37 +100,32 @@ export default function Remedies() {
       description: 'Check your dashboard for tracking'
     });
   };
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
-        {/* Page Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <motion.div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg" animate={{
-            rotate: [0, 5, -5, 0]
-          }} transition={{
-            duration: 3,
-            repeat: Infinity
-          }}>
-              <SparklesIcon className="w-6 h-6 text-white" />
-            </motion.div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent">
-                Personalized Remedies
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Enhance your energy with tailored recommendations
-              </p>
-            </div>
+  return (
+    <CosmicPageLayout>
+      {/* Header */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        className="mb-8"
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+            <GemIcon className="w-6 h-6 text-white" />
           </div>
-        </motion.div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-white">
+              Cosmic Remedies
+            </h1>
+            <p className="text-white/70">Align your energy with the universe</p>
+          </div>
+        </div>
+      </motion.div>
 
         {/* Category Tabs */}
         <motion.div initial={{
@@ -230,9 +226,9 @@ export default function Remedies() {
                             {benefit}
                           </div>)}
                       </div>
-                      <GlassButton variant="liquid" size="sm" className="w-full glass-glow" onClick={() => handleApplyRemedy(gem.name)}>
+                      <TouchOptimizedButton variant="primary" size="sm" className="w-full" onClick={() => handleApplyRemedy(gem.name)}>
                         Add to Practice
-                      </GlassButton>
+                      </TouchOptimizedButton>
                     </div>
                   </MagneticCard>
                 </motion.div>)}
@@ -283,17 +279,15 @@ export default function Remedies() {
                       <p className="text-gray-700 dark:text-gray-300 mb-4">
                         {color.meaning}
                       </p>
-                      <GlassCard variant="liquid" className="p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10">
-                        <div className="liquid-glass-content">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                            How to Use
-                          </p>
-                          <p className="text-xs text-gray-700 dark:text-gray-300">
-                            Incorporate this color in your clothing, workspace,
-                            or meditation space to enhance its energy.
-                          </p>
-                        </div>
-                      </GlassCard>
+                      <SpaceCard variant="elevated" className="p-4 bg-[#1a2942]/40 border border-cyan-500/20">
+                        <p className="text-sm font-semibold text-white mb-2">
+                          How to Use
+                        </p>
+                        <p className="text-xs text-white/70">
+                          Incorporate this color in your clothing, workspace,
+                          or meditation space to enhance its energy.
+                        </p>
+                      </SpaceCard>
                     </div>
                   </MagneticCard>
                 </motion.div>)}
@@ -335,32 +329,32 @@ export default function Remedies() {
                           </p>
                         </div>
                         <div className="flex gap-4">
-                          <GlassCard variant="liquid" className="p-3">
-                            <div className="liquid-glass-content flex items-center gap-2">
-                              <ClockIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <SpaceCard variant="elevated" className="p-3 bg-[#1a2942]/40 border border-cyan-500/20">
+                            <div className="flex items-center gap-2">
+                              <ClockIcon className="w-4 h-4 text-cyan-400" />
                               <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                <p className="text-xs text-white/70">
                                   Time
                                 </p>
-                                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                                <p className="font-semibold text-white text-sm">
                                   {ritual.time}
                                 </p>
                               </div>
                             </div>
-                          </GlassCard>
-                          <GlassCard variant="liquid" className="p-3">
-                            <div className="liquid-glass-content flex items-center gap-2">
-                              <ClockIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          </SpaceCard>
+                          <SpaceCard variant="elevated" className="p-3 bg-[#1a2942]/40 border border-cyan-500/20">
+                            <div className="flex items-center gap-2">
+                              <ClockIcon className="w-4 h-4 text-cyan-400" />
                               <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                <p className="text-xs text-white/70">
                                   Duration
                                 </p>
-                                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                                <p className="font-semibold text-white text-sm">
                                   {ritual.duration}
                                 </p>
                               </div>
                             </div>
-                          </GlassCard>
+                          </SpaceCard>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -373,27 +367,25 @@ export default function Remedies() {
                   }} transition={{
                     delay: 0.4 + idx * 0.1
                   }}>
-                            <GlassCard variant="liquid" className="p-4 text-center">
-                              <div className="liquid-glass-content">
-                                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm mx-auto mb-2">
-                                  {idx + 1}
-                                </div>
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                  {step}
-                                </p>
+                            <SpaceCard variant="elevated" className="p-4 text-center bg-[#1a2942]/40 border border-cyan-500/20">
+                              <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm mx-auto mb-2">
+                                {idx + 1}
                               </div>
-                            </GlassCard>
+                              <p className="text-sm text-white/70">
+                                {step}
+                              </p>
+                            </SpaceCard>
                           </motion.div>)}
                       </div>
-                      <GlassButton variant="liquid" size="sm" className="w-full glass-glow" onClick={() => handleApplyRemedy(ritual.title)}>
+                      <TouchOptimizedButton variant="primary" size="sm" className="w-full" onClick={() => handleApplyRemedy(ritual.title)}>
                         Start This Ritual
-                      </GlassButton>
+                      </TouchOptimizedButton>
                     </div>
                   </MagneticCard>
                 </motion.div>)}
             </div>
           </motion.div>}
         </SubscriptionGate>
-      </div>
-    </div>;
-}
+      </CosmicPageLayout>
+    );
+  }

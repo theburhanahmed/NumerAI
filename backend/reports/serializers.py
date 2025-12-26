@@ -2,7 +2,7 @@
 Serializers for NumerAI reports application.
 """
 from rest_framework import serializers
-from .models import ReportTemplate, GeneratedReport
+from .models import ReportTemplate, GeneratedReport, ScheduledReport, ReportComparison
 from numerology.models import Person
 
 
@@ -39,3 +39,32 @@ class NumerologyReportSerializer(serializers.Serializer):
     sections = serializers.DictField()
     numbers = serializers.DictField()
     interpretations = serializers.DictField()
+
+
+class ScheduledReportSerializer(serializers.ModelSerializer):
+    """Serializer for scheduled report."""
+    template_name = serializers.CharField(source='template.name', read_only=True)
+    person_name = serializers.CharField(source='person.name', read_only=True)
+    
+    class Meta:
+        model = ScheduledReport
+        fields = [
+            'id', 'template', 'template_name', 'person', 'person_name',
+            'schedule_frequency', 'next_run_date', 'is_active', 'last_run_at',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ReportComparisonSerializer(serializers.ModelSerializer):
+    """Serializer for report comparison."""
+    report1_title = serializers.CharField(source='report1.title', read_only=True)
+    report2_title = serializers.CharField(source='report2.title', read_only=True)
+    
+    class Meta:
+        model = ReportComparison
+        fields = [
+            'id', 'report1', 'report1_title', 'report2', 'report2_title',
+            'comparison_data', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']

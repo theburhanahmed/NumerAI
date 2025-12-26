@@ -374,3 +374,56 @@ class EmailTemplate(models.Model):
     def __str__(self):
         return f"{self.get_template_type_display()} - {self.subject}"
 
+
+class AuditLog(models.Model):
+    """Audit log for tracking sensitive operations."""
+    
+    ACTION_CHOICES = [
+        ('auth_login', 'Login'),
+        ('auth_logout', 'Logout'),
+        ('auth_register', 'Registration'),
+        ('auth_password_reset', 'Password Reset'),
+        ('payment_create', 'Payment Created'),
+        ('payment_succeeded', 'Payment Succeeded'),
+        ('payment_failed', 'Payment Failed'),
+        ('subscription_create', 'Subscription Created'),
+        ('subscription_update', 'Subscription Updated'),
+        ('subscription_cancel', 'Subscription Canceled'),
+        ('profile_update', 'Profile Updated'),
+        ('data_access', 'Data Accessed'),
+        ('data_export', 'Data Exported'),
+        ('account_delete', 'Account Deleted'),
+    ]
+    
+    RESOURCE_TYPES = [
+        ('user', 'User'),
+        ('payment', 'Payment'),
+        ('subscription', 'Subscription'),
+        ('report', 'Report'),
+        ('consultation', 'Consultation'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES, db_index=True)
+    resource_type = models.CharField(max_length=50, choices=RESOURCE_TYPES, db_index=True)
+    resource_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    details = models.JSONField(default=dict, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        db_table = 'audit_logs'
+        verbose_name = 'Audit Log'
+        verbose_name_plural = 'Audit Logs'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['action', 'timestamp']),
+            models.Index(fields=['resource_type', 'resource_id']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.user or 'System'} - {self.timestamp}"
+

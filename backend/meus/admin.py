@@ -165,7 +165,7 @@ class CrossProfileAnalysisCacheAdmin(admin.ModelAdmin):
     list_display = ['user', 'entity_combination_hash_short', 'expires_at', 'calculated_at']
     list_filter = ['expires_at', 'calculated_at']
     search_fields = ['user__email', 'user__full_name', 'entity_combination_hash']
-    readonly_fields = ['id', 'created_at']
+    readonly_fields = ['id', 'calculated_at', 'created_at']
     raw_id_fields = ['user']
     
     def entity_combination_hash_short(self, obj):

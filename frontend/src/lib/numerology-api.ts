@@ -47,6 +47,209 @@ export interface LoShuGrid {
   interpretation: string;
 }
 
+// DivineAPI-style types
+export interface PersonalityArrow {
+  name: string;
+  numbers: number[];
+  type: 'row' | 'column' | 'diagonal';
+  position: string;
+  status: 'present' | 'absent';
+  meaning: string;
+  is_strength: boolean;
+}
+
+export interface MissingNumberDetail {
+  number: number;
+  lesson: string;
+  description: string;
+  remedy: string;
+  element: string;
+}
+
+export interface RepeatingNumberDetail {
+  number: number;
+  count: number;
+  strength: string;
+  overemphasis: string;
+  balance_tip: string;
+  intensity: 'moderate' | 'strong' | 'very_strong';
+}
+
+export interface DetailedLoShuGrid extends LoShuGrid {
+  repeating_numbers: number[];
+  missing_number_details: MissingNumberDetail[];
+  repeating_number_details: RepeatingNumberDetail[];
+  personality_arrows: PersonalityArrow[];
+  has_premium_access: boolean;
+  premium_preview?: boolean;
+  upgrade_message?: string;
+}
+
+export interface DriverConductorInterpretation {
+  number: number;
+  title: string;
+  description: string;
+  inner_nature?: string;
+  motivation?: string;
+  inner_strength?: string;
+  shadow_aspect?: string;
+  life_direction?: string;
+  public_image?: string;
+  destiny_lessons?: string;
+}
+
+export interface BirthdayInterpretation {
+  number: number;
+  title: string;
+  description: string;
+  talents: string[];
+  best_days: string[];
+  lucky_colors: string[];
+  advice: string;
+}
+
+export interface DriverConductorCompatibility {
+  driver_number: number;
+  conductor_number: number;
+  is_compatible: boolean;
+  harmony_score: number;
+  harmony_level: string;
+  analysis: string;
+}
+
+export interface ChaldeanAnalysis {
+  driver_number: {
+    number: number;
+    interpretation: DriverConductorInterpretation;
+  };
+  conductor_number: {
+    number: number;
+    interpretation: DriverConductorInterpretation;
+  };
+  birthday_number: {
+    number: number;
+    interpretation: BirthdayInterpretation;
+  };
+  driver_conductor_compatibility: DriverConductorCompatibility;
+  calculation_system: string;
+  birth_date: string;
+}
+
+export interface ZodiacSign {
+  sign: string;
+  symbol: string;
+  element: string;
+  ruling_planet: string;
+  ruling_number: number;
+  traits: string[];
+  compatible_numbers: number[];
+}
+
+export interface PlanetInfo {
+  number: number;
+  reduced_number?: number;
+  planet: string;
+  symbol: string;
+  element: string;
+  traits: string[];
+  day: string;
+  color: string;
+  gemstone: string;
+  birth_day?: number;
+}
+
+export interface ZodiacCompatibility {
+  zodiac_sign: string;
+  zodiac_symbol: string;
+  zodiac_element: string;
+  zodiac_ruling_number: number;
+  zodiac_ruling_planet: string;
+  life_path_number: number;
+  life_path_reduced: number;
+  is_compatible: boolean;
+  is_aligned: boolean;
+  compatibility_score: number;
+  compatibility_level: string;
+  analysis: string;
+}
+
+export interface ZodiacNumerologyProfile {
+  zodiac: ZodiacSign;
+  planets: {
+    life_path_planet: PlanetInfo;
+    birth_day_planet: PlanetInfo;
+    driver_planet?: PlanetInfo;
+    conductor_planet?: PlanetInfo;
+  };
+  compatibility: ZodiacCompatibility;
+  lucky_elements: {
+    day: string;
+    color: string;
+    gemstone: string;
+    element: string;
+  };
+  planetary_periods: Array<{
+    number: number;
+    planet: string;
+    symbol: string;
+    is_current: boolean;
+    traits: string[];
+    element: string;
+  }>;
+  life_path_number: number;
+  calculation_system: string;
+}
+
+export interface AttitudeInterpretation {
+  number: number;
+  title: string;
+  description: string;
+  first_impression: string;
+  default_behavior: string;
+  social_style: string;
+  advice: string;
+}
+
+export interface EnhancedAttitudeNumber {
+  attitude_number: number;
+  interpretation: AttitudeInterpretation;
+  birth_month: number;
+  birth_day: number;
+  calculation: string;
+}
+
+export interface CoreNumberWithInterpretation {
+  number: number;
+  interpretation: NumberInterpretation | DriverConductorInterpretation | BirthdayInterpretation | AttitudeInterpretation | null;
+}
+
+export interface CompleteCoreNumbers {
+  user_name: string | null;
+  birth_date: string;
+  calculation_system: string;
+  core_numbers: {
+    life_path: CoreNumberWithInterpretation;
+    destiny: CoreNumberWithInterpretation;
+    soul_urge: CoreNumberWithInterpretation;
+    personality: CoreNumberWithInterpretation;
+    attitude: CoreNumberWithInterpretation;
+    birthday: CoreNumberWithInterpretation;
+    maturity: CoreNumberWithInterpretation;
+    balance: CoreNumberWithInterpretation;
+    driver: CoreNumberWithInterpretation;
+    conductor: CoreNumberWithInterpretation;
+  };
+  personal_cycles: {
+    personal_year: number;
+    personal_month: number;
+  };
+  enhanced_numbers: {
+    karmic_debt: number | null;
+    hidden_passion: number | null;
+    subconscious_self: number | null;
+  };
+}
+
 export interface BirthChart {
   profile: NumerologyProfile;
   interpretations: {
@@ -672,8 +875,12 @@ export const numerologyAPI = {
 
   /**
    * Compare Lo Shu Grids between two people.
+   * Can accept either person IDs or person2 details (name and birth date).
    */
-  async compareLoShuGrids(person1Id: string, person2Id: string): Promise<{
+  async compareLoShuGrids(
+    person1IdOrName: string, 
+    person2IdOrBirthDate: string
+  ): Promise<{
     person1_name: string;
     person2_name: string;
     compatibility_score: number;
@@ -686,10 +893,79 @@ export const numerologyAPI = {
     insights: string[];
     recommendations: string[];
   }> {
-    const response = await apiClient.post('/numerology/lo-shu-grid/compare/', {
-      person1_id: person1Id,
-      person2_id: person2Id
-    });
+    // Check if second parameter looks like a date (YYYY-MM-DD format)
+    const isDateFormat = /^\d{4}-\d{2}-\d{2}$/.test(person2IdOrBirthDate);
+    
+    const payload = isDateFormat
+      ? {
+          person2_name: person1IdOrName,
+          person2_birth_date: person2IdOrBirthDate
+        }
+      : {
+          person1_id: person1IdOrName,
+          person2_id: person2IdOrBirthDate
+        };
+    
+    const response = await apiClient.post('/numerology/lo-shu-grid/compare/', payload);
+    return response.data;
+  },
+
+  /**
+   * Get personality arrows analysis for Lo Shu Grid.
+   */
+  async getLoShuArrows(): Promise<{
+    strength_arrows: string[];
+    weakness_arrows: string[];
+    arrow_interpretation: string;
+    arrow_details: Array<{
+      name: string;
+      numbers: number[];
+      meaning: string;
+      type: 'strength' | 'weakness';
+    }>;
+  }> {
+    const response = await apiClient.get('/numerology/lo-shu-grid/arrows/');
+    return response.data;
+  },
+
+  /**
+   * Get remedy suggestions for missing numbers in Lo Shu Grid.
+   */
+  async getLoShuRemedies(): Promise<{
+    remedy_suggestions: string[];
+    missing_numbers: number[];
+    missing_number_details: MissingNumberDetail[];
+    weakness_arrows: string[];
+  }> {
+    const response = await apiClient.get('/numerology/lo-shu-grid/remedies/');
+    return response.data;
+  },
+
+  /**
+   * Get visualization data for Lo Shu Grid.
+   */
+  async getLoShuVisualization(): Promise<{
+    grid: Record<string, any>;
+    position_grid: Record<number, number>;
+    strength_arrows: string[];
+    weakness_arrows: string[];
+    arrow_details: Array<{
+      name: string;
+      numbers: number[];
+      meaning: string;
+      type: 'strength' | 'weakness';
+    }>;
+    strength_score: {
+      strength_score: number;
+      health_level: string;
+      breakdown: Record<string, number>;
+    };
+    personality_signature: Record<string, any>;
+    missing_numbers: number[];
+    strong_numbers: number[];
+    repeating_numbers: number[];
+  }> {
+    const response = await apiClient.get('/numerology/lo-shu-grid/visualization/');
     return response.data;
   },
 
@@ -711,6 +987,85 @@ export const numerologyAPI = {
     updated_at: string;
   }> {
     const response = await apiClient.get('/numerology/health/');
+    return response.data;
+  },
+
+  /**
+   * Get comprehensive health numerology analysis.
+   */
+  async getHealthAnalysis(): Promise<{
+    health_numbers: {
+      health_number: number;
+      vitality_number: number;
+      stress_number: number;
+    };
+    health_cycles: any;
+    risk_cycles: any;
+    wellness_windows: any;
+    emotional_vulnerabilities: any;
+    overall_assessment: any;
+  }> {
+    const response = await apiClient.get('/numerology/health/analysis/');
+    return response.data;
+  },
+
+  /**
+   * Get health risk periods.
+   */
+  async getHealthRiskPeriods(yearsAhead: number = 10): Promise<{
+    risk_periods: Array<{
+      year: number;
+      risk_level: string;
+      health_score: number;
+      stress_level: string;
+      warnings: string[];
+      preventive_measures: string[];
+    }>;
+    total_risk_periods: number;
+    highest_risk_year: any;
+    recommendations: string[];
+  }> {
+    const response = await apiClient.get('/numerology/health/risk-periods/', {
+      params: { years_ahead: yearsAhead }
+    });
+    return response.data;
+  },
+
+  /**
+   * Analyze health compatibility between two people.
+   */
+  async analyzeHealthCompatibility(
+    person2Id?: string,
+    person2Name?: string,
+    person2BirthDate?: string
+  ): Promise<{
+    person1: {
+      health_number: number;
+      vitality_number: number;
+      stress_number: number;
+    };
+    person2: {
+      health_number: number;
+      vitality_number: number;
+      stress_number: number;
+    };
+    compatibility_score: number;
+    matches: {
+      health: boolean;
+      vitality: boolean;
+      stress: boolean;
+    };
+    analysis: string;
+    recommendations: string[];
+  }> {
+    const payload: any = {};
+    if (person2Id) {
+      payload.person2_id = person2Id;
+    } else if (person2Name && person2BirthDate) {
+      payload.person2_name = person2Name;
+      payload.person2_birth_date = person2BirthDate;
+    }
+    const response = await apiClient.post('/numerology/health/compatibility/', payload);
     return response.data;
   },
 
@@ -965,6 +1320,50 @@ export const numerologyAPI = {
    */
   async getMoodPredictions(): Promise<any> {
     const response = await apiClient.get('/numerology/mental-state/mood-predictions/');
+    return response.data;
+  },
+
+  // ============================================================================
+  // DivineAPI-Style Endpoints (Chaldean Analysis, Enhanced Lo Shu, Zodiac)
+  // ============================================================================
+
+  /**
+   * Get Chaldean numerology analysis (Driver, Conductor, Birthday numbers).
+   */
+  async getChaldeanAnalysis(): Promise<ChaldeanAnalysis> {
+    const response = await apiClient.get('/numerology/chaldean-analysis/');
+    return response.data;
+  },
+
+  /**
+   * Get detailed Lo Shu Grid with personality arrows and enhanced analysis.
+   */
+  async getDetailedLoShuGrid(): Promise<DetailedLoShuGrid> {
+    const response = await apiClient.get('/numerology/lo-shu-grid/detailed/');
+    return response.data;
+  },
+
+  /**
+   * Get zodiac-numerology integration with planetary associations.
+   */
+  async getZodiacNumerology(): Promise<ZodiacNumerologyProfile> {
+    const response = await apiClient.get('/numerology/zodiac-planet/');
+    return response.data;
+  },
+
+  /**
+   * Get enhanced Attitude Number analysis.
+   */
+  async getEnhancedAttitudeNumber(): Promise<EnhancedAttitudeNumber> {
+    const response = await apiClient.get('/numerology/attitude-number/');
+    return response.data;
+  },
+
+  /**
+   * Get all core numbers with comprehensive interpretations.
+   */
+  async getCompleteCoreNumbers(): Promise<CompleteCoreNumbers> {
+    const response = await apiClient.get('/numerology/core-numbers/');
     return response.data;
   }
 };
@@ -1439,7 +1838,73 @@ export const reportAPI = {
   async getGeneratedReport(reportId: string): Promise<GeneratedReport> {
     const response = await apiClient.get(`/reports/${reportId}/`);
     return response.data;
-  }
+  },
+
+  // Enhanced Reports endpoints
+  async generateCustomReport(data: {
+    person_id: string;
+    sections: string[];
+    custom_config?: Record<string, any>;
+  }): Promise<GeneratedReport> {
+    const response = await apiClient.post('/reports/custom/', data);
+    return response.data;
+  },
+
+  async createReportTemplate(data: {
+    name: string;
+    description: string;
+    report_type: string;
+    template_config: Record<string, any>;
+    is_premium?: boolean;
+  }): Promise<ReportTemplate> {
+    const response = await apiClient.post('/reports/templates/', data);
+    return response.data;
+  },
+
+  async getMyReportTemplates(): Promise<ReportTemplate[]> {
+    const response = await apiClient.get('/reports/templates/my/');
+    if (response.data && 'results' in response.data) {
+      return response.data.results;
+    }
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  async scheduleReport(data: {
+    template_id: string;
+    person_id: string;
+    schedule_frequency: string;
+    next_run_date: string;
+  }): Promise<any> {
+    const response = await apiClient.post('/reports/schedule/', data);
+    return response.data;
+  },
+
+  async getScheduledReports(): Promise<any[]> {
+    const response = await apiClient.get('/reports/scheduled/');
+    if (response.data && 'results' in response.data) {
+      return response.data.results;
+    }
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  async cancelScheduledReport(scheduledId: string): Promise<void> {
+    await apiClient.delete(`/reports/scheduled/${scheduledId}/`);
+  },
+
+  async compareReports(data: {
+    report1_id: string;
+    report2_id: string;
+  }): Promise<any> {
+    const response = await apiClient.post('/reports/compare/', data);
+    return response.data;
+  },
+
+  async exportReport(reportId: string, format: 'pdf' | 'docx' | 'json' | 'html'): Promise<Blob> {
+    const response = await apiClient.get(`/reports/${reportId}/export/${format}/`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
 };
 
 // Dashboard API types and methods
@@ -1834,12 +2299,57 @@ export const decisionAPI = {
 
 // Analytics API types and methods
 export interface PersonalAnalytics {
-  period_days: number;
+  total_activities: number;
   total_actions: number;
   engagement_score: number;
-  feature_usage: Array<{ action_type: string; count: number }>;
-  daily_activity: Record<string, number>;
-  average_daily_actions: number;
+  activity_breakdown: Array<{ activity_type: string; action_type: string; count: number }>;
+  feature_usage: Array<{ feature_name: string; action_type: string; count: number }>;
+  daily_activity: Array<{ date: string; count: number }>;
+  period_days: number;
+}
+
+export interface BusinessMetrics {
+  users: {
+    total: number;
+    new: number;
+    dau: number;
+    mau: number;
+    retention_rate: number;
+  };
+  engagement: {
+    total_activities: number;
+    total_events: number;
+    avg_activities_per_user: number;
+  };
+  feature_usage: Array<{ feature_name: string; count: number }>;
+  period_days: number;
+}
+
+export interface ConversionFunnelMetrics {
+  funnel_name: string;
+  steps: Record<string, {
+    position: number;
+    users: number;
+    events: number;
+    conversion_rate: number;
+  }>;
+  total_users_entered: number;
+  total_users_completed: number;
+  overall_conversion_rate: number;
+  period_days: number;
+}
+
+export interface ABTestResults {
+  experiment_id: string;
+  experiment_name: string;
+  primary_metric: string;
+  variants: Record<string, {
+    variant_name: string;
+    users: number;
+    events: number;
+    primary_metric: number;
+  }>;
+  is_active: boolean;
 }
 
 export const analyticsAPI = {
@@ -1850,6 +2360,34 @@ export const analyticsAPI = {
     const params: any = {};
     if (days) params.days = days;
     const response = await apiClient.get('/analytics/personal/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get business metrics (admin only).
+   */
+  async getBusinessMetrics(days?: number, category?: string): Promise<BusinessMetrics> {
+    const params: any = {};
+    if (days) params.days = days;
+    if (category) params.category = category;
+    const response = await apiClient.get('/analytics/business/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get conversion funnel metrics.
+   */
+  async getFunnelMetrics(funnelName: string, days?: number): Promise<ConversionFunnelMetrics> {
+    const params = days ? { days } : {};
+    const response = await apiClient.get(`/analytics/funnels/${funnelName}/`, { params });
+    return response.data;
+  },
+
+  /**
+   * Get A/B test results.
+   */
+  async getABTestResults(experimentId: string): Promise<ABTestResults> {
+    const response = await apiClient.get(`/analytics/ab-tests/${experimentId}/`);
     return response.data;
   },
 
@@ -1987,6 +2525,29 @@ export const timingNumerologyAPI = {
   },
 
   /**
+   * Analyze global numerology influences.
+   */
+  analyzeGlobalInfluences: async (params?: {
+    target_date?: string;
+    year?: number;
+  }) => {
+    const response = await apiClient.get('/numerology/timing/global-influences/', { params });
+    return response.data;
+  },
+
+  /**
+   * Calculate timing compatibility between two people.
+   */
+  calculateTimingCompatibility: async (data: {
+    birth_date_1: string;
+    birth_date_2: string;
+    target_date: string;
+  }) => {
+    const response = await apiClient.post('/numerology/timing/compatibility/', data);
+    return response.data;
+  },
+
+  /**
    * Optimize event timing
    */
   optimizeTiming: async (data: {
@@ -2061,14 +2622,110 @@ export const spiritualNumerologyAPI = {
     const response = await apiClient.get('/numerology/spiritual/', { params });
     return response.data;
   },
+
+  /**
+   * Get detailed soul contracts.
+   */
+  getSoulContracts: async () => {
+    const response = await apiClient.get('/numerology/spiritual/soul-contracts/');
+    return response.data;
+  },
+
+  /**
+   * Get karmic timeline visualization data.
+   */
+  getKarmicTimeline: async (forecastYears?: number) => {
+    const params = forecastYears ? { forecast_years: forecastYears } : {};
+    const response = await apiClient.get('/numerology/spiritual/karmic-timeline/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get detailed rebirth cycles.
+   */
+  getRebirthCycles: async () => {
+    const response = await apiClient.get('/numerology/spiritual/rebirth-cycles/');
+    return response.data;
+  },
+
+  /**
+   * Get divine gifts identification.
+   */
+  getDivineGifts: async () => {
+    const response = await apiClient.get('/numerology/spiritual/divine-gifts/');
+    return response.data;
+  },
+
+  /**
+   * Get optimal meditation timing.
+   */
+  getMeditationTiming: async (targetDate?: string) => {
+    const params = targetDate ? { target_date: targetDate } : {};
+    const response = await apiClient.get('/numerology/spiritual/meditation-timing/', { params });
+    return response.data;
+  },
 };
 
 export const predictiveNumerologyAPI = {
   /**
    * Get predictive numerology profile
    */
-  getPredictiveProfile: async (params?: { person_id?: string; year?: number }) => {
+  getPredictiveProfile: async (params?: { person_id?: string; year?: number; forecast_years?: number }) => {
     const response = await apiClient.get('/numerology/predictive/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get 9-year cycle forecast.
+   */
+  get9YearCycle: async (forecastYears?: number) => {
+    const params = forecastYears ? { forecast_years: forecastYears } : {};
+    const response = await apiClient.get('/numerology/predictive/9-year-cycle/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get breakthrough year predictions.
+   */
+  getBreakthroughYears: async (forecastYears?: number) => {
+    const params = forecastYears ? { forecast_years: forecastYears } : {};
+    const response = await apiClient.get('/numerology/predictive/breakthrough-years/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get crisis year predictions.
+   */
+  getCrisisYears: async (forecastYears?: number) => {
+    const params = forecastYears ? { forecast_years: forecastYears } : {};
+    const response = await apiClient.get('/numerology/predictive/crisis-years/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get opportunity period predictions.
+   */
+  getOpportunityPeriods: async (forecastYears?: number) => {
+    const params = forecastYears ? { forecast_years: forecastYears } : {};
+    const response = await apiClient.get('/numerology/predictive/opportunities/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get life milestone predictions.
+   */
+  getLifeMilestones: async (forecastYears?: number) => {
+    const params = forecastYears ? { forecast_years: forecastYears } : {};
+    const response = await apiClient.get('/numerology/predictive/milestones/', { params });
+    return response.data;
+  },
+
+  /**
+   * Get comprehensive yearly forecast.
+   */
+  getYearlyForecast: async (year?: number) => {
+    const params = year ? { year } : {};
+    const response = await apiClient.get('/numerology/predictive/yearly-forecast/', { params });
     return response.data;
   },
 };
@@ -2224,6 +2881,98 @@ export const enhancedCyclesAPI = {
     target_year: number;
   }) => {
     const response = await apiClient.post('/numerology/cycle-compatibility/', data);
+    return response.data;
+  },
+
+  // Visualization endpoints
+  getNumerologyWheel: async () => {
+    const response = await apiClient.get('/numerology/visualizations/wheel/');
+    return response.data;
+  },
+
+  getNumerologyTimeline: async (params?: { years_ahead?: number }) => {
+    const response = await apiClient.get('/numerology/visualizations/timeline/', { params });
+    return response.data;
+  },
+
+  getNumerologyComparisonCharts: async (data: { person_ids: string[] }) => {
+    const response = await apiClient.post('/numerology/visualizations/comparison/', data);
+    return response.data;
+  },
+
+  getNumerologyHeatmap: async () => {
+    const response = await apiClient.get('/numerology/visualizations/heatmap/');
+    return response.data;
+  },
+
+  get3DNumerologyVisualization: async () => {
+    const response = await apiClient.get('/numerology/visualizations/3d/');
+    return response.data;
+  },
+
+  // Enhanced Remedies endpoints
+  getRemedyTrackingData: async (remedyId: string, params?: { start_date?: string; end_date?: string }) => {
+    const response = await apiClient.get(`/numerology/remedies/track/${remedyId}/`, { params });
+    return response.data;
+  },
+
+  submitRemedyEffectiveness: async (remedyId: string, data: {
+    effectiveness_rating?: number;
+    mood_before?: string;
+    mood_after?: string;
+    date?: string;
+  }) => {
+    const response = await apiClient.post(`/numerology/remedies/track/${remedyId}/effectiveness/`, data);
+    return response.data;
+  },
+
+  getRemedyEffectiveness: async (params?: { remedy_id?: string; period_days?: number }) => {
+    const response = await apiClient.get('/numerology/remedies/effectiveness/', { params });
+    return response.data;
+  },
+
+  getRemedyCombinations: async (params: { remedy_id: string }) => {
+    const response = await apiClient.get('/numerology/remedies/combinations/', { params });
+    return response.data;
+  },
+
+  createRemedyReminder: async (data: {
+    remedy_id: string;
+    frequency: string;
+    reminder_time: string;
+  }) => {
+    const response = await apiClient.post('/numerology/remedies/reminders/', data);
+    return response.data;
+  },
+
+  getRemedyReminders: async () => {
+    const response = await apiClient.get('/numerology/remedies/reminders/list/');
+    return response.data;
+  },
+
+  deleteRemedyReminder: async (reminderId: string) => {
+    const response = await apiClient.delete(`/numerology/remedies/reminders/${reminderId}/`);
+    return response.data;
+  },
+
+  // Dashboard endpoints
+  getDashboardInsights: async () => {
+    const response = await apiClient.get('/numerology/dashboard/insights/');
+    return response.data;
+  },
+
+  getDashboardQuickActions: async (params?: { context?: string }) => {
+    const response = await apiClient.get('/numerology/dashboard/quick-actions/', { params });
+    return response.data;
+  },
+
+  getDashboardActivity: async (params?: { limit?: number; types?: string[] }) => {
+    const response = await apiClient.get('/numerology/dashboard/activity/', { params });
+    return response.data;
+  },
+
+  getDashboardRecommendations: async () => {
+    const response = await apiClient.get('/numerology/dashboard/recommendations/');
     return response.data;
   },
 };

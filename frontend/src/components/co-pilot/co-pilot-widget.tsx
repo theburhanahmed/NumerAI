@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bot, Sparkles, X, ChevronRight, Lightbulb } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { GlassCard } from '@/components/glassmorphism/glass-card';
+import { GlassButton } from '@/components/glassmorphism/glass-button';
 import { dashboardAPI, numerologyAPI } from '@/lib/numerology-api';
 import { useRouter } from 'next/navigation';
 

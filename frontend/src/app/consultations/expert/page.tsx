@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Users, Star, CheckCircle, XCircle } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { consultationsAPI } from '@/lib/consultations-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
@@ -52,9 +53,11 @@ export default function ExpertDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <CosmicPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      </CosmicPageLayout>
     );
   }
 
@@ -63,55 +66,55 @@ export default function ExpertDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 p-8">
+    <CosmicPageLayout>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Expert Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Expert Dashboard</h1>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <GlassCard className="p-6">
+          <SpaceCard variant="elevated" className="p-6">
             <div className="flex items-center gap-3">
-              <Users className="w-8 h-8 text-blue-500" />
+              <Users className="w-8 h-8 text-cyan-400" />
               <div>
-                <div className="text-2xl font-bold">{dashboard.stats.total_consultations}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Consultations</div>
+                <div className="text-2xl font-bold text-white">{dashboard.stats.total_consultations}</div>
+                <div className="text-sm text-white/70">Total Consultations</div>
               </div>
             </div>
-          </GlassCard>
-          <GlassCard className="p-6">
+          </SpaceCard>
+          <SpaceCard variant="elevated" className="p-6">
             <div className="flex items-center gap-3">
-              <CheckCircle className="w-8 h-8 text-green-500" />
+              <CheckCircle className="w-8 h-8 text-green-400" />
               <div>
-                <div className="text-2xl font-bold">{dashboard.stats.completed}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Completed</div>
+                <div className="text-2xl font-bold text-white">{dashboard.stats.completed}</div>
+                <div className="text-sm text-white/70">Completed</div>
               </div>
             </div>
-          </GlassCard>
-          <GlassCard className="p-6">
+          </SpaceCard>
+          <SpaceCard variant="elevated" className="p-6">
             <div className="flex items-center gap-3">
-              <Star className="w-8 h-8 text-yellow-500" />
+              <Star className="w-8 h-8 text-yellow-400" />
               <div>
-                <div className="text-2xl font-bold">{dashboard.stats.rating.toFixed(1)}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Rating</div>
+                <div className="text-2xl font-bold text-white">{dashboard.stats.rating.toFixed(1)}</div>
+                <div className="text-sm text-white/70">Rating</div>
               </div>
             </div>
-          </GlassCard>
-          <GlassCard className="p-6">
+          </SpaceCard>
+          <SpaceCard variant="elevated" className="p-6">
             <div className="flex items-center gap-3">
-              <Clock className="w-8 h-8 text-orange-500" />
+              <Clock className="w-8 h-8 text-orange-400" />
               <div>
-                <div className="text-2xl font-bold">{dashboard.pending_confirmations}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Pending</div>
+                <div className="text-2xl font-bold text-white">{dashboard.pending_confirmations}</div>
+                <div className="text-sm text-white/70">Pending</div>
               </div>
             </div>
-          </GlassCard>
+          </SpaceCard>
         </div>
 
         {/* Upcoming Consultations */}
-        <GlassCard className="p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Upcoming Consultations</h2>
+        <SpaceCard variant="elevated" className="p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">Upcoming Consultations</h2>
           {dashboard.upcoming_consultations.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">No upcoming consultations</p>
+            <p className="text-white/70">No upcoming consultations</p>
           ) : (
             <div className="space-y-4">
               {dashboard.upcoming_consultations.map((consultation) => {
@@ -119,61 +122,61 @@ export default function ExpertDashboardPage() {
                 return (
                   <div
                     key={consultation.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-[#1a2942]/40 rounded-lg border border-cyan-500/20"
                   >
                     <div>
-                      <div className="font-medium">
+                      <div className="font-medium text-white">
                         {typeof consultation.expert === 'object'
                           ? consultation.expert.name
                           : 'User'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-sm text-white/70">
                         {format(scheduledDate, 'MMM dd, yyyy HH:mm')} - {consultation.duration_minutes} min
                       </div>
                     </div>
                     <div className="flex gap-2">
                       {consultation.status === 'pending' && (
-                        <GlassButton
-                          variant="liquid"
+                        <TouchOptimizedButton
+                          variant="primary"
                           size="sm"
                           onClick={() => handleConfirm(consultation.id)}
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Confirm
-                        </GlassButton>
+                        </TouchOptimizedButton>
                       )}
-                      <GlassButton
-                        variant="liquid"
+                      <TouchOptimizedButton
+                        variant="secondary"
                         size="sm"
                         onClick={() => router.push(`/consultations/${consultation.id}`)}
                       >
                         View Details
-                      </GlassButton>
+                      </TouchOptimizedButton>
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-        </GlassCard>
+        </SpaceCard>
 
         {/* Quick Actions */}
         <div className="flex gap-4">
-          <GlassButton
-            variant="liquid"
+          <TouchOptimizedButton
+            variant="primary"
             onClick={() => router.push('/consultations/expert/availability')}
           >
             Manage Availability
-          </GlassButton>
-          <GlassButton
-            variant="liquid"
+          </TouchOptimizedButton>
+          <TouchOptimizedButton
+            variant="secondary"
             onClick={() => router.push('/consultations/expert/consultations')}
           >
             View All Consultations
-          </GlassButton>
+          </TouchOptimizedButton>
         </div>
       </div>
-    </div>
+    </CosmicPageLayout>
   );
 }
 

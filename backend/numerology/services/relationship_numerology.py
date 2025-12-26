@@ -516,6 +516,371 @@ class RelationshipNumerologyService:
         if breakup_risk['score'] >= 60:
             recommendations.append('Prioritize open communication and conflict resolution.')
             recommendations.append('Consider relationship counseling or numerology-based remedies.')
+    
+    def optimize_relationship_timing(
+        self,
+        profile_1: Dict[str, Any],
+        profile_2: Dict[str, Any],
+        milestone_type: str,
+        start_date: date,
+        end_date: date
+    ) -> Dict[str, Any]:
+        """
+        Optimize timing for relationship milestones.
+        
+        Args:
+            profile_1: First person's profile
+            profile_2: Second person's profile
+            milestone_type: Type of milestone (proposal, marriage, moving_in, etc.)
+            start_date: Start of date range
+            end_date: End of date range
+            
+        Returns:
+            Optimal timing analysis
+        """
+        from datetime import timedelta
+        
+        dob1 = profile_1.get('birth_date')
+        dob2 = profile_2.get('birth_date')
+        
+        if not dob1 or not dob2:
+            return {'error': 'Birth dates are required'}
+        
+        optimal_dates = []
+        current_date = start_date
+        
+        while current_date <= end_date:
+            py1 = self.calculator.calculate_personal_year_number(dob1, current_date.year)
+            py2 = self.calculator.calculate_personal_year_number(dob2, current_date.year)
+            pm1 = self.calculator.calculate_personal_month_number(dob1, current_date.year, current_date.month)
+            pm2 = self.calculator.calculate_personal_month_number(dob2, current_date.year, current_date.month)
+            pd1 = self.calculator.calculate_personal_day_number(dob1, current_date)
+            pd2 = self.calculator.calculate_personal_day_number(dob2, current_date)
+            
+            # Calculate alignment score
+            alignment_score = self._calculate_milestone_alignment(
+                py1, py2, pm1, pm2, pd1, pd2, milestone_type
+            )
+            
+            optimal_dates.append({
+                'date': current_date.isoformat(),
+                'alignment_score': alignment_score,
+                'personal_year_1': py1,
+                'personal_year_2': py2,
+                'personal_day_1': pd1,
+                'personal_day_2': pd2,
+                'recommendation': self._get_milestone_recommendation(alignment_score)
+            })
+            
+            current_date += timedelta(days=1)
+        
+        optimal_dates.sort(key=lambda x: x['alignment_score'], reverse=True)
+        
+        return {
+            'milestone_type': milestone_type,
+            'top_dates': optimal_dates[:10],
+            'all_dates': optimal_dates,
+            'recommendations': self._get_timing_recommendations(milestone_type)
+        }
+    
+    def track_relationship_health(
+        self,
+        profile_1: Dict[str, Any],
+        profile_2: Dict[str, Any],
+        relationship_start_date: date,
+        check_date: Optional[date] = None
+    ) -> Dict[str, Any]:
+        """
+        Track relationship health over time.
+        
+        Args:
+            profile_1: First person's profile
+            profile_2: Second person's profile
+            relationship_start_date: When relationship started
+            check_date: Date to check health (default: today)
+            
+        Returns:
+            Relationship health analysis
+        """
+        if not check_date:
+            check_date = date.today()
+        
+        # Calculate base compatibility
+        compatibility = self.calculate_enhanced_compatibility(profile_1, profile_2)
+        
+        # Calculate time-based factors
+        years_together = (check_date - relationship_start_date).days / 365.25
+        
+        # Calculate current cycle alignment
+        dob1 = profile_1.get('birth_date')
+        dob2 = profile_2.get('birth_date')
+        
+        if dob1 and dob2:
+            py1 = self.calculator.calculate_personal_year_number(dob1, check_date.year)
+            py2 = self.calculator.calculate_personal_year_number(dob2, check_date.year)
+            
+            cycle_alignment = self._calculate_cycle_alignment(py1, py2)
+        else:
+            cycle_alignment = {'score': 50, 'level': 'moderate'}
+        
+        # Calculate health score
+        base_score = compatibility.get('overall_compatibility', 50)
+        cycle_score = cycle_alignment.get('score', 50)
+        
+        # Time factor (relationships can improve or decline over time)
+        time_factor = 1.0
+        if years_together > 5:
+            time_factor = 0.95  # Slight decline potential
+        elif years_together > 2:
+            time_factor = 1.0  # Stable
+        else:
+            time_factor = 1.05  # Early relationship boost
+        
+        health_score = (base_score * 0.7 + cycle_score * 0.3) * time_factor
+        health_score = min(100, max(0, health_score))
+        
+        return {
+            'health_score': round(health_score),
+            'health_level': 'excellent' if health_score >= 80 else 'good' if health_score >= 65 else 'moderate' if health_score >= 50 else 'needs_attention',
+            'years_together': round(years_together, 1),
+            'base_compatibility': base_score,
+            'current_cycle_alignment': cycle_alignment,
+            'trend': self._calculate_health_trend(compatibility, cycle_alignment),
+            'recommendations': self._get_health_recommendations(health_score, compatibility)
+        }
+    
+    def get_relationship_growth_tips(
+        self,
+        profile_1: Dict[str, Any],
+        profile_2: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Get personalized relationship growth tips.
+        
+        Args:
+            profile_1: First person's profile
+            profile_2: Second person's profile
+            
+        Returns:
+            Growth tips and recommendations
+        """
+        compatibility = self.calculate_enhanced_compatibility(profile_1, profile_2)
+        
+        lp1 = profile_1.get('life_path_number', 1)
+        lp2 = profile_2.get('life_path_number', 1)
+        su1 = profile_1.get('soul_urge_number', 1)
+        su2 = profile_2.get('soul_urge_number', 1)
+        
+        tips = []
+        
+        # Tips based on life path compatibility
+        if abs(lp1 - lp2) > 4:
+            tips.append({
+                'category': 'Understanding',
+                'tip': 'Focus on understanding each other\'s different approaches to life',
+                'priority': 'high'
+            })
+        
+        # Tips based on soul urge
+        if su1 == su2:
+            tips.append({
+                'category': 'Connection',
+                'tip': 'You share similar inner desires - explore these together',
+                'priority': 'medium'
+            })
+        
+        # Tips based on sexual energy
+        sexual_energy = compatibility.get('sexual_energy', {})
+        if sexual_energy.get('score', 50) < 60:
+            tips.append({
+                'category': 'Intimacy',
+                'tip': 'Work on building physical and emotional intimacy',
+                'priority': 'medium'
+            })
+        
+        # Tips based on communication
+        communication = compatibility.get('communication_style', {})
+        if communication.get('score', 50) < 60:
+            tips.append({
+                'category': 'Communication',
+                'tip': 'Practice active listening and clear expression',
+                'priority': 'high'
+            })
+        
+        # Tips based on breakup risk
+        breakup_risk = compatibility.get('breakup_risk', {})
+        if breakup_risk.get('risk_level') == 'high':
+            tips.append({
+                'category': 'Stability',
+                'tip': 'Focus on building trust and addressing core issues',
+                'priority': 'high'
+            })
+        
+        return {
+            'tips': tips,
+            'growth_areas': self._identify_growth_areas(compatibility),
+            'strengths': self._identify_relationship_strengths(compatibility),
+            'action_plan': self._create_action_plan(tips, compatibility)
+        }
+    
+    def _calculate_milestone_alignment(
+        self,
+        py1: int, py2: int, pm1: int, pm2: int, pd1: int, pd2: int,
+        milestone_type: str
+    ) -> int:
+        """Calculate alignment score for milestone timing."""
+        score = 50  # Base score
+        
+        # Good personal years for milestones
+        good_years = {1, 2, 4, 6, 8}
+        if py1 in good_years and py2 in good_years:
+            score += 20
+        elif py1 in good_years or py2 in good_years:
+            score += 10
+        
+        # Good personal days
+        good_days = {1, 2, 4, 6, 8}
+        if pd1 in good_days and pd2 in good_days:
+            score += 15
+        elif pd1 in good_days or pd2 in good_days:
+            score += 7
+        
+        # Avoid change days (5) for major milestones
+        if pd1 == 5 or pd2 == 5:
+            score -= 15
+        
+        # Milestone-specific adjustments
+        if milestone_type == 'marriage':
+            if py1 == 2 or py2 == 2:  # Partnership year
+                score += 10
+        elif milestone_type == 'proposal':
+            if py1 == 1 or py2 == 1:  # New beginning
+                score += 10
+        
+        return max(0, min(100, score))
+    
+    def _get_milestone_recommendation(self, score: int) -> str:
+        """Get recommendation for milestone timing."""
+        if score >= 80:
+            return 'Excellent - Highly recommended'
+        elif score >= 70:
+            return 'Good - Recommended'
+        elif score >= 60:
+            return 'Moderate - Acceptable'
+        else:
+            return 'Not recommended - Consider alternative date'
+    
+    def _get_timing_recommendations(self, milestone_type: str) -> List[str]:
+        """Get general timing recommendations."""
+        recommendations = []
+        
+        if milestone_type == 'marriage':
+            recommendations.append('Personal Year 2, 4, or 6 are ideal for marriage')
+            recommendations.append('Avoid Personal Day 5 for wedding dates')
+        elif milestone_type == 'proposal':
+            recommendations.append('Personal Year 1 or 2 are good for proposals')
+            recommendations.append('Choose a day when both partners have favorable Personal Days')
+        
+        return recommendations
+    
+    def _calculate_cycle_alignment(self, py1: int, py2: int) -> Dict[str, Any]:
+        """Calculate alignment of personal year cycles."""
+        diff = abs(py1 - py2)
+        
+        if diff == 0:
+            score = 90
+            level = 'excellent'
+        elif diff <= 2:
+            score = 75
+            level = 'good'
+        elif diff <= 4:
+            score = 60
+            level = 'moderate'
+        else:
+            score = 45
+            level = 'challenging'
+        
+        return {
+            'score': score,
+            'level': level,
+            'personal_year_1': py1,
+            'personal_year_2': py2,
+            'difference': diff
+        }
+    
+    def _calculate_health_trend(
+        self,
+        compatibility: Dict[str, Any],
+        cycle_alignment: Dict[str, Any]
+    ) -> str:
+        """Calculate relationship health trend."""
+        base_score = compatibility.get('overall_compatibility', 50)
+        cycle_score = cycle_alignment.get('score', 50)
+        
+        if cycle_score > base_score + 10:
+            return 'improving'
+        elif cycle_score < base_score - 10:
+            return 'declining'
+        else:
+            return 'stable'
+    
+    def _get_health_recommendations(
+        self,
+        health_score: float,
+        compatibility: Dict[str, Any]
+    ) -> List[str]:
+        """Get health recommendations."""
+        recommendations = []
+        
+        if health_score < 60:
+            recommendations.append('Focus on communication and understanding')
+            recommendations.append('Consider relationship counseling')
+        
+        breakup_risk = compatibility.get('breakup_risk', {})
+        if breakup_risk.get('risk_level') == 'high':
+            recommendations.append('Address core compatibility issues')
+        
+        return recommendations
+    
+    def _identify_growth_areas(self, compatibility: Dict[str, Any]) -> List[str]:
+        """Identify areas for relationship growth."""
+        growth_areas = []
+        
+        if compatibility.get('communication_style', {}).get('score', 50) < 70:
+            growth_areas.append('Communication')
+        
+        if compatibility.get('emotional_compatibility', {}).get('score', 50) < 70:
+            growth_areas.append('Emotional Connection')
+        
+        if compatibility.get('sexual_energy', {}).get('score', 50) < 70:
+            growth_areas.append('Physical Intimacy')
+        
+        return growth_areas
+    
+    def _identify_relationship_strengths(self, compatibility: Dict[str, Any]) -> List[str]:
+        """Identify relationship strengths."""
+        strengths = []
+        
+        if compatibility.get('overall_compatibility', 0) >= 75:
+            strengths.append('Strong Overall Compatibility')
+        
+        if compatibility.get('marriage_harmony', {}).get('score', 0) >= 75:
+            strengths.append('High Marriage Harmony')
+        
+        if compatibility.get('financial_compatibility', {}).get('score', 0) >= 75:
+            strengths.append('Financial Compatibility')
+        
+        return strengths
+    
+    def _create_action_plan(self, tips: List[Dict[str, Any]], compatibility: Dict[str, Any]) -> List[str]:
+        """Create action plan from tips."""
+        action_plan = []
+        
+        high_priority_tips = [t for t in tips if t.get('priority') == 'high']
+        for tip in high_priority_tips[:3]:  # Top 3 high priority
+            action_plan.append(f"{tip['category']}: {tip['tip']}")
+        
+        return action_plan
         
         return recommendations
     

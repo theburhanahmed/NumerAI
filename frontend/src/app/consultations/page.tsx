@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { UsersIcon, StarIcon, CalendarIcon, ClockIcon, VideoIcon, MessageSquareIcon, CheckCircleIcon, SparklesIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
-import { FloatingOrbs } from '@/components/ui/floating-orbs';
-import { AmbientParticles } from '@/components/ui/ambient-particles';
-import { MagneticCard } from '@/components/ui/magnetic-card';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
+import { CosmicPageLayout } from '@/components/cosmic/cosmic-page-layout';
 import { consultationsAPI } from '@/lib/consultations-api';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
@@ -67,23 +65,20 @@ export default function Consultations() {
 
   if (loading) {
     return (
-      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-        <AmbientParticles />
-        <FloatingOrbs />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
+      <CosmicPageLayout>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading experts...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+            <p className="text-white/70">Loading experts...</p>
           </div>
         </div>
-      </div>
+      </CosmicPageLayout>
     );
   }
 
-  return <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-950 transition-colors duration-500 relative overflow-hidden">
-      <AmbientParticles />
-      <FloatingOrbs />
-      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8">
+  return (
+    <CosmicPageLayout>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
         {/* Page Header */}
         <motion.div initial={{
         opacity: 0,
@@ -93,7 +88,7 @@ export default function Consultations() {
         y: 0
       }} className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <motion.div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg" animate={{
+            <motion.div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg" animate={{
             rotate: [0, 5, -5, 0]
           }} transition={{
             duration: 3,
@@ -102,10 +97,10 @@ export default function Consultations() {
               <UsersIcon className="w-6 h-6 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Expert Consultations
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-white/70">
                 Connect with certified numerology experts
               </p>
             </div>
@@ -122,12 +117,11 @@ export default function Consultations() {
       }} transition={{
         delay: 0.1
       }} className="mb-8">
-          <GlassCard variant="liquid-premium" className="p-8 bg-gradient-to-br from-blue-500/20 to-purple-600/20 liquid-glass-iridescent">
-            <div className="liquid-glass-content">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <SpaceCard variant="premium" className="p-8" glow>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 Get Personalized Guidance
               </h2>
-              <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+              <p className="text-lg text-white/90 mb-6">
                 Book a session with certified numerology experts for in-depth
                 analysis and guidance
               </p>
@@ -141,30 +135,27 @@ export default function Consultations() {
               }} transition={{
                 delay: 0.2 + index * 0.1
               }}>
-                    <MagneticCard variant="liquid" className="p-4">
-                      <div className="liquid-glass-content">
+                    <SpaceCard variant="premium" className="p-4" glow>
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
+                          <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl flex items-center justify-center text-white">
                             {type.icon}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                            <h3 className="font-semibold text-white">
                               {type.title}
                             </h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                            <p className="text-xs text-white/70">
                               {type.duration}
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <p className="text-sm text-white/80">
                           {type.description}
                         </p>
-                      </div>
-                    </MagneticCard>
+                    </SpaceCard>
                   </motion.div>)}
               </div>
-            </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
 
         {/* Experts Grid */}
@@ -177,15 +168,15 @@ export default function Consultations() {
       }} transition={{
         delay: 0.3
       }}>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-2xl font-bold text-white mb-6">
             Our Expert Numerologists
           </h2>
           {experts.length === 0 ? (
-            <GlassCard className="p-8 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
+            <SpaceCard variant="premium" className="p-8 text-center" glow>
+              <p className="text-white/70">
                 No experts available at the moment. Please check back later.
               </p>
-            </GlassCard>
+            </SpaceCard>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {experts.map((expert, index) => (<motion.div key={expert.id} initial={{
@@ -197,8 +188,7 @@ export default function Consultations() {
           }} transition={{
             delay: 0.4 + index * 0.1
           }}>
-                <MagneticCard variant="liquid-premium" className="p-6 h-full">
-                  <div className="liquid-glass-content">
+                <SpaceCard variant="premium" className="p-6 h-full" glow>
                     <div className="flex items-start gap-4 mb-4">
                       <motion.div className="relative w-20 h-20" whileHover={{
                     scale: 1.05
@@ -212,30 +202,30 @@ export default function Consultations() {
                             className="rounded-2xl object-cover" 
                           />
                         ) : (
-                          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
+                          <div className="w-20 h-20 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
                             {expert.name.charAt(0)}
                           </div>
                         )}
-                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
                           <CheckCircleIcon className="w-5 h-5" />
                         </div>
                       </motion.div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                        <h3 className="text-xl font-bold text-white mb-1">
                           {expert.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 capitalize">
+                        <p className="text-sm text-white/70 mb-2 capitalize">
                           {expert.specialty} Numerologist
                         </p>
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-1">
                             <StarIcon className="w-4 h-4 fill-amber-400 text-amber-400" />
-                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                            <span className="text-sm font-semibold text-white">
                               {expert.rating?.toFixed(1) || 'N/A'}
                             </span>
                           </div>
                           {expert.is_verified && (
-                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full border border-green-500/30">
                               Verified
                             </span>
                           )}
@@ -243,28 +233,26 @@ export default function Consultations() {
                       </div>
                     </div>
 
-                    <GlassCard variant="liquid" className="p-4 mb-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10">
-                      <div className="liquid-glass-content">
+                    <SpaceCard variant="premium" className="p-4 mb-4" glow>
                         <div className="flex items-center gap-2 mb-2">
-                          <ClockIcon className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                          <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <ClockIcon className="w-4 h-4 text-cyan-400" />
+                          <span className="text-sm font-semibold text-white">
                             {expert.experience_years} years Experience
                           </span>
                         </div>
                         {expert.bio && (
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                          <p className="text-sm text-white/80 mt-2">
                             {expert.bio.substring(0, 100)}...
                           </p>
                         )}
-                      </div>
-                    </GlassCard>
+                    </SpaceCard>
 
                     <div className="mb-4">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                      <p className="text-sm font-semibold text-white mb-2">
                         Specialty
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs font-medium text-gray-800 dark:text-gray-200 capitalize">
+                        <span className="px-3 py-1 bg-purple-500/20 rounded-full text-xs font-medium text-purple-300 capitalize border border-purple-500/30">
                           {expert.specialty}
                         </span>
                       </div>
@@ -272,37 +260,34 @@ export default function Consultations() {
 
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-white/70">
                           Status
                         </p>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <p className="text-sm font-semibold text-white">
                           {expert.is_active ? 'Available' : 'Unavailable'}
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <GlassButton 
-                          variant="liquid" 
+                        <TouchOptimizedButton 
+                          variant="secondary" 
                           size="sm" 
                           onClick={() => router.push(`/consultations/chat?expert_id=${expert.id}`)}
-                          className="glass-glow"
                         >
                           Chat
-                        </GlassButton>
-                        <GlassButton 
-                          variant="liquid" 
+                        </TouchOptimizedButton>
+                        <TouchOptimizedButton 
+                          variant="primary" 
                           size="sm" 
                           onClick={() => handleBookConsultation(expert.id)} 
-                          className="glass-glow" 
                           disabled={!expert.is_active}
                         >
                           Book Now
-                        </GlassButton>
+                        </TouchOptimizedButton>
                       </div>
                     </div>
-                  </div>
-                </MagneticCard>
+                </SpaceCard>
               </motion.div>))}
-          </div>
+            </div>
           )}
         </motion.div>
 
@@ -316,52 +301,45 @@ export default function Consultations() {
       }} transition={{
         delay: 0.5
       }} className="mt-12">
-          <GlassCard variant="liquid-premium" className="p-8">
-            <div className="liquid-glass-content">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <SpaceCard variant="premium" className="p-8" glow>
+              <h2 className="text-2xl font-bold text-white mb-6">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-4">
-                <MagneticCard variant="liquid" className="p-5">
-                  <div className="liquid-glass-content">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                <SpaceCard variant="premium" className="p-5" glow>
+                    <h3 className="font-semibold text-white mb-2">
                       How long is a typical consultation?
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-white/80">
                       Standard consultations are 60 minutes, but we also offer
                       30-minute follow-ups and 45-minute chat sessions.
                     </p>
-                  </div>
-                </MagneticCard>
+                </SpaceCard>
 
-                <MagneticCard variant="liquid" className="p-5">
-                  <div className="liquid-glass-content">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                <SpaceCard variant="premium" className="p-5" glow>
+                    <h3 className="font-semibold text-white mb-2">
                       Can I reschedule my appointment?
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-white/80">
                       Yes, you can reschedule up to 24 hours before your
                       appointment without any charges.
                     </p>
-                  </div>
-                </MagneticCard>
+                </SpaceCard>
 
-                <MagneticCard variant="liquid" className="p-5">
-                  <div className="liquid-glass-content">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                <SpaceCard variant="premium" className="p-5" glow>
+                    <h3 className="font-semibold text-white mb-2">
                       What should I prepare before the consultation?
                     </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-white/80">
                       Have your birth date, full name, and any specific
                       questions ready. You will receive a detailed preparation
                       guide after booking.
                     </p>
-                  </div>
-                </MagneticCard>
+                </SpaceCard>
               </div>
-            </div>
-          </GlassCard>
+          </SpaceCard>
         </motion.div>
       </div>
-    </div>;
+    </CosmicPageLayout>
+  );
 }

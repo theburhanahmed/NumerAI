@@ -14,15 +14,6 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // #region agent log
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
-      const hasToken = !!token;
-      const tokenLength = token ? token.length : 0;
-      const url = config.url ? `${config.baseURL || ''}${config.url}` : 'unknown';
-      fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api-client.ts:19',message:'API request starting',data:{method:config.method,url,hasToken,tokenLength,hasAuthHeader:!!config.headers?.Authorization},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    }
-    // #endregion
     // Only access localStorage in browser environment
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('access_token');
@@ -118,14 +109,6 @@ apiClient.interceptors.response.use(
       const status = error.response.status;
       const data = error.response.data as any;
 
-      // #region agent log
-      const requestUrl = originalRequest?.url ? `${originalRequest.baseURL || ''}${originalRequest.url}` : 'unknown';
-      const authHeaderRaw = originalRequest?.headers?.Authorization;
-      const authHeader = typeof authHeaderRaw === 'string' ? authHeaderRaw : (authHeaderRaw ? String(authHeaderRaw) : 'none');
-      const authHeaderPrefix = typeof authHeader === 'string' ? authHeader.substring(0,20) : 'none';
-      const errorDataStr = typeof data === 'object' ? JSON.stringify(data).substring(0,500) : String(data).substring(0,500);
-      fetch('http://127.0.0.1:7242/ingest/bd39975f-6fe4-411e-a1e1-89be47e83836',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api-client.ts:91',message:'API error response received',data:{status,url:requestUrl,errorData:errorDataStr,hasAuthHeader:!!authHeaderRaw,authHeaderPrefix,method:originalRequest?.method},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
 
       // Don't show toast for 401 as it's handled above (or redirects)
       if (status !== 401) {
@@ -166,6 +149,8 @@ export default apiClient;
 
 // API endpoints
 export const authAPI = {
+  appleSignIn: (data: { identity_token: string; authorization_code?: string }) =>
+    apiClient.post('/auth/social/apple/', data),
   register: (data: {
     email?: string;
     phone?: string;
@@ -255,4 +240,13 @@ export const notificationAPI = {
     apiClient.delete(`/notifications/${notificationId}/`),
   getUnreadCount: () =>
     apiClient.get('/notifications/unread-count/'),
+  getPreferences: () =>
+    apiClient.get('/notifications/preferences/'),
+  updatePreference: (data: {
+    notification_type: string;
+    channel: string;
+    enabled: boolean;
+  }) => apiClient.put('/notifications/preferences/', data),
+  bulkUpdatePreferences: (data: { preferences: Array<{ notification_type: string; channel: string; enabled: boolean }> }) =>
+    apiClient.post('/notifications/preferences/bulk-update/', data),
 };

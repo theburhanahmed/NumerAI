@@ -10,8 +10,8 @@ import {
   ShieldCheckIcon,
   AlertCircleIcon
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { GlassButton } from '@/components/ui/glass-button';
+import { SpaceCard } from '@/components/space/space-card';
+import { TouchOptimizedButton } from '@/components/buttons/touch-optimized-button';
 import { useToast } from '@/components/ui/use-toast';
 
 interface OTPFormProps {
@@ -90,39 +90,39 @@ export default function OTPForm({ email, phone }: OTPFormProps) {
   // Show error if no email/phone
   if (!email && !phone) {
     return (
-      <GlassCard variant="elevated" className="p-8">
+      <SpaceCard variant="premium" className="p-8" glow>
         <div className="text-center space-y-4">
           <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <AlertCircleIcon className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-white">
             Missing Information
           </h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-white/70">
             Email or phone number is required for verification.
           </p>
-          <GlassButton
+          <TouchOptimizedButton
             onClick={() => router.push('/register')}
             variant="primary"
             className="w-full"
           >
             Go to Registration
-          </GlassButton>
+          </TouchOptimizedButton>
         </div>
-      </GlassCard>
+      </SpaceCard>
     );
   }
 
   return (
-    <GlassCard variant="elevated" className="p-8">
+    <SpaceCard variant="premium" className="p-8" glow>
       <div className="text-center mb-6">
-        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <ShieldCheckIcon className="w-6 h-6 text-white" />
         </div>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-white/70">
           Enter the 6-digit code sent to
         </p>
-        <p className="font-medium text-gray-900 dark:text-white flex items-center justify-center gap-2 mt-1">
+        <p className="font-medium text-white flex items-center justify-center gap-2 mt-1">
           <MailIcon className="w-4 h-4" />
           {email || phone}
         </p>
@@ -131,7 +131,7 @@ export default function OTPForm({ email, phone }: OTPFormProps) {
       <form onSubmit={handleSubmit}>
         <div className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
+            <label htmlFor="otp" className="block text-sm font-medium text-white/90 text-center">
               OTP Code
             </label>
             <input
@@ -143,51 +143,39 @@ export default function OTPForm({ email, phone }: OTPFormProps) {
               required
               disabled={loading}
               maxLength={6}
-              className="w-full px-3 py-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-center text-2xl tracking-widest"
+              className="w-full px-3 py-4 bg-[#1a2942]/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-center text-2xl tracking-widest"
             />
-            <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
+            <p className="text-xs text-white/70 text-center">
               Code expires in 10 minutes
             </p>
           </div>
           
           <div className="space-y-4">
-            <GlassButton
+            <TouchOptimizedButton
               type="submit"
               variant="primary"
               size="lg"
               className="w-full"
               disabled={loading || otp.length !== 6}
+              loading={loading}
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                  Verifying...
-                </div>
-              ) : (
-                "Verify Account"
-              )}
-            </GlassButton>
+              Verify Account
+            </TouchOptimizedButton>
             
-            <GlassButton
+            <TouchOptimizedButton
               type="button"
               variant="secondary"
               size="lg"
               className="w-full"
               onClick={handleResendOTP}
               disabled={resending || (!email && !phone)}
+              loading={resending}
             >
-              {resending ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-gray-400/30 border-t-gray-600 dark:border-gray-500/30 dark:border-t-gray-300 rounded-full animate-spin mr-2"></div>
-                  Resending...
-                </div>
-              ) : (
-                "Resend OTP"
-              )}
-            </GlassButton>
+              Resend OTP
+            </TouchOptimizedButton>
           </div>
         </div>
       </form>
-    </GlassCard>
+    </SpaceCard>
   );
 }
