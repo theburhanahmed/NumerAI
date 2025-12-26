@@ -20,7 +20,7 @@ django-celery-results==2.5.1
 django-allauth==0.63.3
 # Additional dependencies for social account providers
 google-auth==2.29.0
-google-auth-oauthlib==1.2.0
+google-auth-oauthlib==1.2.3
 google-auth-httplib2==0.2.0
 requests-oauthlib==2.0.0
 cffi==1.17.1
